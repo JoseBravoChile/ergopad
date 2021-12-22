@@ -39,7 +39,7 @@ class Wallet:
     if self.getType() == WalletKind.P2PK:
       return (b'\x00\x08\xcd' + self.publicKey()).hex()
     else:
-      return self.addrBytes[:self.addrBytes.length - 4].hex()
+      return self.addrBytes[:len(self.addrBytes) - 4].hex()
 
   def bs64(self):
     return b64encode(self.ergoTree().encode('utf-8')).decode('utf-8')

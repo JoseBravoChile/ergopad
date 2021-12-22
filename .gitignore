@@ -11,6 +11,7 @@ next.config.js
 # testing
 /coverage
 /backend/app/ergo/*.ipynb
+docker-compose-luitest.yml
 
 # production
 /build
