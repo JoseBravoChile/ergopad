@@ -37,6 +37,7 @@ yarn-error.log*
 # ergonode
 /ergonode/*.conf
 /ergonode/ergo-*.jar
+ergo.conf
 
 # apps
 .vercel

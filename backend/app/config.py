@@ -34,6 +34,10 @@ Config = {
     'buyerWallet'       : os.getenv('BUYER_WALLET'),
     'buyerNode'         : 'http://ergonode2:9052',
     'vestingPeriods'    : 3,
+    'buyerWallet'       : os.getenv('BUYER_WALLET'),
+    'nodeWallet'        : os.getenv('NODE_WALLET'),
+    'seedSaleToken'     : os.getenv('SEED_SALE_TOKEN'),
+    'ergopadToken'      : os.getenv('ERGOPAD_TOKEN')
   }),
   'mainnet': dotdict({
     'node'              : os.getenv('ERGONODE_HOST'),

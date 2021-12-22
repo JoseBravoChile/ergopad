@@ -78,18 +78,18 @@ try:
 
   if Network == 'testnet':
     validCurrencies    = {
-      'seedsale': '81804ebd8d0eb51cfb03af1deb4d60e29be71fc73b9de55078650aa12e171eb9',
+      'seedsale': CFG.seedSaleToken,
       'sigusd'  : '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04',
-      'ergopad' : '0890ad268cd62f29d09245baa423f2251f1d77ea21443a27d60c3c92377d2e4d',
+      'ergopad' : CFG.ergopadToken,
       # 'kushti' : '??',
       # '$COMET' : '??',
     }
 
-    CFG.node           = 'http://ergonode:9052'
-    CFG.assembler      = 'http://assembler:8080'
-    CFG.ergopadApiKey  = 'oncejournalstrangeweather'
-    nodeWallet         = Wallet('3WwjaerfwDqYvFwvPRVJBJx2iUvCjD2jVpsL82Zho1aaV5R95jsG') # contains tokens
-    buyerWallet        = Wallet('3WzKopFYhfRGPaUvC7v49DWgeY1efaCD3YpNQ6FZGr2t5mBhWjmw') # simulate buyer
+    #CFG.node           = 'http://ergonode:9052'
+    #CFG.assembler      = 'http://assembler:8080'
+    #CFG.ergopadApiKey  = 'oncejournalstrangeweather'
+    nodeWallet         = Wallet(CFG.nodeWallet) # contains tokens
+    buyerWallet        = Wallet(CFG.buyerWallet) # simulate buyer
 
   else:
     validCurrencies    = {
@@ -281,17 +281,15 @@ def getErgoscript(name, params={}):
       script = f"""{{
         val buyerPK = PK("{params['buyerWallet']}")
         val sellerPK = PK("{params['nodeWallet']}")
-        // val tokenId = fromBase64("{params['purchaseToken']}")
+        val tokenId = fromBase64("{params['purchaseToken']}")
         val sellerOutput = {{
-          OUTPUTS(0).propositionBytes == sellerPK.propBytes && 
-          OUTPUTS(0).tokens(0)._2 == {params['purchaseTokenAmount']}L 
-          // && OUTPUTS(0).tokens(0)._1 == tokenId
+          OUTPUTS(0).propositionBytes == sellerPK.propBytes &&
+            ((tokenId.size == 0 && OUTPUTS(0).value == {params['purchaseTokenAmount']}) ||
+              (OUTPUTS(0).tokens(0)._2 == {params['purchaseTokenAmount']}L && OUTPUTS(0).tokens(0)._1 == tokenId))
         }}
         val returnFunds = {{
           val total = INPUTS.fold(0L, {{(x:Long, b:Box) => x + b.value}}) - 2000000
-          OUTPUTS(0).value >= total && 
-          OUTPUTS(0).propositionBytes == buyerPK.propBytes  &&
-          OUTPUTS.size == 2        
+          OUTPUTS(0).value >= total && OUTPUTS(0).propositionBytes == buyerPK.propBytes && OUTPUTS.size == 2
         }}
         sigmaProp((returnFunds || sellerOutput) && HEIGHT < {params['timestamp']})
       }}"""
@@ -325,10 +323,10 @@ def getErgoscript(name, params={}):
         sigmaProp((isVested || isExpired)) // && isValidToken)
       }}"""
 
-    # logging.debug(f'Script: {script}')
+    logging.debug(f'Script: {script}')
     # get the P2S address (basically a hash of the script??)
     p2s = requests.post(f'{CFG.assembler}/compile', headers=headers, json=script)
-    # logging.debug(f'p2s: {p2s.content}')
+    logging.debug(f'p2s: {p2s.content}')
     smartContract = p2s.json()['address']
     # logging.debug(f'smart contract: {smartContract}')
 
@@ -563,8 +561,7 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
       'nodeWallet': nodeWallet.address,
       'buyerWallet': buyerWallet.address,
       'timestamp': int(time()),
-      'purchaseToken': b64encode(validCurrencies['seedsale'].encode('utf-8').hex().encode('utf-8')).decode('utf-8'),
-      #'purchaseToken': validCurrencies['seedsale'],
+      'purchaseToken': b64encode(bytes.fromhex(validCurrencies['seedsale'])).decode('utf-8'),
       'purchaseTokenAmount': tokenAmount
     }
     # scPurchase = getErgoscript('walletLock', {'nodeWallet': nodeWallet.address, 'buyerWallet': buyerWallet.address, 'timestamp': int(time())})
