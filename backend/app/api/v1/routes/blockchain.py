@@ -297,30 +297,36 @@ def getErgoscript(name, params={}):
     if name == 'vestingLock':
       script = f"""{{
         // only buyer or seller allowed to unlock
-        val buyerPK = PK("{params['buyerWallet']}")
-        val sellerPK = PK("{params['nodeWallet']}") // ergopad.io
-
-        // val isValidToken = SELF.tokens(0)._1 == "{params['ergopadTokenId']}"        
-        // val tokenId = fromBase64("{params['ergopadTokenId']}")
-        // val isValidToken = {{
-        //    OUTPUTS(0).tokens(0)._1 == tokenId &&
-        //    OUTPUTS(0).tokens(0)._2 == {params['tokenAmount']}L
-        // }} 
+        val buyerPK = PK(SELF.R4[Col[Byte]].get)
+        val blockTime = CONTEXT.preHeader.timestamp
+        val redeemPeriod = SELF.R5[BigInt].get
+        val redeemAmount = SELF.R6[BigInt].get
+        val vestingStart = SELF.R7[BigInt].get
+        val totalVested = SELF.R8[BigInt].get
+        val timeVested = blockTime - vestingStart
+        val periods = timeVested/redeemPeriod
+        val redeemed = totalVested - SELF.tokens(0)._2
+        val totalRedeemable = periods * redeemAmount
+        val redeemableTokens = if (totalVested - totalRedeemable < redeemAmount) totalVested - redeemed else totalRedeemable - redeemed
+        val isValidToken = {{
+          OUTPUTS(0).tokens(1)._1 == SELF.tokens(0)._1 &&
+          OUTPUTS(0).tokens(1)._2 <= redeemableTokens
+        }} 
 
         // buyer can only spend after vesting period is complete
-        val isVested = {{
-            OUTPUTS(0).propositionBytes == buyerPK.propBytes &&
-            CONTEXT.preHeader.timestamp > {params['vestingPeriodEpoch']}L
-        }}
+        val isBuyerOutput = OUTPUTS(1).propositionBytes == buyerPK.propBytes 
 
-        // abandonded; seller allowed recovery of tokens
-        val isExpired = {{
-            OUTPUTS(0).propositionBytes == sellerPK.propBytes &&
-            CONTEXT.preHeader.timestamp > {params['expiryEpoch']}L
-        }}
+        val selfOutput = OUTPUTS(1).propositionBytes == SELF.propositionBytes &&
+                          OUTPUTS(1).tokens(0)._1 == SELF.tokens(0)._1 &&
+                          OUTPUTS(1).tokens(0)._2 == SELF.tokens(0)._2 - OUTPUTS(0).tokens(0)._2 &&
+                          OUTPUTS(1).R4[Col[Byte]].get == SELF.R4[Col[Byte]].get
+                          OUTPUTS(1).R5[Col[Byte]].get == SELF.R5[Col[Byte]].get
+                          OUTPUTS(1).R6[Col[Byte]].get == SELF.R6[Col[Byte]].get
+                          OUTPUTS(1).R7[Col[Byte]].get == SELF.R7[Col[Byte]].get
+                          OUTPUTS(1).R8[Col[Byte]].get == SELF.R8[Col[Byte]].get
 
         // check for proper tokenId?
-        sigmaProp((isVested || isExpired)) // && isValidToken)
+        sigmaProp((isVested || isExpired)) && selfOutput)
       }}"""
 
     logging.debug(f'Script: {script}')
