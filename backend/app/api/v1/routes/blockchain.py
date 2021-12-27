@@ -420,8 +420,15 @@ def redeemToken(address:str):
           outBox = {
             'address': box.address,
             'value': box.value,
+            'registers': {
+              'R4': box['R4'].serializedValue,
+              'R5': box['R5'].serializedValue,
+              'R6': box['R6'].serializedValue,
+              'R7': box['R7'].serializedValue,
+              'R8': box['R8'].serializedValue
+            },
             'assets': [{
-              'tokenId': box.assets.token.1.id,
+              'tokenId': '',#box.assets.token.1.id,
               'amount': (totalVested-(redeemableTokens+redeemed))
             }]
           }
@@ -430,7 +437,7 @@ def redeemToken(address:str):
           'address': buyerAddress,
           'value': txFee_nerg,
           'assets': [{
-            'tokenId': box.assets.token.1.id,
+            'tokenId': "",#box.assets.token.1.id,
             'amount': redeemableTokens
           }]
         }
@@ -589,7 +596,7 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
     #r4 = b16encode(bytearray.fromhex(buyerWallet.address)).decode('utf-8')
     r5 = encode(vestingDuration_ms)
     r6 = encode(int(tokenAmount/vestingPeriods))
-    r7 = encode(int(time()))
+    r7 = encode(vestingBegin_ms)
     r8 = encode(tokenAmount)
     outBox.append({
       'address': scVesting,
