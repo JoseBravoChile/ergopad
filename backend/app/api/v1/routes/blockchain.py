@@ -1,5 +1,4 @@
 import requests, json, os
-
 from starlette.responses import JSONResponse 
 from wallet import Wallet # ergopad.io library
 from config import Config, Network # api specific config
@@ -8,7 +7,8 @@ from typing import Optional
 from pydantic import BaseModel
 from time import time, ctime
 from api.v1.routes.asset import get_asset_current_price
-from base64 import b64encode
+from base64 import b16encode, b64encode
+from ergo.util import encode
 
 #region BLOCKHEADER
 """
@@ -244,7 +244,7 @@ def getErgoscript(name, params={}):
         val x = 1
         val y = 1
 
-        sigmaProp( x == y && HEIGHT < {params['timestamp']}L )
+        sigmaProp( x == y )
       }}"""
 
     if name == 'neverTrue':
@@ -296,37 +296,35 @@ def getErgoscript(name, params={}):
 
     if name == 'vestingLock':
       script = f"""{{
-        // only buyer or seller allowed to unlock
-        val buyerPK = PK(SELF.R4[Col[Byte]].get)
-        val blockTime = CONTEXT.preHeader.timestamp
-        val redeemPeriod = SELF.R5[BigInt].get
-        val redeemAmount = SELF.R6[BigInt].get
-        val vestingStart = SELF.R7[BigInt].get
-        val totalVested = SELF.R8[BigInt].get
+        val blockTime = CONTEXT.preHeader.timestamp/1000L
+        val redeemPeriod = SELF.R5[Long].get
+        val redeemAmount = SELF.R6[Long].get
+        val vestingStart = SELF.R7[Long].get
+        val totalVested = SELF.R8[Long].get
         val timeVested = blockTime - vestingStart
         val periods = timeVested/redeemPeriod
         val redeemed = totalVested - SELF.tokens(0)._2
         val totalRedeemable = periods * redeemAmount
         val redeemableTokens = if (totalVested - totalRedeemable < redeemAmount) totalVested - redeemed else totalRedeemable - redeemed
-        val isValidToken = {{
-          OUTPUTS(0).tokens(1)._1 == SELF.tokens(0)._1 &&
-          OUTPUTS(0).tokens(1)._2 <= redeemableTokens
-        }} 
 
-        // buyer can only spend after vesting period is complete
-        val isBuyerOutput = OUTPUTS(1).propositionBytes == buyerPK.propBytes 
-
-        val selfOutput = OUTPUTS(1).propositionBytes == SELF.propositionBytes &&
-                          OUTPUTS(1).tokens(0)._1 == SELF.tokens(0)._1 &&
-                          OUTPUTS(1).tokens(0)._2 == SELF.tokens(0)._2 - OUTPUTS(0).tokens(0)._2 &&
-                          OUTPUTS(1).R4[Col[Byte]].get == SELF.R4[Col[Byte]].get
-                          OUTPUTS(1).R5[Col[Byte]].get == SELF.R5[Col[Byte]].get
-                          OUTPUTS(1).R6[Col[Byte]].get == SELF.R6[Col[Byte]].get
-                          OUTPUTS(1).R7[Col[Byte]].get == SELF.R7[Col[Byte]].get
-                          OUTPUTS(1).R8[Col[Byte]].get == SELF.R8[Col[Byte]].get
+        val totalBuyerOutput = OUTPUTS.filter({{(box: Box) => box.propositionBytes == SELF.R4[Coll[Byte]].get && 
+                                                            box.tokens.size==1 &&
+                                                            box.tokens(0)._1 == SELF.tokens(0)._1}})
+                                      .fold(0L, {{(z: Long,box: Box) => z+box.tokens(0)._2}})
+        val tokenReleased = totalBuyerOutput <= redeemableTokens
+        val selfOutput = SELF.tokens(0)._2 == totalBuyerOutput || 
+                          OUTPUTS.exists {{(box: Box) => box.value == SELF.value &&
+                                                        box.propositionBytes == SELF.propositionBytes &&
+                                                        box.tokens(0)._1 == SELF.tokens(0)._1 &&
+                                                        box.tokens(0)._2 == SELF.tokens(0)._2 - totalBuyerOutput &&
+                                                        box.R4[Coll[Byte]].get == SELF.R4[Coll[Byte]].get &&
+                                                        box.R5[Long].get == SELF.R5[Long].get &&
+                                                        box.R6[Long].get == SELF.R6[Long].get &&
+                                                        box.R7[Long].get == SELF.R7[Long].get &&
+                                                        box.R8[Long].get == SELF.R8[Long].get}}
 
         // check for proper tokenId?
-        sigmaProp((isVested || isExpired)) && selfOutput)
+        sigmaProp(tokenReleased && selfOutput)
       }}"""
 
     logging.debug(f'Script: {script}')
@@ -395,42 +393,77 @@ def findVestingTokens(wallet:str):
     return {'status': 'error', 'def': myself(), 'message': e}
 
 # redeem/disburse tokens after lock
-@r.get("/redeem/{box}", name="blockchain:redeem")
-def redeemToken(box:str):
+@r.get("/redeem/{address}", name="blockchain:redeem")
+def redeemToken(address:str):
 
   txFee_nerg = CFG.txFee
   txBoxTotal_nerg = 0
-  scPurchase = getErgoscript('walletLock', {
-    'nodeWalletTree': nodeWallet.bs64(), 
-    'buyerWalletTree': buyerWallet.bs64(), 
-  })
-  # redeem
-  outBox = [{
-    'address': buyerWallet.address,
-    'value': txFee_nerg,
-    'assets': [{ 
-      'tokenId': validCurrencies['ergopad'],
-      'amount': 1
+  scPurchase = getErgoscript('alwaysTrue', {})
+  outBoxes = []
+  inBoxes = []
+  currentTime = time()
+  res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}', headers=dict(headers), timeout=2)
+  if res.ok:
+    for box in boxes:
+      buyerAddress = Wallet().fromErgoTree(box['R4'].renderedValue).address
+      redeemPeriod = int(box['R5'].renderedValue)
+      redeemAmount = int(box['R6'].renderedValue)
+      vestingStart = int(box['R7'].renderedValue)
+      totalVested = int(box['R8'].renderedValue)
+      timeVested = int(currentTime - vestingStart)
+      periods = int(timeVested/redeemPeriod)
+      redeemed = totalVested - box.tokens(0)._2
+      totalRedeemable = periods * redeemAmount
+      redeemableTokens = totalVested - redeemed if (totalVested-totalRedeemable) < redeemAmount else totalRedeemable - redeemed
+      if redeemableTokens > 0:
+        if (totalVested-(redeemableTokens+redeemed))>0:
+          outBox = {
+            'address': box.address,
+            'value': box.value,
+            'assets': [{
+              'tokenId': box.assets.token.1.id,
+              'amount': (totalVested-(redeemableTokens+redeemed))
+            }]
+          }
+          outBoxes.append(outBox)
+        outBox = {
+          'address': buyerAddress,
+          'value': txFee_nerg,
+          'assets': [{
+            'tokenId': box.assets.token.1.id,
+            'amount': redeemableTokens
+          }]
+        }
+        outBoxes.append(outBox)
+        txBoxTotal_nerg += txFee_nerg
+    # redeem
+    outBox = [{
+      'address': buyerWallet.address,
+      'value': txFee_nerg,
+      'assets': [{ 
+        'tokenId': validCurrencies['ergopad'],
+        'amount': 1
+      }]
     }]
-  }]
-  request = {
-    'address': scPurchase,
-    'returnTo': buyerWallet.address,
-    'startWhen': {
-        'erg': txFee_nerg + txBoxTotal_nerg, 
-    },
-    'txSpec': {
-        'requests': outBox,
-        'fee': txFee_nerg,          
-        'inputs': ['$userIns', box],
-        'dataInputs': [],
-    },
-  }
+    ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId="", nErgAmount=txBoxTotal_nerg, tokenAmount=0)
+    request = {
+      'address': scPurchase,
+      'returnTo': buyerWallet.address,
+      'startWhen': {
+          'erg': 0, 
+      },
+      'txSpec': {
+          'requests': outBoxes,
+          'fee': txFee_nerg,          
+          'inputs': inBoxes+list(ergopadTokenBoxes.keys()),
+          'dataInputs': [],
+      },
+    }
 
-  # make async request to assembler
-  # logging.info(request); exit(); # !! testing
-  res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)    
-  logging.debug(request)
+    # make async request to assembler
+    # logging.info(request); exit(); # !! testing
+    res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)    
+    logging.debug(request)
 
   try:
     return({
@@ -534,35 +567,45 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
           'value': coinAmount_nerg
       }]
     # box per vesting period
-    for i in range(vestingPeriods):
+    #for i in range(vestingPeriods):
       # in event the requested tokens do not divide evenly by vesting period, add remaining to final output
-      remainder = (0, tokenAmount%vestingPeriods)[i == vestingPeriods-1]
-      params = {
-        'vestingPeriodEpoch': vestingBegin_ms + i*vestingDuration_ms,
-        'expiryEpoch': expiryEpoch_ms,
-        'buyerWallet': buyerWallet.address, # 'buyerTree': buyerWallet.bs64(),
-        'nodeWallet': nodeWallet.address, # 'nodeTree': nodeWallet.bs64(),
-        'ergopadTokenId': tokenId,
-        'tokenAmount': int(tokenAmount/vestingPeriods + remainder),
-      }
-      logging.info(params)
-      scVesting = getErgoscript('vestingLock', params=params)
-      logging.info(f'vesting period {i}: {ctime(int(params["vestingPeriodEpoch"])/1000)})')
-      # ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId)
+      #remainder = (0, tokenAmount%vestingPeriods)[i == vestingPeriods-1]
+      # params = {
+      #   'vestingPeriodEpoch': vestingBegin_ms + i*vestingDuration_ms,
+      #   'expiryEpoch': expiryEpoch_ms,
+      #   'buyerWallet': buyerWallet.address, # 'buyerTree': buyerWallet.bs64(),
+      #   'nodeWallet': nodeWallet.address, # 'nodeTree': nodeWallet.bs64(),
+      #   'ergopadTokenId': tokenId,
+      #   'tokenAmount': int(tokenAmount/vestingPeriods + remainder),
+      # }
+      #logging.info(params)
+    scVesting = getErgoscript('vestingLock', params={})
+    #logging.info(f'vesting period {i}: {ctime(int(params["vestingPeriodEpoch"])/1000)})')
+    # ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId)
 
-      # create outputs for each vesting period; add remainder to final output, if exists
-      r4 = '0e'+hex(len(bytearray.fromhex(buyerWallet.ergoTree())))[2:]+buyerWallet.ergoTree() # convert to bytearray
-      outBox.append({
-        'address': scVesting,
-        'value': txFee_nerg,
-        'registers': {
-          'R4': r4
-        },
-        'assets': [{ 
-          'tokenId': tokenId,
-          'amount': int(tokenAmount/vestingPeriods + remainder)
-        }]
-      })
+    # create outputs for each vesting period; add remainder to final output, if exists
+    r4 = '0e'+hex(len(bytes.fromhex(buyerWallet.ergoTree())))[2:]+buyerWallet.ergoTree() # convert to bytearray
+    #arrLength = b16encode(hex(len(bytearray.fromhex(buyerWallet.address))-2)).decode('utf-8')
+    #r4 = b16encode(bytearray.fromhex(buyerWallet.address)).decode('utf-8')
+    r5 = encode(vestingDuration_ms)
+    r6 = encode(int(tokenAmount/vestingPeriods))
+    r7 = encode(int(time()))
+    r8 = encode(tokenAmount)
+    outBox.append({
+      'address': scVesting,
+      'value': txFee_nerg,
+      'registers': {
+        'R4': r4,
+        'R5': r5,
+        'R6': r6,
+        'R7': r7,
+        'R8': r8
+      },
+      'assets': [{ 
+        'tokenId': tokenId,
+        'amount': tokenAmount
+      }]
+    })
     params = {
       'nodeWallet': nodeWallet.address,
       'buyerWallet': buyerWallet.address,
@@ -600,9 +643,9 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
     logging.info({'status': 'success', 'fin': fin.json(), 'followId': id})
 
     # save buyer info
-    with open(f'blacklist.tsv', 'a') as f:
+    #with open(f'blacklist.tsv', 'a') as f:
       # buyer, timestamp, tokens
-      f.write('\t'.join([buyerWallet.address, str(time()), str(tokenAmount)]))
+      #f.write('\t'.join([buyerWallet.address, str(time()), str(tokenAmount)]))
   
     logging.debug(f'::TOOK {time()-st:.2f}s')
     return({
