@@ -1,6 +1,6 @@
 import requests, json, os
 from starlette.responses import JSONResponse 
-from wallet import Wallet # ergopad.io library
+from wallet import Wallet, NetworkEnvironment # ergopad.io library
 from config import Config, Network # api specific config
 from fastapi import APIRouter, status
 from typing import Optional
@@ -8,7 +8,8 @@ from pydantic import BaseModel
 from time import time, ctime
 from api.v1.routes.asset import get_asset_current_price
 from base64 import b16encode, b64encode
-from ergo.util import encode
+from ergo.util import encodeLong, encodeString
+import uuid
 
 #region BLOCKHEADER
 """
@@ -266,66 +267,11 @@ def getErgoscript(name, params={}):
         sigmaProp(1==1)
       }}"""
 
-    if name == 'walletLock':
-      # working
-      # script = f"""{{
-      #   val isValidSeller = OUTPUTS(0).propositionBytes == fromBase64("{params['nodeWalletTree']}")
-      #   val isValidBuyer = INPUTS(0).propositionBytes == fromBase64("{params['buyerWalletTree']}")
-      #
-      #   // sigmaProp(isValidSeller && isValidBuyer)
-      #   sigmaProp(isValidBuyer)
-      # }}"""
-      # params['buyerWallet'] = '9f2sfNnZDzwFGjFRqLGtPQYu94cVh3TcE2HmHksvZeg1PY5tGrZ'
-      # params['nodeWallet'] = '9gibNzudNny7MtB725qGM3Pqftho1SMpQJ2GYLYRDDAftMaC285'
-      # params['timestamp'] = 1000000
-      script = f"""{{
-        val buyerPK = PK("{params['buyerWallet']}")
-        val sellerPK = PK("{params['nodeWallet']}")
-        val tokenId = fromBase64("{params['purchaseToken']}")
-        val sellerOutput = {{
-          OUTPUTS(0).propositionBytes == sellerPK.propBytes &&
-            ((tokenId.size == 0 && OUTPUTS(0).value == {params['purchaseTokenAmount']}) ||
-              (OUTPUTS(0).tokens(0)._2 == {params['purchaseTokenAmount']}L && OUTPUTS(0).tokens(0)._1 == tokenId))
-        }}
-        val returnFunds = {{
-          val total = INPUTS.fold(0L, {{(x:Long, b:Box) => x + b.value}}) - 2000000
-          OUTPUTS(0).value >= total && OUTPUTS(0).propositionBytes == buyerPK.propBytes && OUTPUTS.size == 2
-        }}
-        sigmaProp((returnFunds || sellerOutput) && HEIGHT < {params['timestamp']})
-      }}"""
+    if name == 'directSale' or name == 'vesting1' or name == 'vesting2':
+      with open(f'contracts/{name}.es') as f:
+        unformattedScript = f.read()
+      script = unformattedScript.format(**params)
 
-    if name == 'vestingLock':
-      script = f"""{{
-        val blockTime = CONTEXT.preHeader.timestamp/1000L
-        val redeemPeriod = SELF.R5[Long].get
-        val redeemAmount = SELF.R6[Long].get
-        val vestingStart = SELF.R7[Long].get
-        val totalVested = SELF.R8[Long].get
-        val timeVested = blockTime - vestingStart
-        val periods = timeVested/redeemPeriod
-        val redeemed = totalVested - SELF.tokens(0)._2
-        val totalRedeemable = periods * redeemAmount
-        val redeemableTokens = if (totalVested - totalRedeemable < redeemAmount) totalVested - redeemed else totalRedeemable - redeemed
-
-        val totalBuyerOutput = OUTPUTS.filter({{(box: Box) => box.propositionBytes == SELF.R4[Coll[Byte]].get && 
-                                                            box.tokens.size==1 &&
-                                                            box.tokens(0)._1 == SELF.tokens(0)._1}})
-                                      .fold(0L, {{(z: Long,box: Box) => z+box.tokens(0)._2}})
-        val tokenReleased = totalBuyerOutput <= redeemableTokens
-        val selfOutput = SELF.tokens(0)._2 == totalBuyerOutput || 
-                          OUTPUTS.exists {{(box: Box) => box.value == SELF.value &&
-                                                        box.propositionBytes == SELF.propositionBytes &&
-                                                        box.tokens(0)._1 == SELF.tokens(0)._1 &&
-                                                        box.tokens(0)._2 == SELF.tokens(0)._2 - totalBuyerOutput &&
-                                                        box.R4[Coll[Byte]].get == SELF.R4[Coll[Byte]].get &&
-                                                        box.R5[Long].get == SELF.R5[Long].get &&
-                                                        box.R6[Long].get == SELF.R6[Long].get &&
-                                                        box.R7[Long].get == SELF.R7[Long].get &&
-                                                        box.R8[Long].get == SELF.R8[Long].get}}
-
-        // check for proper tokenId?
-        sigmaProp(tokenReleased && selfOutput)
-      }}"""
 
     logging.debug(f'Script: {script}')
     # get the P2S address (basically a hash of the script??)
@@ -401,81 +347,83 @@ def redeemToken(address:str):
   scPurchase = getErgoscript('alwaysTrue', {})
   outBoxes = []
   inBoxes = []
-  currentTime = time()
-  res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}', headers=dict(headers), timeout=2)
+  currentTime = int(time()*1000) #Change to last block time ({node}/blocks/lastHeaders/1), else there is discrepancy between ergoscript and python
+  res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset=0&limit=500', headers=dict(headers), timeout=2) #This needs to be put in a loop in case of more than 500 boxes
   if res.ok:
-    for box in boxes:
-      buyerAddress = Wallet().fromErgoTree(box['R4'].renderedValue).address
-      redeemPeriod = int(box['R5'].renderedValue)
-      redeemAmount = int(box['R6'].renderedValue)
-      vestingStart = int(box['R7'].renderedValue)
-      totalVested = int(box['R8'].renderedValue)
+    rJson = res.json()
+    for box in rJson['items']:
+      nodeRes = requests.get(f"{CFG.node}/utils/ergoTreeToAddress/{box['additionalRegisters']['R4']['renderedValue']}").json()
+      buyerAddress = nodeRes['address']
+      redeemPeriod = int(box['additionalRegisters']['R5']['renderedValue'])
+      redeemAmount = int(box['additionalRegisters']['R6']['renderedValue'])
+      vestingStart = int(box['additionalRegisters']['R7']['renderedValue'])
+      totalVested = int(box['additionalRegisters']['R8']['renderedValue'])
       timeVested = int(currentTime - vestingStart)
       periods = int(timeVested/redeemPeriod)
-      redeemed = totalVested - box.tokens(0)._2
+      redeemed = totalVested - box['assets'][0]['amount']
       totalRedeemable = periods * redeemAmount
       redeemableTokens = totalVested - redeemed if (totalVested-totalRedeemable) < redeemAmount else totalRedeemable - redeemed
       if redeemableTokens > 0:
         if (totalVested-(redeemableTokens+redeemed))>0:
           outBox = {
-            'address': box.address,
-            'value': box.value,
+            'address': box['address'],
+            'value': box['value'],
             'registers': {
-              'R4': box['R4'].serializedValue,
-              'R5': box['R5'].serializedValue,
-              'R6': box['R6'].serializedValue,
-              'R7': box['R7'].serializedValue,
-              'R8': box['R8'].serializedValue
+              'R4': box['additionalRegisters']['R4']['serializedValue'],
+              'R5': box['additionalRegisters']['R5']['serializedValue'],
+              'R6': box['additionalRegisters']['R6']['serializedValue'],
+              'R7': box['additionalRegisters']['R7']['serializedValue'],
+              'R8': box['additionalRegisters']['R8']['serializedValue'],
+              'R9': box['additionalRegisters']['R9']['serializedValue']
             },
             'assets': [{
-              'tokenId': '',#box.assets.token.1.id,
+              'tokenId': box['assets'][0]['tokenId'],
               'amount': (totalVested-(redeemableTokens+redeemed))
             }]
           }
+          txBoxTotal_nerg += box['value']
           outBoxes.append(outBox)
         outBox = {
-          'address': buyerAddress,
+          'address': str(buyerAddress),
           'value': txFee_nerg,
           'assets': [{
-            'tokenId': "",#box.assets.token.1.id,
+            'tokenId': box['assets'][0]['tokenId'],
             'amount': redeemableTokens
-          }]
+          }],
+          'registers': {
+            'R4': box['additionalRegisters']['R9']['serializedValue']
+          }
         }
         outBoxes.append(outBox)
         txBoxTotal_nerg += txFee_nerg
+        inBoxes.append(box['boxId'])
     # redeem
-    outBox = [{
-      'address': buyerWallet.address,
-      'value': txFee_nerg,
-      'assets': [{ 
-        'tokenId': validCurrencies['ergopad'],
-        'amount': 1
-      }]
-    }]
-    ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId="", nErgAmount=txBoxTotal_nerg, tokenAmount=0)
-    request = {
-      'address': scPurchase,
-      'returnTo': buyerWallet.address,
-      'startWhen': {
-          'erg': 0, 
-      },
-      'txSpec': {
-          'requests': outBoxes,
-          'fee': txFee_nerg,          
-          'inputs': inBoxes+list(ergopadTokenBoxes.keys()),
-          'dataInputs': [],
-      },
-    }
+    if outBoxes.__len__() > 0:
+      ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId="", nErgAmount=txBoxTotal_nerg, tokenAmount=0)
+      request = {
+        'address': scPurchase,
+        'returnTo': buyerWallet.address,
+        'startWhen': {
+            'erg': 0, 
+        },
+        'txSpec': {
+            'requests': outBoxes,
+            'fee': txFee_nerg,          
+            'inputs': inBoxes+list(ergopadTokenBoxes.keys()),
+            'dataInputs': [],
+        },
+      }
 
-    # make async request to assembler
-    # logging.info(request); exit(); # !! testing
-    res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)    
-    logging.debug(request)
+      # make async request to assembler
+      # logging.info(request); exit(); # !! testing
+      logging.debug(request)
+      res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)   
+      logging.debug(res)
 
   try:
     return({
         'status': 'success', 
-        'details': f'send {txFee_nerg} to {scPurchase}',
+        #'details': f'send {txFee_nerg} to {scPurchase}',
     })
   
   except Exception as e:
@@ -586,18 +534,19 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
       #   'tokenAmount': int(tokenAmount/vestingPeriods + remainder),
       # }
       #logging.info(params)
-    scVesting = getErgoscript('vestingLock', params={})
+    scVesting = getErgoscript('vesting2', params={})
     #logging.info(f'vesting period {i}: {ctime(int(params["vestingPeriodEpoch"])/1000)})')
     # ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId)
 
     # create outputs for each vesting period; add remainder to final output, if exists
-    r4 = '0e'+hex(len(bytes.fromhex(buyerWallet.ergoTree())))[2:]+buyerWallet.ergoTree() # convert to bytearray
+    r4 = encodeString(buyerWallet.ergoTree()) # convert to bytearray
     #arrLength = b16encode(hex(len(bytearray.fromhex(buyerWallet.address))-2)).decode('utf-8')
     #r4 = b16encode(bytearray.fromhex(buyerWallet.address)).decode('utf-8')
-    r5 = encode(vestingDuration_ms)
-    r6 = encode(int(tokenAmount/vestingPeriods))
-    r7 = encode(vestingBegin_ms)
-    r8 = encode(tokenAmount)
+    r5 = encodeLong(vestingDuration_ms)
+    r6 = encodeLong(int(tokenAmount/vestingPeriods))
+    r7 = encodeLong(vestingBegin_ms)
+    r8 = encodeLong(tokenAmount)
+    r9 = encodeString(uuid.uuid4().hex)
     outBox.append({
       'address': scVesting,
       'value': txFee_nerg,
@@ -606,7 +555,8 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
         'R5': r5,
         'R6': r6,
         'R7': r7,
-        'R8': r8
+        'R8': r8,
+        'R9': r9
       },
       'assets': [{ 
         'tokenId': tokenId,
@@ -616,12 +566,18 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
     params = {
       'nodeWallet': nodeWallet.address,
       'buyerWallet': buyerWallet.address,
+      'vestingErgoTree': b64encode(bytes.fromhex(Wallet(scVesting).ergoTree()[2:])).decode('utf-8'),
+      'saleToken': b64encode(bytes.fromhex(validCurrencies['ergopad'])).decode('utf-8'),
+      'saleTokenAmount': tokenAmount,
       'timestamp': int(time()),
       'purchaseToken': b64encode(bytes.fromhex(validCurrencies['seedsale'])).decode('utf-8'),
-      'purchaseTokenAmount': tokenAmount
+      'purchaseTokenAmount': tokenAmount,
+      'redeemPeriod': vestingDuration_ms,
+      'redeemAmount': int(tokenAmount/vestingPeriods),
+      'vestingStart': vestingBegin_ms
     }
     # scPurchase = getErgoscript('walletLock', {'nodeWallet': nodeWallet.address, 'buyerWallet': buyerWallet.address, 'timestamp': int(time())})
-    scPurchase = getErgoscript('walletLock', params=params)
+    scPurchase = getErgoscript('vesting1', params=params)
     # create transaction with smartcontract, into outbox(es), using tokens from ergopad token box
     ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId=tokenId, nErgAmount=(sendAmount_nerg-1000000), tokenAmount=tokenAmount)
     logging.info(f'build request')

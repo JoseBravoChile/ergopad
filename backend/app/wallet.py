@@ -16,8 +16,8 @@ curve = SECP256k1
 CFG = Config[Network]
 
 NetworkEnvironment = {
-  'Mainnet': 0 << 4,
-  'Testnet': 1 << 4,
+  'mainnet': 0 << 4,
+  'testnet': 1 << 4,
 }
 
 WalletKind = dotdict({
@@ -60,7 +60,8 @@ class Wallet:
     vlq = lambda x: int("".join(bin(a|128)[3:] for a in x), 2)
     return vlq([int(x) for x in intString])
 
-  def fromErgoTree(self, ergoTree, network):
+  @staticmethod
+  def fromErgoTree(ergoTree, network):
     if ergoTree[:6] == '0008cd':
       prefixByte = chr(network + WalletKind.P2PK).encode("utf-8")
       pk = ergoTree[6:72]

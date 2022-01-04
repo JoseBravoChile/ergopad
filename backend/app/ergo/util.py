@@ -11,8 +11,11 @@ def vlq(i: int):
     ret.append(b)
   return ret
 
-def encode(n: int):
+def encodeLong(n: int):
   z = zigzag(n)
   v = vlq(z)
   r = '05' + ''.join(['{0:02x}'.format(i) for i in v])
   return r
+
+def encodeString(n: str):
+  return '0e'+hex(len(bytes.fromhex(n)))[2:]+n

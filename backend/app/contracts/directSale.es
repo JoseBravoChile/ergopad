@@ -1,4 +1,4 @@
-{
+{{
     val buyerPK             = PK("{buyerWallet}")
     val sellerPK            = PK("{nodeWallet}")
     val saleTokenId         = fromBase64("{saleTokenId}")
@@ -21,4 +21,4 @@
         OUTPUTS.size == 2
 
     sigmaProp((returnFunds || (buyerOutput && sellerOutput)) && HEIGHT < timestamp)
-}
+}}
