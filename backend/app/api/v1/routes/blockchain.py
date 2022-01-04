@@ -347,7 +347,7 @@ def redeemToken(address:str):
   scPurchase = getErgoscript('alwaysTrue', {})
   outBoxes = []
   inBoxes = []
-  currentTime = int(time()*1000) #Change to last block time ({node}/blocks/lastHeaders/1), else there is discrepancy between ergoscript and python
+  currentTime = requests.get(f'{CFG.node}/blocks/lastHeaders/1', headers=dict(headers),timeout=2).json()[0]['timestamp']
   res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset=0&limit=500', headers=dict(headers), timeout=2) #This needs to be put in a loop in case of more than 500 boxes
   if res.ok:
     rJson = res.json()
