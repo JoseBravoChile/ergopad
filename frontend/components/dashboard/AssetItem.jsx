@@ -1,5 +1,7 @@
 import { Typography, SvgIcon } from '@mui/material';
 import { styled } from '@mui/system';
+import AssetModal from './AssetModal';
+import { useState } from 'react';
 
 const StyledAsset = styled('div')(({ theme }) => ({
   width: '100%',
@@ -7,6 +9,7 @@ const StyledAsset = styled('div')(({ theme }) => ({
   alignItems: 'center',
   marginTop: theme.spacing(2),
   paddingBottom: theme.spacing(1),
+  cursor: 'pointer',
   // marginBottom: theme.spacing(2),
   // padding: theme.spacing(1),
   // borderRadius: '10px',
@@ -27,7 +30,6 @@ const IconWrapper = styled('div')(() => ({
   background: 'rgba(102, 102, 102, 0.3)',
 }));
 
-
 const AssetNameContainer = styled('div')(({ theme }) => ({
   flexGrow: 2,
   flexDirection: 'column',
@@ -46,47 +48,54 @@ const AssetAmountContainer = styled('div')(() => ({
   justifyContent: 'center',
 }));
 
-const AssetItem = ({ asset, stableDenominator = 'USD' }) => {
-  
+const AssetItem = ({ asset, stableDenominator = 'USD', type }) => {
+  const [showModal, setShowModal] = useState(false);
   const AssetImage = () => {
     if (asset?.r9) {
+      return <AssetIcon src={asset?.r9} />;
+    } else {
       return (
-        <AssetIcon src={asset?.r9} />
-      )
+        <IconWrapper>
+          <SvgIcon fontSize="large"></SvgIcon>
+        </IconWrapper>
+      );
     }
-    else {
-      return (
-      <IconWrapper>
-        <SvgIcon fontSize='large'>
+  };
 
-        </SvgIcon>
-      </IconWrapper>
-      )
-    }
-  }
-  
   return (
-    <StyledAsset className='asset'>
-      <AssetImage />
-      <AssetNameContainer>
-        {/* <Typography>{asset.token}</Typography> */}
-        <Typography sx={{ 
-          maxWidth: '180px',
-          display: 'block', 
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          textOverflow: 'ellipsis'
-        }}>
-          {asset.name}
-        </Typography>
-      </AssetNameContainer>
-      <AssetAmountContainer>
-        <Typography>{asset.amount}</Typography>
-        <Typography variant='caption'>
-          ${asset.amountUSD} {stableDenominator}
-        </Typography>
-      </AssetAmountContainer>
-    </StyledAsset>
+    <>
+      <StyledAsset className="asset" onClick={() => setShowModal(true)}>
+        <AssetImage />
+        <AssetNameContainer>
+          {/* <Typography>{asset.token}</Typography> */}
+          <Typography
+            sx={{
+              maxWidth: '180px',
+              display: 'block',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {asset.name}
+          </Typography>
+        </AssetNameContainer>
+        {type != 'NFT' && (
+          <AssetAmountContainer>
+            <Typography>{asset.amount}</Typography>
+
+            <Typography variant="caption">
+              ${asset.amountUSD} {stableDenominator}
+            </Typography>
+          </AssetAmountContainer>
+        )}
+      </StyledAsset>
+      <AssetModal
+        open={showModal}
+        handleClose={() => setShowModal(false)}
+        asset={asset}
+      />
+    </>
   );
 };
 

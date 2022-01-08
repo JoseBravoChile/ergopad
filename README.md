@@ -42,7 +42,7 @@ _Note: bash is the commend to run inside the container.  This is a common shell,
 2. Run `docker ps` to get the container ID of the "dashboard-project_server" container, and copy it
 3. Run `docker exec -it {CONTAINER ID} bash` to open a bash terminal to that docker container
 4. In that terminal, type `alembic upgrade head` to migrate the database. 
-5. Navigate to `http://localhost:8000/docs` and test the various endpoints to ensure the backend is up and running
+5. Navigate to `http://localhost:8000/api/docs` and test the various endpoints to ensure the backend is up and running
 
 ## Frontent Hints
 Now, to initiate frontend, you need to have NPM installed in your dev enviroment. 

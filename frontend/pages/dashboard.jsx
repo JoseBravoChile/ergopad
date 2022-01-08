@@ -1,6 +1,5 @@
 import AssetList from '@components/dashboard/AssetList';
-import GlassContainer from '@components/GlassContainer';
-import { Grid, Typography, CircularProgress, Container } from '@mui/material';
+import { Grid, Typography, CircularProgress, Container, Paper } from '@mui/material';
 import React, { useState, useEffect, } from 'react';
 import { VictoryArea, VictoryContainer, VictoryPie } from 'victory';
 import axios from 'axios';
@@ -37,6 +36,12 @@ const historicData = [
 { x: 5, y: 6}
 ];
 
+const paperStyle = {
+	p: 3,
+	borderRadius: 2,
+	height: '100%'
+}
+
 const wantedHoldingData = tokenDataArray(rawData2);
 // console.log(wantedHoldingData);
 
@@ -53,7 +58,7 @@ defaultHoldingData[defaultHoldingData.length - 1].y = portfolioValue;
 
 const Dashboard = () => {
 
-	const { wallet, setWallet } = useWallet()
+	const { wallet } = useWallet()
 
 	const [holdingData, setHoldingData] = useState(defaultHoldingData);
 	const [assetList, setAssetList] = useState(assetListArray(rawData2));
@@ -119,26 +124,26 @@ const Dashboard = () => {
 						const res2 = await axios
 						.get(`https://api.ergoplatform.com/api/v0/assets/${initialAssetList[i].id}/issuingBox`, { ...defaultOptions })
 						.catch((err) => {
-						console.log('ERROR FETCHING: ', err);
+							console.log('ERROR FETCHING: ', err);
 						});
 						if (res2?.data) {
 						let data2 = res2?.data;
 	
 							let tokenObject = {
-								name: data2.map(token => token.assets[0].name),
-								ch: data2.map(token => token.creationHeight),
-								description: data2.map(token => toUtf8String(token.additionalRegisters.R5).substr(2)),
-								r7: data2.map(token => token.additionalRegisters.R7),
+								name: data2[0].assets[0].name,
+								ch: data2[0].creationHeight,
+								description: toUtf8String(data2[0].additionalRegisters.R5).substr(2),
+								r7: data2[0].additionalRegisters.R7,
 								r9: data2[0].additionalRegisters?.R9 ? resolveIpfs(toUtf8String(data2[0].additionalRegisters?.R9).substr(2)) : undefined,
-								r5: data2.map(token => toUtf8String(token.additionalRegisters.R5).substr(2)),
-								ext: data2.map(token => toUtf8String(token.additionalRegisters.R9).substr(2).slice(-4)),
+								r5: toUtf8String(data2[0].additionalRegisters.R5).substr(2),
+								ext: toUtf8String(data2[0].additionalRegisters.R9).substr(2).slice(-4),
 								token: initialAssetList[i].token,
 								id: initialAssetList[i].id,
 								amount: initialAssetList[i].amount,
 								amountUSD: initialAssetList[i].amountUSD ? initialAssetList[i].amountUSD : ''
 							}
 	
-							// console.log(tokenObject.r9);
+							// console.log(tokenObject);
 							
 							// if audio NFT
 							if (tokenObject.ext == '.mp3' || tokenObject.ext == '.ogg' || tokenObject.ext == '.wma' || tokenObject.ext == '.wav' || tokenObject.ext == '.aac' || tokenObject.ext == 'aiff' || tokenObject.r7 == '0e020102'){
@@ -168,14 +173,14 @@ const Dashboard = () => {
 				// console.log(assetListArray(res.data));
 				// console.log(portfolioTotal);
 			}
-			console.log('API Call')
+			// console.log('API Call')
 			setLoading(false)
 		}
 
 		// console.log(wallet.wallets)
 
-		if (wallet.wallets && wallet.wallets != '') {
-			getWalletData(wallet.wallets)
+		if (wallet && wallet != '') {
+			getWalletData(wallet)
 		}
 		else {
 			noAssetSetup()
@@ -195,12 +200,12 @@ const Dashboard = () => {
 
 		<Container maxWidth='lg' sx={{ mx: 'auto' }}>
 		<Typography variant="p" sx={{ textAlign: 'center', fontSize: '0.9rem' }}>
-			* Please note, some dashboard functionality is not completed yet. You will be able to view NFTs up-close, and see price history once we get back to this part of the project. 
+			* Please note, some dashboard functionality is not completed yet. 
 		</Typography>
-			<Grid container spacing={1} alignItems="stretch" sx={{ pt: 4 }}>
+			<Grid container spacing={3} alignItems="stretch" sx={{ pt: 4 }}>
 
 				<Grid item xs={12} md={6}>
-					<GlassContainer>
+					<Paper sx={paperStyle}>
 					<Typography variant='h4'>Wallet Holdings</Typography>
 						{loading ? (
 								<>
@@ -230,11 +235,11 @@ const Dashboard = () => {
 							)
 						}
 						
-					</GlassContainer>
+					</Paper>
 				</Grid>
 				
 				<Grid item xs={12} md={6}>
-					<GlassContainer>
+					<Paper sx={paperStyle}>
 					<Typography variant='h4'>Portfolio History</Typography>
 						{loading ? (
 								<>
@@ -259,7 +264,7 @@ const Dashboard = () => {
 							</>
 								)
 							}
-					</GlassContainer>
+					</Paper>
 				</Grid>
 
 				{loading ? (
@@ -270,21 +275,21 @@ const Dashboard = () => {
 							(
 								<>
 				<Grid item xs={12} md={4}>
-					<GlassContainer>
+					<Paper sx={paperStyle}>
 						<AssetList assets={assetList} title='Assets' />
-					</GlassContainer>
+					</Paper>
 				</Grid>
 				
 				<Grid item xs={12} md={4}>
-					<GlassContainer>
-						<AssetList assets={imgNftList} title='Image NFTs' />
-					</GlassContainer>
+					<Paper sx={paperStyle}>
+						<AssetList assets={imgNftList} title='Image NFTs' type='NFT' />
+					</Paper>
 				</Grid>
 
 				<Grid item xs={12} md={4}>
-					<GlassContainer>
-						<AssetList assets={audNftList} title='Audio NFTs' />
-					</GlassContainer>
+					<Paper sx={paperStyle}>
+						<AssetList assets={audNftList} title='Audio NFTs' type='NFT' />
+					</Paper>
 				</Grid>
 				</>
 								)
