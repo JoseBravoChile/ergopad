@@ -103,6 +103,7 @@ REDIS_PORT=6379
 POWERNAP=90 # seconds
 
 # postgres- sql server
+POSTGRES_DB_URL=postgresql://hello:<password>@postgres:5432/hello
 POSTGRES_PORT=5432
 POSTGRES_USER=hello
 POSTGRES_PASSWORD=<password>

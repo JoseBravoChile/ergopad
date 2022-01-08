@@ -1,6 +1,11 @@
 from pydantic import BaseModel
 import typing as t
 
+from sqlalchemy.util.langhelpers import bool_or_str
+
+
+### SCHEMAS FOR USERS ###
+
 
 class UserBase(BaseModel):
     email: str
@@ -35,6 +40,9 @@ class User(UserBase):
         orm_mode = True
 
 
+### SCHEMAS FOR TOKENS ###
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -43,3 +51,44 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: str = None
     permissions: str = "user"
+
+
+### SCHEMAS FOR PROJECTS ###
+
+
+class CreateAndUpdateProject(BaseModel):
+    name: str
+    shortDescription: str
+    description: t.Optional[str]
+    fundsRaised: t.Optional[float]
+    teamTelegramHandle: t.Optional[str]
+    bannerImgUrl: str
+    isLaunched: bool
+
+
+class Project(CreateAndUpdateProject):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class CreateAndUpdateProjectTeamMember(BaseModel):
+    name: str
+    description: t.Optional[str]
+    projectId: int
+    profileImgUrl: t.Optional[str]
+
+
+class ProjectTeamMember(CreateAndUpdateProjectTeamMember):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class ProjectWithTeam(Project):
+    team: t.List[ProjectTeamMember]
+
+    class Config:
+        orm_mode = True

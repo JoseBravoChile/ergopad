@@ -6,6 +6,11 @@ from . import models, schemas
 from core.security import get_password_hash
 
 
+#################################
+### CRUD OPERATIONS FOR USERS ###
+#################################
+
+
 def get_user(db: Session, user_id: int):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
@@ -67,3 +72,84 @@ def edit_user(
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+####################################
+### CRUD OPERATIONS FOR PROJECTS ###
+####################################
+
+
+def get_projects(
+    db: Session, skip: int = 0, limit: int = 100
+) -> t.List[schemas.Project]:
+    return db.query(models.Project).offset(skip).limit(limit).all()
+
+
+def get_project(db: Session, id: int):
+    project = db.query(models.Project).filter(models.Project.id == id).first()
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="project not found")
+    return project
+
+
+def get_project_team(db: Session, projectId: int, skip: int = 0, limit: int = 100) -> t.List[schemas.ProjectTeamMember]:
+    return db.query(models.ProjectTeam).filter(models.ProjectTeam.projectId == projectId).all()
+
+
+def create_project(db: Session, project: schemas.CreateAndUpdateProject):
+    db_project = models.Project(
+        name=project.name,
+        description=project.description,
+        fundsRaised=project.fundsRaised,
+        teamTelegramHandle=project.teamTelegramHandle,
+        bannerImgUrl=project.bannerImgUrl,
+        isLaunched=project.isLaunched,
+    )
+    db.add(db_project)
+    db.commit()
+    db.refresh(db_project)
+    return db_project
+
+
+# def set_project_team(db: Session, projectId: int, teamMembers: t.List[schemas.CreateAndUpdateProjectTeamMember]):
+#     delete_project_team(db, projectId)
+#     db.bulk_save_objects(teamMembers)
+#     db.commit()
+#     return get_project_team(db, projectId)
+
+
+def delete_project(db: Session, id: int):
+    project = get_project(db, id)
+    if not project:
+        raise HTTPException(status.HTTP_404_NOT_FOUND,
+                            detail="project not found")
+    db.delete(project)
+    db.commit()
+    return project
+
+
+# def delete_project_team(db: Session, projectId: int):
+#     ret = get_project_team(db, projectId)
+#     db.query(models.ProjectTeam).filter(models.ProjectTeam.projectId ==
+#                                         projectId).delete(synchronize_session=False)
+#     db.commit()
+#     return ret
+
+
+def edit_project(
+    db: Session, id: int, project: schemas.UserEdit
+) -> schemas.Project:
+    db_project = get_project(db, id)
+    if not db_project:
+        raise HTTPException(status.HTTP_404_NOT_FOUND,
+                            detail="project not found")
+
+    update_data = project.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_project, key, value)
+
+    db.add(db_project)
+    db.commit()
+    db.refresh(db_project)
+    return db_project
