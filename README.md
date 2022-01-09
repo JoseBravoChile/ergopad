@@ -91,6 +91,7 @@ example .env:
 # fastapi- REST API interface to application 
 BACKEND_PORT=8000
 SECRET_KEY=whispers
+JWT_SECRET_KEY=secret
 
 # node/react- web interface
 FRONTEND_PORT=3000

@@ -181,7 +181,7 @@ def edit_project(
     db.commit()
     db.refresh(db_project)
 
-    if (project.team):
+    if (project.team != None):
         set_project_team(db, db_project.id, project.team)
 
     return schemas.ProjectWithTeam(
