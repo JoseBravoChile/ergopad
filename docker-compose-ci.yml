@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  frontend:
+    container_name: frontend
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    volumes: 
+      - ./frontend:/app
+    ports: 
+      - ${FRONTEND_PORT}:${FRONTEND_PORT}
+    command: yarn dev
+
+  backend:
+    container_name: backend
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    volumes: 
+      - ./backend/app:/app
+    ports: 
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+    command: uvicorn main:app --reload --workers 4 --reload-dir /app --host 0.0.0.0 --port 8000

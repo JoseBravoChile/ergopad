@@ -3,10 +3,13 @@ frontend/node_modules
 frontend/.next
 frontend/out
 frontend/yarn.lock
+frontend/package-lock.json
 frontend/next.config.js
+frontend/pages/whitelist.json
+frontend/pages/dashboardrechart.jsx
 /.pnp
 .pnp.js
-next.config.js
+
 
 # testing
 /coverage
@@ -15,8 +18,8 @@ docker-compose-luitest.yml
 
 # production
 /build
-whitelist.csv
-blacklist.tsv
+backend/app/*.?sv
+
 
 # misc
 .DS_Store
@@ -33,6 +36,7 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+docker-compose-luitest.yml
 
 # ergonode
 /ergonode/*.conf
@@ -95,4 +99,3 @@ MANIFEST
 # Celery stuff
 celerybeat-schedule
 celerybeat.pid
->>>>>>> a8a43b1561c0c89e0a5c4900a7e60cca7acf16fb

@@ -11,6 +11,9 @@ pandas
 databases[postgresql]==0.3.1
 SQLAlchemy==1.4.25
 alembic==1.7.4
+sqlalchemy-utils
+aiofiles
+aiocsv
 
 # worker
 celery==5.1.2

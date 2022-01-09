@@ -1,0 +1,40 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set Test Environment Variables and Configuration
+        run: mv .env.template .env && mv ergonode/ergonode.conf.template ergonode/testnet.conf
+
+      - name: Install Node Packages
+        working-directory: frontend
+        run: yarn install
+
+      - name: Docker Compose Up
+        working-directory: .
+        run: docker compose -f docker-compose-ci.yml up -d && docker ps
+
+      - name: Sleep and Let Servers Spin Up
+        run: sleep 30
+
+      - name: Run Integration Backend
+        run: python3 test/backend.py
+
+      - name: Run Integration Frontend
+        run: python3 test/frontend.py

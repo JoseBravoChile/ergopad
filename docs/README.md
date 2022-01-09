@@ -30,50 +30,55 @@ ErgoPad was created to generate financial backing for the developers who need it
 
 ## Roadmap
 
-Image
+Date | Title | Description
+--- | --- | ---
+Dec 10, 2021 | Seed Sale Whitelist Week | An opportunity to sign up for the seed sale will last one week. Signup form will be on this website, and shared on all social platforms. 
+Dec 17, 2021 | Seed Sale | ErgoPad Seed Sale contracts become available. Whitelisted users will have 24 hours to send Erg and secure their tokens.
+Dec 26, 2021 | Strategic Sale Whitelist | Sign up to reserve access to the strategic sale
+Jan 2, 2022 | First IDO Announcements | By this date, we will announce at least one of the first IDOs launched on ErgoPad.
+Jan 3, 2021 | Strategic sale | ErgoPad Strategic Sale contracts become available. Whitelisted users will have 48 hours to send Erg and secure their tokens.
+Jan 15, 2022 | Pre-Sale Whitelist | Sign up to reserve access to the pre-sale, the final sale before tokens are release to decentralized exchanges
+Jan 20, 2022 | Pre-Sale | ErgoPad pre-sale contracts become available. Whitelisted users will have 48 hours to send Erg and secure their tokens.
+Jan 26, 2022 | ErgoPad IDO | ErgoPad IDO where tokens will be available to trade, and the first vesting rounds are unlocked. 
+Late Jan | IDO Project promotions and pre-sale dates announced | There will be some projects that will IDO shortly after the ErgoPad release so your staked tokens can be used for pool allocations.
 
 ## Tokenomics
 
-- Token Name: ErgoPad
-- Token ID: TBD
-- Blockchain: Ergo
-- Initial supply: 12.7M
-- Total supply: 300M
+| Description | Value |
+| --- | --- |
+| Token Name | ErgoPad |
+| Token ID | d71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413 |
+| Blockchain | Ergo |
+| Initial supply | 79M |
+| Initial supply at IDO date (based on vesting schedule) | 20M |
+| Market cap at IDO | 800k sigUSD |
+| Total supply | 400M |
 
-### Seed Sale
+### Early Investment Rounds
 
-Seed sale will take place December 17, 2021. It will be capped at 5k sigUSD per person. You will be able to send Erg native coins to a smart contract and will receive seed-sale tokens in return. These tokens will each have a date associated with them based on the seed-sale vesting schedule. Once that date has passed, you'll be able to trade them for ErgoPad tokens and begin staking immediately. 
+Early investment rounds will take place starting December 17, 2021. The seed round and strategic round will be capped at 5k sigUSD and 20k sigUSD per person, respectively. There will be a max allocation of 10M tokens for seed round, and 20M tokens for strategic round and pre-sale. You will be able to send Erg native coins to a smart contract and will receive ErgoPad tokens in return, locked according to the vesting schedule. Once each vesting period has passed, you'll be able to claim your tokens that are unlocked for that period. We will provide a form on the website to generate the transaction, to keep it simple. 
 
-Seed sale participants will receive be able to trade 1/6 of their tokens for ErgoPad tokens once a month for 6 months. 
+### Dao tokens
 
-There are 10M seed sale tokens available at 0.011 sigUSD each, and so 1.67M tokens will be released to the ecosystem each month after the ErgoPad IDO. 
-
-### Pre-sale
-
-Pre-sale will take place December 29, 2021. It will be capped at 20k sigUSD per person and will work the same way as seed sale. You'll receive pre-sale tokens that can be traded for ErgoPad tokens once they pass their date. 
-
-Pre-sale participants will be on a 1/4 per month vesting schedule. IE you'll be able to trade in 1/4 of your tokens each month after launch day for ErgoPad tokens and begin staking those tokens immediately. 
-
-There are 20M pre-sale tokens available at 0.02 SigUSD each. 5M tokens will be released to the ecosystem each month for 4 months after the ErgoPad IDO. 
-
-### Team tokens
-
-The ErgoPad team will receive 8% of the total supply of tokens. This will be released quarterly to the DAO over 6 quarters (one and a half years). The DAO will vote to determine how those tokens will be spent. Salaries, new hires, marketing, buybacks, and other expenses will be considered, and remaining tokens will be burned. 
+The ErgoPad DAO will receive 6% of the total supply of tokens. This will be released quarterly to the DAO over 6 quarters (one and a half years). The DAO will vote to determine how those tokens will be spent. Salaries, new hires, marketing, buybacks, and other expenses will be considered, and remaining tokens will be burned. 
 
 ### Tokenomics and Vesting Schedule
 
-Distributed to | Amount | Percent of IDO | Percent of Total Supply | Vesting Tranche | Vesting Period
+Distributed to | Amount | Price Per Token | Max per person | Percent of IDO | Vesting Period
 --- | --- | --- | --- | --- | ---
-DAO | 24M | 10% | 8% | 4M | Quarterly for 6 Quarters
-Seed Sale | 10M | 25% | 3.3% | 1.67M | Monthly for 6 Months
-Pre Sale | 20M | 51% | 6.7% | 5M | Monthly for 4 Months
-Liquidity | 5M | 12.8% | 1.6% | 5M | Immediate
-Staking | 241M | 0% | 80.3% | Daily | 36 months
+Seed Round | 10M | 0.011 sigUSD | 5k sigUSD | 12.7% | 1/9th Monthly for 9 Months
+Strategic Round | 20M | 0.02 sigUSD | 20k sigUSD | 25.3% | 1/6th Monthly for 6 Months
+Pre-Sale | 20M | 0.03 sigUSD | No limit | 25.3% | 1/3 Monthly for 3 Months
+Liquidity | 5M | 0.04 sigUSD | N/A | 6.3% | Immediate
+DAO | 24M | N/A | N/A | 30.3% | Quarterly for 6 Quarters
+Staking | 321M | N/A | N/A | N/A | Daily for 36 months
 
 
 ## Staking
 
 Staking provides a few utilites. Staking your ErgoPad tokens will generate new tokens based on the number you have staked and the emission schdule. If you reach one of the staking tiers, you'll get pool allocation which gives you an opportunity to buy into new projects launched on ErgoPad at seed-sale prices not always open to the public. 
+
+Staking will go live very shortly after IDO on January 26th. 
 
 ### Tiers
 
@@ -93,15 +98,15 @@ Eg. if 1000 tokens are available for stakers, and there are 5 people staking at 
 
 ### Emission
 
-There will be 300M total ErgoPad tokens, and these will be given to stakers over a 3 year period. The APR will vary day-to-day based on the number of staked tokens and the total coins left. Information on the APR and staking will be available at ergopad.io/staking when you connect your wallet to the website. 
+There will be 400M total ErgoPad tokens, and these will be given to stakers over a 3 year period. The APR will vary day-to-day based on the number of staked tokens and the total coins left. Information on the APR and staking will be available at ergopad.io/staking when you connect your wallet to the website. 
 
 ### Instructions
 
 To stake your tokens, navigate to ergopad.io/staking and in the top-right corner, click "connect wallet." Add the wallet address that has the ErgoPad tokens you'd like to stake. Then, press the "stake now" button. 
 
-A modal will pop up where you enter the number of tokens you'd like to stake. Enter that number and choose "stake" and the assembler will generate a UTXO transaction for you in a compiled hash. Copy that hash and go to your Ergo wallet of choice. Send the exact number of ErgoPad tokens you typed into the modal on the website, and the exact amount of Erg the website instructed, to cover transaction fees, and send it to the hash generated by the website that you copied before. That's it. If the transaction doesn't work for some reason, it'll refund everything. If all goes well, you should be able to see your staked tokens on the staking page of the website under "Your Holdings." 
+A modal will appear which provides instructions and a QR code. You will be able to scan the QR code or copy/paste the address to send ergopad tokens to. This will lock your tokens into the smart contract which will earn ergopad tokens at the appropriate emission rate. 
 
-Your stake will be auto-compounded for you. To withdraw, just press the withdraw button and follow the instructions which will be exactly like the staking instructions. 
+Your stake will be auto-compounded for you. To withdraw, just press the withdraw button and follow the instructions. 
 
 Note: there are fees for unstaking early. 
 

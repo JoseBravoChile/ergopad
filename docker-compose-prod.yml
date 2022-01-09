@@ -124,9 +124,14 @@ services:
       - ./ergonode/:/opt/ergo # jar/conf
       - /ergo/mainnet/.ergo:/opt/ergo/.ergo # blockchain
     ports:
-      - ${ERGONODE_PORT}:9053
+      - ${ERGONODE_PORT}:${ERGONODE_PORT}
     working_dir: /opt/ergo
-    command: java -jar -Xmx3G ergo-4.0.16.jar --mainnet -c mainnet.conf
+    logging:
+        driver: "json-file"
+        options:
+            max-file: 5
+            max-size: 10m
+    command: java -jar -Xmx3G -Dlogback.stdout.level=WARN -Dlogback.file.level=ERROR ergo.jar --mainnet -c mainnet.conf
 
   ergonode2:
     container_name: ergonode2
@@ -134,11 +139,16 @@ services:
     image: openjdk
     volumes:
       - ./ergonode/:/opt/ergo # jar/conf
-      - /ergo/ergonode2/.ergo:/opt/ergo/.ergo # blockchain
+      # - /ergo/ergonode2/.ergo:/opt/ergo/.ergo # blockchain
     ports:
-      - ${ERGONODE2_PORT}:9054
+      - ${ERGONODE2_PORT}:${ERGONODE2_PORT}
     working_dir: /opt/ergo
-    command: java -jar -Xmx3G ergo-4.0.16.jar --mainnet -c ergonode2.conf
+    logging:
+        driver: "json-file"
+        options:
+            max-file: 5
+            max-size: 10m
+    command: java -jar -Xmx3G -Dlogback.stdout.level=WARN -Dlogback.file.level=ERROR ergo.jar --mainnet -c ergonode2.conf
 
   assembler:
     container_name: assembler

@@ -4,6 +4,8 @@ COPY ./frontend /app
 WORKDIR /app
 
 RUN yarn install
+RUN yarn build
 
+CMD yarn dev
 # ENTRYPOINT yarn dev # dev
 # ENTRYPOINT yarn build && yarn start # prod

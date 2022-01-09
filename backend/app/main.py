@@ -25,10 +25,16 @@ app = FastAPI(
 # app.add_event_handler("startup", tasks.create_start_app_handler(app))
 # app.add_event_handler("shutdown", tasks.create_stop_app_handler(app))
 
+# origins = ["*"]
+origins = [
+    "https://*.ergopad.io",
+    "http://75.155.140.173:3000"
+]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    # allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
