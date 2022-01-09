@@ -57,11 +57,6 @@ async def ping():
     return {"hello": "world"}
 
 
-@app.get("/login")
-async def ping():
-    return {"authToken": "helloworld"}
-
-
 @app.get("/api/task")
 async def example_task():
     celery_app.send_task("tasks.example_task", args=["Hello World"])

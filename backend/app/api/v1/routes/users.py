@@ -19,6 +19,7 @@ users_router = r = APIRouter()
     "/",
     response_model=t.List[User],
     response_model_exclude_none=True,
+    name="users:all-users"
 )
 async def users_list(
     response: Response,
@@ -34,7 +35,7 @@ async def users_list(
     return users
 
 
-@r.get("/me", response_model=User, response_model_exclude_none=True)
+@r.get("/me", response_model=User, response_model_exclude_none=True, name="users:me")
 async def user_me(current_user=Depends(get_current_active_user)):
     """
     Get own user
@@ -46,6 +47,7 @@ async def user_me(current_user=Depends(get_current_active_user)):
     "/{user_id}",
     response_model=User,
     response_model_exclude_none=True,
+    name="users:user-details"
 )
 async def user_details(
     request: Request,
@@ -63,7 +65,7 @@ async def user_details(
     # )
 
 
-@r.post("/", response_model=User, response_model_exclude_none=True)
+@r.post("/", response_model=User, response_model_exclude_none=True, name="users:create")
 async def user_create(
     request: Request,
     user: UserCreate,
@@ -77,7 +79,7 @@ async def user_create(
 
 
 @r.put(
-    "/{user_id}", response_model=User, response_model_exclude_none=True
+    "/{user_id}", response_model=User, response_model_exclude_none=True, name="users:edit"
 )
 async def user_edit(
     request: Request,
@@ -93,7 +95,7 @@ async def user_edit(
 
 
 @r.delete(
-    "/{user_id}", response_model=User, response_model_exclude_none=True
+    "/{user_id}", response_model=User, response_model_exclude_none=True, name="users:delete"
 )
 async def user_delete(
     request: Request,

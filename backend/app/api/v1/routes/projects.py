@@ -20,6 +20,7 @@ projects_router = r = APIRouter()
     "/",
     response_model=t.List[Project],
     response_model_exclude_none=True,
+    name="projects:all-projects"
 )
 async def projects_list(
     response: Response,
@@ -36,6 +37,7 @@ async def projects_list(
     "/{project_id}",
     response_model=ProjectWithTeam,
     response_model_exclude_none=True,
+    name="projects:project-details"
 )
 async def project_details(
     request: Request,
@@ -60,7 +62,7 @@ async def project_details(
     )
 
 
-@r.post("/", response_model=ProjectWithTeam, response_model_exclude_none=True)
+@r.post("/", response_model=ProjectWithTeam, response_model_exclude_none=True, name="projects:create")
 async def project_create(
     request: Request,
     project: CreateAndUpdateProjectWithTeam,
@@ -74,7 +76,7 @@ async def project_create(
 
 
 @r.put(
-    "/{project_id}", response_model=ProjectWithTeam, response_model_exclude_none=True
+    "/{project_id}", response_model=ProjectWithTeam, response_model_exclude_none=True, name="projects:edit"
 )
 async def project_edit(
     request: Request,
@@ -90,7 +92,7 @@ async def project_edit(
 
 
 @r.delete(
-    "/{project_id}", response_model=Project, response_model_exclude_none=True
+    "/{project_id}", response_model=Project, response_model_exclude_none=True, name="projects:delete"
 )
 async def project_delete(
     request: Request,

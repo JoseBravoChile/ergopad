@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, Integer, String, Float
+from sqlalchemy import Boolean, Column, Integer, String, Float, DateTime
+from sqlalchemy.sql import func
 
 from .session import Base
 
@@ -16,6 +17,13 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
 
+
+class JWTBlackList(Base):
+    __tablename__ = "jwtBlacklist"
+
+    id = Column(Integer, primary_key=True, index=True)
+    token = Column(String, index=True, nullable=False)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
 
 # PROJECTS MODEL
 

@@ -74,6 +74,18 @@ def edit_user(
     return db_user
 
 
+def blacklist_token(db: Session, token: str):
+    db_token = models.JWTBlackList(token=token)
+    db.add(db_token)
+    db.commit()
+    db.refresh(db_token)
+    return db_token
+
+
+def get_blacklisted_token(db: Session, token: str):
+    return db.query(models.JWTBlackList).filter(models.JWTBlackList.token == token).first()
+
+
 ####################################
 ### CRUD OPERATIONS FOR PROJECTS ###
 ####################################
