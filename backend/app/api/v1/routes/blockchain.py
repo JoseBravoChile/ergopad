@@ -582,14 +582,8 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
       isToken          = False
       tokenName        = None
 
-    isSaleVested       = False # TODO: round configs should come from config file/database
-    vestingPeriods     = 9 # CFG.vestingPeriods
-    vestingDuration_ms = 1000*(30*24*60*60, 5*60)[DEBUG] # 5m if debug, else 30 days
-    vestingBegin_ms    = 1000*(1643245200, int((time()+120)))[DEBUG] # in debug mode, choose now +2m
-    expiryEpoch_ms     = vestingBegin_ms + 365*24*60*60*1000 # 1 year
     nergsPerErg        = 1000000000
     txFee_nerg         = int(.001*nergsPerErg)
-    txMin_nerg         = int(.01*nergsPerErg)
 
     # if sending sigusd, assert(isToken)=True
     strategic2Sigusd   = .02 # strategic round .02 sigusd per token (50 strategic tokens per sigusd)
@@ -663,57 +657,20 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
     
     logging.info(f'startWhen: {startWhen}')
 
-    # does the sale require vesting
-    if isSaleVested:
-      # box per vesting period
-      for i in range(vestingPeriods):
-        # in event the requested tokens do not divide evenly by vesting period, add remaining to final output
-        remainder = (0, tokenAmount%vestingPeriods)[i == vestingPeriods-1]
-        params = {
-          'vestingPeriodEpoch': vestingBegin_ms + i*vestingDuration_ms,
-          'expiryEpoch': expiryEpoch_ms,
-          'buyerWallet': buyerWallet.address, # 'buyerTree': buyerWallet.bs64(),
-          'nodeWallet': nodeWallet.address, # 'nodeTree': nodeWallet.bs64(),
-          'ergopadTokenId': tokenId,
-          'tokenAmount': int(tokenAmount/vestingPeriods + remainder),
-        }
-        # logging.info(params)
-        logging.info(params)
-        scVesting = getErgoscript('vestingLock', params=params)
-        logging.debug(scVesting)
-        logging.info(f'vesting period {i}: {ctime(int(params["vestingPeriodEpoch"])/1000)})')
-        # ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId)
-
-        # create outputs for each vesting period; add remainder to final output, if exists
-        r4 = '0e'+hex(len(bytearray.fromhex(buyerWallet.ergoTree())))[2:]+buyerWallet.ergoTree() # convert to bytearray
-        outBox.append({
-          'address': scVesting,
-          'value': txFee_nerg,
-          'registers': {
-            'R4': r4
-          },
-          'assets': [{ 
-            'tokenId': tokenId,
-            'amount': int((tokenAmount/vestingPeriods + remainder)*ergopadDecimals)
-          }]
-        })
-
-    # simple sale (not vesting), just trade tokens for ergs/tokens
-    else:
-      # create outputs for each vesting period; add remainder to final output, if exists
-      r4 = '0e'+hex(len(bytearray.fromhex(buyerWallet.ergoTree())))[2:]+buyerWallet.ergoTree() # convert to bytearray
-      outBox.append({
-        'address': buyerWallet.address,
-        # 'value': txMin_nerg,
-        'value': txFee_nerg,
-        'registers': {
-          'R4': r4
-        },
-        'assets': [{ 
-          'tokenId': tokenId,
-          'amount': int(tokenAmount) # full amount
-        }]
-      })
+    # create outputs for each vesting period; add remainder to final output, if exists
+    r4 = '0e'+hex(len(bytearray.fromhex(buyerWallet.ergoTree())))[2:]+buyerWallet.ergoTree() # convert to bytearray
+    outBox.append({
+      'address': buyerWallet.address,
+      # 'value': txMin_nerg,
+      'value': txFee_nerg,
+      'registers': {
+        'R4': r4
+      },
+      'assets': [{ 
+        'tokenId': tokenId,
+        'amount': int(tokenAmount) # full amount
+      }]
+    })
 
     logging.info(f'r4: {r4}')
     logging.info(f'wallets: {nodeWallet.address}, {buyerWallet.address}')
@@ -730,29 +687,22 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
 
     logging.info(f'params: {params}')
 
-    #scPurchase = getErgoscript('walletLock', params=params)
-    # if vesting, use wallet lock to validate initial purchase, otherwise just send to node wallet
-    if isSaleVested:
-      scPurchase = getErgoscript('walletLock', {'nodeWallet': nodeWallet.address, 'buyerWallet': buyerWallet.address, 'timestamp': int(time())})
-      scPurchase = getErgoscript('walletLock', params=params)
-      scPurchase = getErgoscript('walletLock', params=params)
+    params = {
+      'nodeWallet': nodeWallet.address,
+      'buyerWallet': buyerWallet.address,
+      'saleTokenId': b64encode(bytes.fromhex(validCurrencies['ergopad'])).decode('utf-8'),
+      'saleTokenAmount': tokenAmount,
+      'timestamp': int(time()),      
+    }
+    if isToken:
+      params['purchaseTokenId'] = b64encode(bytes.fromhex(validCurrencies['sigusd'])).decode('utf-8')
+      params['purchaseTokenAmount'] = int(amount*sigusdDecimals)
     else:
-      params = {
-        'nodeWallet': nodeWallet.address,
-        'buyerWallet': buyerWallet.address,
-        'saleTokenId': b64encode(bytes.fromhex(validCurrencies['ergopad'])).decode('utf-8'),
-        'saleTokenAmount': tokenAmount,
-        'timestamp': int(time()),      
-      }
-      if isToken:
-        params['purchaseTokenId'] = b64encode(bytes.fromhex(validCurrencies['sigusd'])).decode('utf-8')
-        params['purchaseTokenAmount'] = int(amount*sigusdDecimals)
-      else:
-        params['purchaseTokenId'] = ""
-        params['purchaseTokenAmount'] = sendAmount_nerg # coinAmount_nerg
+      params['purchaseTokenId'] = ""
+      params['purchaseTokenAmount'] = sendAmount_nerg # coinAmount_nerg
 
-      logging.info(f'params: {params}')
-      scPurchase = getErgoscript('directSale', params=params)
+    logging.info(f'params: {params}')
+    scPurchase = getErgoscript('directSale', params=params)
 
     logging.info(f'scPurchase: {scPurchase}')
 
@@ -816,7 +766,45 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
 
 # purchase tokens
 @r.post("/vest/", name="blockchain:vestToken")
-async def vestToken(tokenPurchase: TokenPurchase):  
+async def vestToken(tokenPurchase: TokenPurchase): 
+
+  priceOverride = 5.0
+  price = priceOverride
+  try:
+    sigusdCurrentPrice = await get_asset_current_price('sigusd') #Confusing naming, is this erg price in sigusd?
+    if 'price' in sigusdCurrentPrice:
+      price = sigusdCurrentPrice['price']
+      if math.isnan(price): # NaN
+        price = priceOverride
+      if price < 1 or price > 1000: # OOS
+        price = priceOverride
+
+  except Exception as e:
+    logging.error(f'{myself()}: {e}')
+    logging.error('invalid price found for sigusd')
+    pass
+
+  # handle token params
+  sigusdDecimals = 0
+  ergopadDecimals = 0
+  try:
+    tokenDecimals = getTokenInfo(validCurrencies['sigusd'])
+    logging.debug(tokenDecimals)
+    if 'decimals' in tokenDecimals:
+      sigusdDecimals = int(tokenDecimals['decimals'])
+    tokenDecimals = getTokenInfo(validCurrencies['ergopad'])
+    if 'decimals' in tokenDecimals:
+      ergopadDecimals = int(tokenDecimals['decimals'])
+
+  except Exception as e:
+    logging.error(f'{myself()}: {e}')
+    logging.error('invalid decimals found for sigusd')
+    pass
+
+  logging.info(f'decimals for sigusd: {sigusdDecimals}, ergopad: {ergopadDecimals}')
+  ergopadDecimals = 10**ergopadDecimals
+  sigusdDecimals = 10**sigusdDecimals
+
   tokenId = CFG.ergopadTokenId
   try:
     buyerWallet        = Wallet(tokenPurchase.wallet)
@@ -828,14 +816,11 @@ async def vestToken(tokenPurchase: TokenPurchase):
       isToken          = False
       tokenName        = None
 
-    isSaleVested       = False # TODO: round configs should come from config file/database
     vestingPeriods     = 9 # CFG.vestingPeriods
     vestingDuration_ms = 1000*(30*24*60*60, 5*60)[DEBUG] # 5m if debug, else 30 days
     vestingBegin_ms    = 1000*(1643245200, int((time()+120)))[DEBUG] # in debug mode, choose now +2m
-    expiryEpoch_ms     = vestingBegin_ms + 365*24*60*60*1000 # 1 year
     nergsPerErg        = 1000000000
     txFee_nerg         = int(.001*nergsPerErg)
-    txMin_nerg         = int(.01*nergsPerErg)
 
     # if sending sigusd, assert(isToken)=True
     strategic2Sigusd   = .02 # strategic round .02 sigusd per token (50 strategic tokens per sigusd)
@@ -858,9 +843,7 @@ async def vestToken(tokenPurchase: TokenPurchase):
         for w in wl: 
           whitelist[w.split(',')[2].rstrip()] = {
             'amount': float(w.split(',')[0]),
-            # 'tokens': round(float(w.split(',')[1]))
           }
-          # spentlist[w.split(',')[2].rstrip()] = 0
 
       with open(f'remaining.tsv') as f:
         for row in f.readlines():
@@ -894,11 +877,10 @@ async def vestToken(tokenPurchase: TokenPurchase):
     logging.info(f'wallet: ok\nwhitelist: ok\nergs: {coinAmount_nerg} at price {price}')
 
     # pay ergopad for tokens with coins or tokens
-    # startWhen = {'erg': sendAmount_nerg}
     startWhen = {'erg': sendAmount_nerg}
     outBox = [{
-        'address': nodeWallet.address, # nodeWallet.bs64(),
-        'value': sendAmount_nerg # coinAmount_nerg
+        'address': nodeWallet.address, 
+        'value': sendAmount_nerg 
     }]
     if isToken:
       outBox[0]['assets'] = [{
@@ -909,66 +891,14 @@ async def vestToken(tokenPurchase: TokenPurchase):
     
     logging.info(f'startWhen: {startWhen}')
 
-    # does the sale require vesting
-    if isSaleVested:
-      # box per vesting period
-      for i in range(vestingPeriods):
-        # in event the requested tokens do not divide evenly by vesting period, add remaining to final output
-        remainder = (0, tokenAmount%vestingPeriods)[i == vestingPeriods-1]
-        params = {
-          'vestingPeriodEpoch': vestingBegin_ms + i*vestingDuration_ms,
-          'expiryEpoch': expiryEpoch_ms,
-          'buyerWallet': buyerWallet.address, # 'buyerTree': buyerWallet.bs64(),
-          'nodeWallet': nodeWallet.address, # 'nodeTree': nodeWallet.bs64(),
-          'ergopadTokenId': tokenId,
-          'tokenAmount': int(tokenAmount/vestingPeriods + remainder),
-        }
-        # logging.info(params)
-        logging.info(params)
-        scVesting = getErgoscript('vestingLock', params=params)
-        logging.debug(scVesting)
-        logging.info(f'vesting period {i}: {ctime(int(params["vestingPeriodEpoch"])/1000)})')
-        # ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId)
-
-        # create outputs for each vesting period; add remainder to final output, if exists
-        r4 = '0e'+hex(len(bytearray.fromhex(buyerWallet.ergoTree())))[2:]+buyerWallet.ergoTree() # convert to bytearray
-        outBox.append({
-          'address': scVesting,
-          'value': txFee_nerg,
-          'registers': {
-            'R4': r4
-          },
-          'assets': [{ 
-            'tokenId': tokenId,
-            'amount': int((tokenAmount/vestingPeriods + remainder)*ergopadDecimals)
-          }]
-      }]
-    else:
-      outBox = [{
-          'address': nodeWallet.address, # nodeWallet.bs64(),
-          'value': coinAmount_nerg
-      }]
-    # box per vesting period
-    #for i in range(vestingPeriods):
-      # in event the requested tokens do not divide evenly by vesting period, add remaining to final output
-      #remainder = (0, tokenAmount%vestingPeriods)[i == vestingPeriods-1]
-      # params = {
-      #   'vestingPeriodEpoch': vestingBegin_ms + i*vestingDuration_ms,
-      #   'expiryEpoch': expiryEpoch_ms,
-      #   'buyerWallet': buyerWallet.address, # 'buyerTree': buyerWallet.bs64(),
-      #   'nodeWallet': nodeWallet.address, # 'nodeTree': nodeWallet.bs64(),
-      #   'ergopadTokenId': tokenId,
-      #   'tokenAmount': int(tokenAmount/vestingPeriods + remainder),
-      # }
-      #logging.info(params)
+    outBox = [{
+        'address': nodeWallet.address,
+        'value': coinAmount_nerg
+    }]
     scVesting = getErgoscript('vesting2', params={})
-    #logging.info(f'vesting period {i}: {ctime(int(params["vestingPeriodEpoch"])/1000)})')
-    # ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId)
 
     # create outputs for each vesting period; add remainder to final output, if exists
     r4 = encodeString(buyerWallet.ergoTree()) # convert to bytearray
-    #arrLength = b16encode(hex(len(bytearray.fromhex(buyerWallet.address))-2)).decode('utf-8')
-    #r4 = b16encode(bytearray.fromhex(buyerWallet.address)).decode('utf-8')
     r5 = encodeLong(vestingDuration_ms)
     r6 = encodeLong(int(tokenAmount/vestingPeriods))
     r7 = encodeLong(vestingBegin_ms)
