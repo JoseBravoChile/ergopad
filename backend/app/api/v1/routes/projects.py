@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Request, Depends, Response, encoders
 import typing as t
+from core.auth import get_current_active_superuser
 
 from db.session import get_db
 from db.crud import (
@@ -10,7 +11,7 @@ from db.crud import (
     edit_project,
     delete_project
 )
-from db.schemas import CreateAndUpdateProject, Project, ProjectWithTeam
+from db.schemas import CreateAndUpdateProjectWithTeam, Project, ProjectWithTeam
 
 projects_router = r = APIRouter()
 
@@ -59,42 +60,45 @@ async def project_details(
     )
 
 
-# @r.post("/", response_model=Project, response_model_exclude_none=True)
-# async def project_create(
-#     request: Request,
-#     project: CreateAndUpdateProject,
-#     db=Depends(get_db),
-# ):
-#     """
-#     Create a new project
-#     """
-#     return create_project(db, project)
+@r.post("/", response_model=ProjectWithTeam, response_model_exclude_none=True)
+async def project_create(
+    request: Request,
+    project: CreateAndUpdateProjectWithTeam,
+    db=Depends(get_db),
+    current_user=Depends(get_current_active_superuser),
+):
+    """
+    Create a new project
+    """
+    return create_project(db, project)
 
 
-# @r.put(
-#     "/{user_id}", response_model=Project, response_model_exclude_none=True
-# )
-# async def project_edit(
-#     request: Request,
-#     project_id: int,
-#     project: CreateAndUpdateProject,
-#     db=Depends(get_db),
-# ):
-#     """
-#     Update existing project
-#     """
-#     return edit_project(db, project_id, project)
+@r.put(
+    "/{project_id}", response_model=ProjectWithTeam, response_model_exclude_none=True
+)
+async def project_edit(
+    request: Request,
+    project_id: int,
+    project: CreateAndUpdateProjectWithTeam,
+    db=Depends(get_db),
+    current_user=Depends(get_current_active_superuser)
+):
+    """
+    Update existing project
+    """
+    return edit_project(db, project_id, project)
 
 
-# @r.delete(
-#     "/{user_id}", response_model=Project, response_model_exclude_none=True
-# )
-# async def project_delete(
-#     request: Request,
-#     project_id: int,
-#     db=Depends(get_db),
-# ):
-#     """
-#     Delete existing project
-#     """
-#     return delete_project(db, project_id)
+@r.delete(
+    "/{project_id}", response_model=Project, response_model_exclude_none=True
+)
+async def project_delete(
+    request: Request,
+    project_id: int,
+    db=Depends(get_db),
+    current_user=Depends(get_current_active_superuser),
+):
+    """
+    Delete existing project
+    """
+    return delete_project(db, project_id)

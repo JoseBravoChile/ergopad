@@ -97,9 +97,10 @@ def get_project_team(db: Session, projectId: int, skip: int = 0, limit: int = 10
     return db.query(models.ProjectTeam).filter(models.ProjectTeam.projectId == projectId).all()
 
 
-def create_project(db: Session, project: schemas.CreateAndUpdateProject):
+def create_project(db: Session, project: schemas.CreateAndUpdateProjectWithTeam):
     db_project = models.Project(
         name=project.name,
+        shortDescription=project.shortDescription,
         description=project.description,
         fundsRaised=project.fundsRaised,
         teamTelegramHandle=project.teamTelegramHandle,
@@ -109,14 +110,28 @@ def create_project(db: Session, project: schemas.CreateAndUpdateProject):
     db.add(db_project)
     db.commit()
     db.refresh(db_project)
-    return db_project
+    if (project.team):
+        set_project_team(db, db_project.id, project.team)
+    return schemas.ProjectWithTeam(
+        id=db_project.id,
+        name=db_project.name,
+        shortDescription=db_project.shortDescription,
+        description=db_project.description,
+        fundsRaised=db_project.fundsRaised,
+        teamTelegramHandle=db_project.teamTelegramHandle,
+        bannerImgUrl=db_project.bannerImgUrl,
+        isLaunched=db_project.isLaunched,
+        team=get_project_team(db, db_project.id)
+    )
 
 
-# def set_project_team(db: Session, projectId: int, teamMembers: t.List[schemas.CreateAndUpdateProjectTeamMember]):
-#     delete_project_team(db, projectId)
-#     db.bulk_save_objects(teamMembers)
-#     db.commit()
-#     return get_project_team(db, projectId)
+def set_project_team(db: Session, projectId: int, teamMembers: t.List[schemas.CreateAndUpdateProjectTeamMember]):
+    db_teamMembers = list(map(lambda teamMember: models.ProjectTeam(
+        name=teamMember.name, description=teamMember.description, profileImgUrl=teamMember.profileImgUrl, projectId=projectId), teamMembers))
+    delete_project_team(db, projectId)
+    db.add_all([member for member in db_teamMembers])
+    db.commit()
+    return get_project_team(db, projectId)
 
 
 def delete_project(db: Session, id: int):
@@ -124,22 +139,23 @@ def delete_project(db: Session, id: int):
     if not project:
         raise HTTPException(status.HTTP_404_NOT_FOUND,
                             detail="project not found")
+    delete_project_team(db, id)
     db.delete(project)
     db.commit()
     return project
 
 
-# def delete_project_team(db: Session, projectId: int):
-#     ret = get_project_team(db, projectId)
-#     db.query(models.ProjectTeam).filter(models.ProjectTeam.projectId ==
-#                                         projectId).delete(synchronize_session=False)
-#     db.commit()
-#     return ret
+def delete_project_team(db: Session, projectId: int):
+    ret = get_project_team(db, projectId)
+    db.query(models.ProjectTeam).filter(models.ProjectTeam.projectId ==
+                                        projectId).delete(synchronize_session=False)
+    db.commit()
+    return ret
 
 
 def edit_project(
-    db: Session, id: int, project: schemas.UserEdit
-) -> schemas.Project:
+    db: Session, id: int, project: schemas.CreateAndUpdateProjectWithTeam
+):
     db_project = get_project(db, id)
     if not db_project:
         raise HTTPException(status.HTTP_404_NOT_FOUND,
@@ -152,4 +168,18 @@ def edit_project(
     db.add(db_project)
     db.commit()
     db.refresh(db_project)
-    return db_project
+
+    if (project.team):
+        set_project_team(db, db_project.id, project.team)
+
+    return schemas.ProjectWithTeam(
+        id=db_project.id,
+        name=db_project.name,
+        shortDescription=db_project.shortDescription,
+        description=db_project.description,
+        fundsRaised=db_project.fundsRaised,
+        teamTelegramHandle=db_project.teamTelegramHandle,
+        bannerImgUrl=db_project.bannerImgUrl,
+        isLaunched=db_project.isLaunched,
+        team=get_project_team(db, db_project.id)
+    )

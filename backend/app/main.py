@@ -76,8 +76,9 @@ app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(asset_router, prefix="/api/asset", tags=["asset"])
 app.include_router(blockchain_router,
                    prefix="/api/blockchain", tags=["blockchain"])
-app.include_router(util_router, prefix="/api/util", tags=["util"])
 app.include_router(projects_router, prefix="/api/projects", tags=["projects"])
+app.include_router(util_router, prefix="/api/util", tags=["util"])
+
 
 # MAIN
 if __name__ == "__main__":

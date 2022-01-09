@@ -74,7 +74,8 @@ class Project(CreateAndUpdateProject):
 class CreateAndUpdateProjectTeamMember(BaseModel):
     name: str
     description: t.Optional[str]
-    projectId: int
+    # we do not know projectId when project is created
+    projectId: t.Optional[int]
     profileImgUrl: t.Optional[str]
 
 
@@ -90,3 +91,7 @@ class ProjectWithTeam(Project):
 
     class Config:
         orm_mode = True
+
+
+class CreateAndUpdateProjectWithTeam(CreateAndUpdateProject):
+    team: t.Optional[t.List[CreateAndUpdateProjectTeamMember]]
