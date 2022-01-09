@@ -11,10 +11,10 @@ auth_router = r = APIRouter()
 # from starlette.responses import HTMLResponse
 # @r.get("/form", response_class=HTMLResponse)
 # def form_get():
-#     return '''<html<head></head><body><form method="post" action="/api/token"> 
+#     return '''<html<head></head><body><form method="post" action="/api/token">
 #     <input type="text" name="username" value="hello"/><br>
-#     <input type="password" name="password" value="world"/><br> 
-#     <input type="submit"/> 
+#     <input type="password" name="password" value="world"/><br>
+#     <input type="submit"/>
 #     </form></body></html>'''
 
 
