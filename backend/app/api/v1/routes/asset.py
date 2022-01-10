@@ -131,6 +131,7 @@ async def get_asset_balance_from_address(address: str = Path(..., min_length=40,
 
 #
 # Find price by coin
+# Base currency is USD for all coins except SIGUSD and SIGRSV. Base currency for SIGUSD and SIGRSV is ERGO
 # - Allow SigUSD/RSV ergo tokens to be listed as coins (TODO: change from ergo.watch api)
 # - Allow multiple coins per blockchain (TODO: change from CoinGecko api)
 #
@@ -145,18 +146,27 @@ async def get_asset_current_price(coin: str = None) -> None:
         res = requests.get(ergo_watch_api).json()
         if res:
             if coin == 'sigusd':
-                price = 1/(res['peg_rate_nano']/nerg2erg)
+                # peg_rate_nano: current ERG/USD price [nanoERG]
+                price = res['peg_rate_nano'] / nerg2erg
             else:
-                circ_sigusd_cents = res['circ_sigusd']/100.0 # given in cents
-                peg_rate_nano = res['peg_rate_nano'] # also SigUSD
-                reserves = res['reserves'] # total amt in reserves (nanoerg)
-                liabilities = min(circ_sigusd_cents * peg_rate_nano, reserves) # lower of reserves or SigUSD*SigUSD_in_circulation
-                equity = reserves - liabilities # find equity, at least 0
-                if equity < 0: equity = 0
+                # circ_sigusd: circulating SigUSD tokens in cents
+                circ_sigusd = res['circ_sigusd']/100.0
+                # peg_rate_nano: current ERG/USD price [nanoERG]
+                peg_rate_nano = res['peg_rate_nano']
+                # reserves: total amt in reserves [nanoERG]
+                reserves = res['reserves']
+                # liabilities in nanoERG's to cover stable coins in circulation
+                # lower of reserves or SigUSD * SigUSD_in_circulation
+                liabilities = min(circ_sigusd * peg_rate_nano, reserves)
+                # find equity, at least 0
+                equity = reserves - liabilities
+                if equity < 0:
+                    equity = 0
                 if res['circ_sigrsv'] <= 1:
                     price = 0
                 else:
-                    price = equity/res['circ_sigrsv']/nerg2erg # SigRSV
+                    price = (equity / res['circ_sigrsv']) / \
+                        nerg2erg  # SigRSV/ERGO
 
     # ...all other prices
     else:
