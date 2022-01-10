@@ -146,13 +146,20 @@ async def get_asset_current_price(coin: str = None) -> None:
         res = requests.get(ergo_watch_api).json()
         if res:
             if coin == 'sigusd':
-                # peg_rate_nano: current ERG/USD price [nanoERG]
-                price = 1 / (res['peg_rate_nano'] / nerg2erg) / (await get_asset_current_price("ergo"))["price"]
+                try:
+                    # peg_rate_nano: current USD/ERG price [nanoERG]
+                    # ERG/USD
+                    ergo_price = (await get_asset_current_price("ergo"))["price"]
+                    price = (res['peg_rate_nano'] / nerg2erg) * \
+                        ergo_price  # SIGUSD
+                except:
+                    # if get_asset_current_price("ergo") fails
+                    price = 1.0
             else:
                 # calc for sigrsv
                 # circ_sigusd: circulating SigUSD tokens in cents
                 circ_sigusd = res['circ_sigusd']/100.0
-                # peg_rate_nano: current ERG/USD price [nanoERG]
+                # peg_rate_nano: current USD/ERG price [nanoERG]
                 peg_rate_nano = res['peg_rate_nano']
                 # reserves: total amt in reserves [nanoERG]
                 reserves = res['reserves']

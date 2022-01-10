@@ -91,7 +91,7 @@ const AssetItem = ({ asset, stableDenominator = 'USD', type }) => {
             <Typography>{asset.amount}</Typography>
             {[ERGO_ID, SIGUSD_TOKEN_ID, SIGRSV_TOKEN_ID].includes(asset.id) ? (
               <Typography variant="caption">
-                ${asset.id == SIGUSD_TOKEN_ID ? asset.amount : asset.amountUSD}
+                ${asset.id == SIGUSD_TOKEN_ID ? asset.amount : asset.amountUSD} {stableDenominator}
               </Typography>
             ) : null}
           </AssetAmountContainer>
