@@ -1,5 +1,5 @@
 import os
 
 PROJECT_NAME = "ERGOPAD"
-SQLALCHEMY_DATABASE_URI = 'postgresql://hello:world@postgres:5432/hello' # os.getenv("DATABASE_URL")
+SQLALCHEMY_DATABASE_URI = os.getenv("POSTGRES_DB_URL")
 API_V1_STR = "/api"

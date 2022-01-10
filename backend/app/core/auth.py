@@ -3,7 +3,7 @@ from fastapi import Depends, HTTPException, status
 from jwt import PyJWTError
 
 from db import models, schemas, session
-from db.crud import get_user_by_email, create_user
+from db.crud import get_blacklisted_token, get_user_by_email, create_user
 from core import security
 
 
@@ -25,6 +25,9 @@ async def get_current_user(
         permissions: str = payload.get("permissions")
         token_data = schemas.TokenData(email=email, permissions=permissions)
     except PyJWTError:
+        raise credentials_exception
+    blacklisted = get_blacklisted_token(db, token)
+    if blacklisted:
         raise credentials_exception
     user = get_user_by_email(db, token_data.email)
     if user is None:
