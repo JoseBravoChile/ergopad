@@ -1,0 +1,41 @@
+
+version: '2.1'
+
+volumes:
+  db-data:
+
+services:
+  db:
+    image: kartoza/postgis:$POSTGRES_MAJOR_VERSION-$POSTGIS_MAJOR_VERSION.${POSTGIS_MINOR_RELEASE}
+    volumes:
+      - db-data:/var/lib/postgresql
+    environment:
+      - POSTGRES_DB=gis
+      - POSTGRES_USER=docker
+      - POSTGRES_PASS=docker
+      - ALLOW_IP_RANGE=0.0.0.0/0
+      - POSTGRES_MULTIPLE_EXTENSIONS=postgis,hstore,postgis_topology,postgis_raster,pgrouting
+    restart: on-failure
+    healthcheck:
+      test: "exit 0"
+
+  dbbackups:
+    image: kartoza/pg-backup:$POSTGRES_MAJOR_VERSION-$POSTGIS_MAJOR_VERSION.${POSTGIS_MINOR_RELEASE}
+    environment:
+      - DUMPPREFIX=PG_gis
+      - POSTGRES_HOST=db
+      - POSTGRES_USER=docker
+      - POSTGRES_PASS=docker
+      - POSTGRES_PORT=5432
+      - STORAGE_BACKEND="S3"
+      - ACCESS_KEY_ID=
+      - SECRET_ACCESS_KEY=
+      - DEFAULT_REGION=us-west-2
+      - BUCKET=backups
+      - HOST_BASE=
+      - HOST_BUCKET=
+      - SSL_SECURE=True
+    restart: on-failure
+    depends_on:
+      db:
+        condition: service_healthy

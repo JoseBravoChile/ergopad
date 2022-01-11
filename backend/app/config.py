@@ -37,7 +37,8 @@ Config = {
     'buyerWallet'       : os.getenv('BUYER_WALLET'),
     'nodeWallet'        : os.getenv('NODE_WALLET'),
     'seedSaleToken'     : os.getenv('SEED_SALE_TOKEN'),
-    'ergopadToken'      : os.getenv('ERGOPAD_TOKEN')
+    'ergopadToken'      : os.getenv('ERGOPAD_TOKEN'),
+    'connectionString'  : f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DBNM')}",
   }),
   'mainnet': dotdict({
     'node'              : os.getenv('ERGONODE_HOST'),
@@ -56,6 +57,7 @@ Config = {
     'buyerWallet'       : os.getenv('BUYER_WALLET'),
     'buyerNode'         : 'http://ergonode2:9053',
     'vestingPeriods_1'  : 9,
-    'vestingDuration_1' : 30 # days
+    'vestingDuration_1' : 30, # days
+    'connectionString'  : f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DBNM')}",
   })
 }
