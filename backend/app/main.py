@@ -9,6 +9,7 @@ from api.v1.routes.asset import asset_router
 from api.v1.routes.blockchain import blockchain_router
 from api.v1.routes.util import util_router
 from api.v1.routes.projects import projects_router
+from api.v1.routes.vesting import vesting_router
 
 from core import config
 # from app.db.session import SessionLocal
@@ -73,6 +74,7 @@ app.include_router(blockchain_router,
                    prefix="/api/blockchain", tags=["blockchain"])
 app.include_router(projects_router, prefix="/api/projects", tags=["projects"])
 app.include_router(util_router, prefix="/api/util", tags=["util"])
+app.include_router(vesting_router, prefix="/api/vesting", tags=["vesting"])
 
 
 # MAIN
