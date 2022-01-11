@@ -105,12 +105,12 @@ async def get_asset_balance_from_address(address: str = Path(..., min_length=40,
     for token in balance['confirmed']['tokens']:
         token['price'] = 0.0
         # if token['name'] == 'SigUSD': # TokenId: 22c6cc341518f4971e66bd118d601004053443ed3f91f50632d79936b90712e9
-        if token['tokenId'] == '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04': 
-            price = (await get_asset_current_price('SigUSD'))['price'] * ergPrice
+        if token['tokenId'] == '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04':
+            price = (await get_asset_current_price('SigUSD'))['price']
             token['price'] = price
         # if token['name'] == 'SigRSV': # TokenId: 003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0
         if token['tokenId'] == '003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0':
-            price = (await get_asset_current_price('SigRSV'))['price'] * ergPrice
+            price = (await get_asset_current_price('SigRSV'))['price']
             token['price'] = price
         tokens.append(token)
 
@@ -131,14 +131,14 @@ async def get_asset_balance_from_address(address: str = Path(..., min_length=40,
 
 #
 # Find price by coin
-# Base currency is USD for all coins except SIGUSD and SIGRSV. Base currency for SIGUSD and SIGRSV is ERGO
+# Base currency is USD for all coins and tokens.
 # - Allow SigUSD/RSV ergo tokens to be listed as coins (TODO: change from ergo.watch api)
 # - Allow multiple coins per blockchain (TODO: change from CoinGecko api)
 #
 @r.get("/price/{coin}", name="coin:coin-price")
 async def get_asset_current_price(coin: str = None) -> None:
 
-    price = 0.0 # init/default
+    price = 0.0  # init/default
     coin = coin.lower()
 
     # SigUSD/SigRSV
@@ -146,12 +146,20 @@ async def get_asset_current_price(coin: str = None) -> None:
         res = requests.get(ergo_watch_api).json()
         if res:
             if coin == 'sigusd':
-                # peg_rate_nano: current ERG/USD price [nanoERG]
-                price = res['peg_rate_nano'] / nerg2erg
+                try:
+                    # peg_rate_nano: current USD/ERG price [nanoERG]
+                    # ERG/USD
+                    ergo_price = (await get_asset_current_price("ergo"))["price"]
+                    price = (res['peg_rate_nano'] / nerg2erg) * \
+                        ergo_price  # SIGUSD
+                except:
+                    # if get_asset_current_price("ergo") fails
+                    price = 1.0
             else:
+                # calc for sigrsv
                 # circ_sigusd: circulating SigUSD tokens in cents
                 circ_sigusd = res['circ_sigusd']/100.0
-                # peg_rate_nano: current ERG/USD price [nanoERG]
+                # peg_rate_nano: current USD/ERG price [nanoERG]
                 peg_rate_nano = res['peg_rate_nano']
                 # reserves: total amt in reserves [nanoERG]
                 reserves = res['reserves']
@@ -166,7 +174,7 @@ async def get_asset_current_price(coin: str = None) -> None:
                     price = 0
                 else:
                     price = (equity / res['circ_sigrsv']) / \
-                        nerg2erg  # SigRSV/ERGO
+                        peg_rate_nano  # SigRSV/USD
 
     # ...all other prices
     else:
