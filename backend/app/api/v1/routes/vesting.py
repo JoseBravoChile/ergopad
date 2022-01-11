@@ -6,7 +6,8 @@ from config import Config, Network # api specific config
 from fastapi import APIRouter, status
 from typing import Optional
 from pydantic import BaseModel
-from time import time, ctime
+from time import time
+from datetime import date
 from api.v1.routes.asset import get_asset_current_price
 from base64 import b64encode
 from ergo.updateAllowance import handleAllowance
@@ -310,49 +311,41 @@ def redeemToken(address:str):
 @r.get("/vested/{wallet}", name="vesting:findVestedTokens")
 def findVestingTokens(wallet:str):
   try:
-    tokenId     = CFG.ergopadTokenId
-    blockHeight = 642500 # tokens were created after this
+    #tokenId     = CFG.ergopadTokenId
     total       = 0
-    boxes       = []
+    result = []
+    userWallet = Wallet(wallet)
+    userErgoTree = userWallet.ergoTree()
     address = getErgoscript('vesting2', params={}) # just a quick hack, is always the same so should just be part of the CFG
     res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset=0&limit=500', headers=dict(headers), timeout=2)
     if res.ok: 
-      logging.info('ok')
-      # returns array of dicts
-      for item in res.json():
-        # logging.info('transaction...')
-        # found boxes
-        if 'outputs' in transaction:
-          # logging.info('output...')
-          # find assets
-          for output in transaction['outputs']:
-            if 'assets' in output:
-              # logging.info('assets...')
-              # search tokens
-              for asset in output['assets']:
-                if 'tokenId' in asset:
-                  # logging.info('tokens...')
-                  # find ergopad token specifically, going to smart contract
-                  if asset['tokenId'] == tokenId and output['address'] != nodeWallet.address:
-                    # logging.info('ergopad...')
+        logging.info(userErgoTree)
+        # returns array of dicts
+        for box in res.json()["items"]:
+            logging.info(box)
+            if box["additionalRegisters"]["R4"]["renderedValue"] == userErgoTree:
+                logging.info("YAY")
+                tokenDecimals = 10**box["assets"][0]["decimals"]
+                initialVestedAmount = int(box["additionalRegisters"]["R8"]["renderedValue"])/tokenDecimals
+                nextRedeemAmount = int(box["additionalRegisters"]["R6"]["renderedValue"])/tokenDecimals
+                remainingVested = int(box["assets"][0]["amount"])/tokenDecimals
+                tokenName = box["assets"][0]["name"]
+                nextRedeemTimestamp = (((initialVestedAmount-remainingVested)/nextRedeemAmount+1)*int(box["additionalRegisters"]["R5"]["renderedValue"])+int(box["additionalRegisters"]["R7"]["renderedValue"]))/1000.0
+                nextRedeemDate = date.fromtimestamp(nextRedeemTimestamp)
+                result.append(
+                    {
+                        'initialVestedAmount': initialVestedAmount,
+                        'nextRedeemAmount': nextRedeemAmount,
+                        'remainingVested': remainingVested,
+                        'tokenName': tokenName,
+                        'nextRedeemDate': nextRedeemDate
+                    }
+                )
 
-                    fin = f"""
-                      transactionId: {transaction['id']}
-                      boxId: {output['boxId']}
-                      value: {output['value']}
-                      amount: {asset['amount']}
-                      creationHeight: {output['creationHeight']}
-                    """
-                    # fin = f"boxId: {output['boxId']}"
-                    boxes.append(output['boxId'])
-                    total += 1
-                    if fin is None:
-                      logging.debug('found, but missing info')
-                    else:
-                      logging.debug('\n'.join([f.lstrip() for f in fin.split('\n') if f]))
-
-    logging.info(f'{total} ergopad transactions found...')
-    # serialize boxes and find wallets in R4
+    return({
+        'status': 'success', 
+        'vested': result
+    })
 
   except Exception as e:
     logging.error(f'ERR:{myself()}: unable to build vesting request ({e})')
