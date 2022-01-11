@@ -74,17 +74,14 @@ services:
     depends_on:
       - postgres
 
-  pgbackup:
-    container_name: pgbackup
-    env_file: .env.dev
-    # image: kartoza/pg-backup:14-3.1
-    build:
-      context: ./pgbackup
-      dockerfile: Dockerfile
-    profiles: 
-      - backup
+  pgmaint:
+    image: postgres:alpine
+    env_file: .env
+    workdir: /app
     volumes:
-      - /backups/postgres:/backups
+      - /backups/pgmaint:/backups
+      - ./app:/app
+    command: start.sh
 
   aggregator:
     container_name: aggregator
