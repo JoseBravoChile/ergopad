@@ -37,8 +37,6 @@ const initialFormData = Object.freeze({
     ergoAddress: '',
     chatHandle: '',
     chatPlatform: '',
-    socialHandle: '',
-    socialPlatform: '',
   });
 
 const initialFormErrors = Object.freeze({
@@ -48,8 +46,6 @@ const initialFormErrors = Object.freeze({
     ergoAddress: false,
     chatHandle: false,
     chatPlatform: false,
-    socialHandle: false,
-    socialPlatform: false,
 })
 
 const initialCheckboxState = Object.freeze({
@@ -109,6 +105,7 @@ const Whitelist = () => {
     const apiCheck = () => {
         axios.get(`${process.env.API_URL}/util/whitelist`, { ...defaultOptions })
             .then(res => {
+                console.log(res)
                 const maxSale = 550000
                 // console.log(res)
                 if (res.data.gmt > 1640538000 && !checkboxError && !soldOut) {
@@ -253,12 +250,6 @@ const Whitelist = () => {
 
 		const emptyCheck = Object.values(formData).every(v => v != '')
 		const errorCheck = Object.values(formErrors).every(v => v === false)
-		
-        // const form = {
-        //     to: process.env.FORM_EMAIL,
-        //     subject: "ErgoPad Strategic-Sale Whitelist Application",
-        //     body: JSON.stringify(formData)
-        //   }
 
         const form = {
             name: formData.name,
@@ -317,8 +308,8 @@ const Whitelist = () => {
     <>
         <Container maxWidth="lg" sx={{ px: {xs: 2, md: 3 } }}>
 		<PageTitle 
-			title="Strategic Sale Whitelist"
-			subtitle="Apply here to be whitelisted for the ErgoPad strategic sale. It is capped at $20000 sigUSD per investor, and we use your social media accounts to confirm unique identities to keep it fair for everyone."
+			title="Pre-Sale Whitelist"
+			subtitle="Apply here to be whitelisted for the ErgoPad pre-sale. It is capped at $20000 sigUSD per investor."
 			// main={true}
 		/>
         </Container>
@@ -391,11 +382,11 @@ const Whitelist = () => {
                 </Typography>
             
                 <Typography variant="p" sx={{ fontSize: '1rem', mb: 3 }}>
-                    Strategic sale is capped at $20k sigUSD investment. You will receive an email whether your are accepted or if we need further details. We will also notify you in the event that the strategic-sale is sold out, if that happens before we get to your application. 
+                    Pre-sale is capped at $20k sigUSD investment per person. You will receive an email whether your are accepted or if we need further details. 
                 </Typography>
 
                 <Typography variant="p" sx={{ fontSize: '1rem', mb: 3 }}>
-                    You will be sent a URL to go to January 3rd when strategic-sale is live. Instructions will be provided at that time. 
+                    You will be sent a URL to go to on January 20th when pre-sale is live and instructions will be provided. Please follow the instructions carefully to lock your tokens in the vesting smart-contract. 
                 </Typography>
 			</Grid>
 
@@ -435,12 +426,13 @@ const Whitelist = () => {
 						/>
 					</Grid>
                     <Grid item xs={12}>
+                        <Typography color="text.secondary">Enter how much in sigUSD you&apos;d like to invest. You can send Erg or SigUSD on the sale date. </Typography>
 						<TextField
                             InputProps={{ disableUnderline: true }}
                             required
                             fullWidth
                             id="sigValue"
-                            label="How much would you like to invest"
+                            label="How much would you like to invest in SigUSD value"
                             name="sigValue"
                             variant="filled"
                             helperText={formErrors.sigValue && 'Please enter between 1 and 20000 sigUSD'}
@@ -497,7 +489,7 @@ const Whitelist = () => {
                             onChange={handleChange}
 						/>
 					</Grid>
-                    <Grid item xs={12} sm={6}>
+                     <Grid item xs={12} sm={6}>
                         <FormControl variant="filled" error={formErrors.chatPlatform} required sx={{ minWidth: '100%', }}>
                             <InputLabel id="chatPlatform" sx={{ '&.Mui-focused': { color: theme.palette.text.secondary } }}>Select Platform</InputLabel>
                             <Select
@@ -518,52 +510,8 @@ const Whitelist = () => {
 							<FormHelperText>{formErrors.chatPlatform && 'Please select the platform'}</FormHelperText>
                         </FormControl>
 						
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Typography sx={{ color: theme.palette.text.secondary, mt: 3 }}>
-                            Please provide another social platform we can confirm your identity on. It&apos;s just a point of reference so we can make sure each person signing up is unique and not trying to exceed the $20k max. We may DM you on there to confirm it is really you. 
-                        </Typography>
-                    </Grid>
-					<Grid item xs={12} sm={6}>
-						<TextField
-                            InputProps={{ disableUnderline: true }}
-                            fullWidth
-                            required
-                            name="socialHandle"
-                            label="Your Handle"
-                            error={formErrors.socialHandle}
-							helperText={formErrors.socialHandle && 'Please enter your handle'}
-                            id="socialHandle"
-                            variant="filled"
-                            onChange={handleChange}
-						/>
-					</Grid>
-                    <Grid item xs={12} sm={6}>
-                        <FormControl variant="filled" error={formErrors.socialPlatform} required sx={{ minWidth: '100%', }}>
-                            <InputLabel id="socialPlatform" sx={{ '&.Mui-focused': { color: theme.palette.text.secondary } }}>Select Platform</InputLabel>
-                            <Select
-                                disableUnderline={true}
-                                id="socialPlatform"
-                                name="socialPlatform"
-                                value={formData.socialPlatform}
-								error={formErrors.socialPlatform}
-                                variant="filled"
-                                onChange={handleChange}
-                                sx={{
-                                    border: `1px solid rgba(82,82,90,1)`,
-                                    borderRadius: '4px',
-                                }}
-                            >
-                                <MenuItem value="linkedin">LinkedIn</MenuItem>
-                                <MenuItem value="github">GitHub</MenuItem>
-                                <MenuItem value="twitter">Twitter</MenuItem>
-                                <MenuItem value="reddit">Reddit</MenuItem>
-                                <MenuItem value="instagram">Instagram</MenuItem>
-                                <MenuItem value="facebook">Facebook</MenuItem>
-                            </Select>
-							<FormHelperText>{formErrors.socialPlatform && 'Please select the platform'}</FormHelperText>
-                        </FormControl>
-                    </Grid>
+                    </Grid> 
+
 					
                     
 					</Grid>
@@ -632,7 +580,7 @@ const Whitelist = () => {
                             )}
 
                     </Box>
-                    <Typography sx={{ color: theme.palette.text.secondary }}>{soldOut && 'We apologize for the inconvenience, the strategic round is sold out'}</Typography>
+                    <Typography sx={{ color: theme.palette.text.secondary }}>{soldOut && 'We apologize for the inconvenience, the pre-sale round is sold out'}</Typography>
                     <Typography sx={{ color: theme.palette.text.secondary }}>{timeLock && 'Please wait until 17:00 UTC, December 26th. If the submit button is not active after this time and all check-boxes are checked, refresh the page to activate the form.'}</Typography>
 					<Snackbar open={openError} autoHideDuration={6000} onClose={handleCloseError}>
 						<Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
