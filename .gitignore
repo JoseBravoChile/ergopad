@@ -1,3 +1,16 @@
+# dependencies
+frontend/node_modules
+frontend/.next
+frontend/out
+frontend/yarn.lock
+frontend/package-lock.json
+frontend/next.config.js
+frontend/pages/whitelist.json
+frontend/pages/dashboardrechart.jsx
+/.pnp
+.pnp.js
+
+
 # testing
 /coverage
 /backend/app/ergo/*.ipynb

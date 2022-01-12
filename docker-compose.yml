@@ -29,6 +29,19 @@ services:
       - postgres
     command: uvicorn main:app --reload --workers 4 --reload-dir /app --host 0.0.0.0 --port ${BACKEND_PORT}
 
+  frontend:
+    container_name: frontend
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    volumes: 
+      - ./frontend:/app
+    ports: 
+      - ${FRONTEND_PORT}:${FRONTEND_PORT}
+    profiles: 
+      - frontend
+    command: yarn start
+
   postgres:
     container_name: postgres
     image: postgres:14-alpine

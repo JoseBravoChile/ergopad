@@ -1,0 +1,186 @@
+version: '3.9'
+
+# aws
+# https://aws.amazon.com/blogs/containers/deploy-applications-on-amazon-ecs-using-docker-compose/
+
+# docker compose -f docker-compose-prod.yml --profile all up --build --force-recreate -d
+# -f X = use X (i.e. docker-compose-prod.yml)
+# --profile X = enable profile
+# -- build --force-recarete = rebuild containers, no questions asked
+# -d = daemon mode
+
+services:
+  # copythis:
+    # container_name: template
+    # env_file: .env
+    # image: hello-world # or build
+    # volumes: .:/opt/hello
+    # ${SERVICE_PORT}:54321 # set in .env; # HOST:CONTAINER
+
+  nginx:
+    container_name: nginx
+    env_file: .env
+    image: nginx:1.17
+    volumes: 
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports: 
+      - ${NGINX_PORT}:80
+    profiles: 
+      - reverseproxy
+
+  backend:
+    container_name: backend
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    volumes: 
+      - ./backend/app:/app
+    ports: 
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+    depends_on: 
+      - postgres
+    command: uvicorn main:app --reload --workers 4 --reload-dir /app --host 0.0.0.0 --port 8000
+
+  frontend:
+    container_name: frontend
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    volumes: 
+      - ./frontend:/app
+    ports: 
+      - ${FRONTEND_PORT}:${FRONTEND_PORT}
+    profiles: 
+      - donotstart # this profile would need to be passed for this to be enabled
+    command: yarn dev # start
+    # command: tail /dev/null -f
+
+  postgres:
+    container_name: postgres
+    env_file: .env
+    image: postgres:14-alpine
+    restart: always
+    volumes: 
+      - postgres_data:/var/lib/postgresql/data:cached
+    ports: 
+      - ${POSTGRES_PORT}:5432
+
+  redis:
+    container_name: redis
+    env_file: .env
+    image: redis
+    volumes: 
+      - redis_data:/data # redis persistence
+    ports: 
+      - ${REDIS_PORT}:6379
+    entrypoint: redis-server --appendonly yes
+
+  pgadmin:
+    container_name: pgadmin
+    env_file: .env
+    image: dpage/pgadmin4
+    ports: 
+      - ${PGADMIN_LISTEN_PORT}:${PGADMIN_LISTEN_PORT}
+    depends_on:
+      - postgres
+
+  aggregator:
+    container_name: aggregator
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile.aggregator
+    volumes: 
+      - ./aggregator/app:/app # !! update for main docker-compose file
+    ports: 
+      - ${AGGREGATOR_PORT}:${AGGREGATOR_PORT}
+    # command: uvicorn main:app --reload --workers 4 --reload-dir /app --host 0.0.0.0 --port ${AGGREGATOR_PORT}
+    command: python main.py # TODO: automate with celery and API to call refreshes; infinite loop for now
+    # command: tail /dev/null -f
+
+  worker:
+    container_name: worker
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile.aggregator
+    command: celery --app app.tasks worker --loglevel=DEBUG -Q main-queue -c 1
+
+  flower:  
+    container_name: flower
+    env_file: .env
+    image: mher/flower
+    command: celery flower --broker=redis://redis:${REDIS_PORT}/0 --port=${FLOWER_PORT}
+    ports: 
+      - ${FLOWER_PORT}:${FLOWER_PORT}
+    depends_on:
+      - redis
+
+  ergonode:
+    container_name: ergonode
+    env_file: .env
+    environment: 
+        - SQS_QUEUE_URL=https://sqs.us-east-1.amazonaws.com/123456789/main-queue
+        - EFS_SOURCE_FOLDER=/data/sourcefolder/             
+        - EFS_DESTINATION_FOLDER=/data/destinationfolder/              
+        - AWS_REGION=us-east-1
+    image: openjdk
+    volumes: 
+      # - ./ergonode/:/opt/ergo # jar/conf
+      - efs-share:/opt/ergo/.ergo # blockchain files
+    ports: 
+      - ${ERGONODE_PORT}:9052 # testnet
+    # ports: ${ERGONODE_PORT}:9053 # mainnet
+    working_dir: /opt/ergo
+    x-aws-role:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action: sqs:*
+          Resource: arn:aws:sqs:us-east-1:123456789:main-queue    
+    # running out of heap space, use -Xmx3G (suggested by Kushti)
+    command: java -jar -Xmx3G ergo-4.0.16.1.jar --testnet -c testnet.conf
+
+  # allow a different node to test with
+  ergonode2:
+    container_name: ergonode2
+    env_file: .env
+    image: openjdk
+    volumes: 
+      - ./ergonode/:/opt/ergo # jar/conf
+      - c:/ergo/testnet2/.ergo:/opt/ergo/.ergo # blockchain files
+    ports: 
+      - ${ERGONODE2_PORT}:9052 # simulation
+    working_dir: /opt/ergo
+    # running out of heap space, use -Xmx3G (suggested by Kushti)
+    command: java -jar -Xmx3G ergo-4.0.16.1.jar --testnet -c testnode2.conf
+
+  assembler:
+    container_name: assembler
+    env_file: .env
+    image: openjdk:11.0.13-jdk-buster
+    volumes: 
+      - ./assembler/:/opt/assembler
+    ports: 
+      - ${ASSEMBLER_PORT}:8080
+    working_dir: /opt/assembler # set this if using image and not build
+    command: java -jar -Dconfig.file=testnet.conf -Dhttp.port=${ASSEMBLER_PORT} ergo-assembler-1.1.jar
+    # command: tail /dev/null -f
+
+#   ergostratum:
+#     container_name: ergostratum
+#     env_file: .env
+#     build: 
+#       context: .
+#       dockerfile: Dockerfile.stratum
+#     volumes: './stratum:/opt/ergo'
+#     ports: 8008:8008 # stratum
+#     depends_on: ergonode
+#     command: nodemon ./tulip.js -e js # restart on js file changes
+
+volumes:
+  postgres_data:
+  redis_data:
+  efs-share:
