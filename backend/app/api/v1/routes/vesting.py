@@ -219,93 +219,105 @@ async def vestToken(vestment: Vestment):
 @r.get("/redeem/{address}", name="vesting:redeem")
 def redeemToken(address:str):
 
-  txFee_nerg = CFG.txFee
-  txBoxTotal_nerg = 0
-  scPurchase = getErgoscript('alwaysTrue', {})
-  outBoxes = []
-  inBoxes = []
-  currentTime = requests.get(f'{CFG.node}/blocks/lastHeaders/1', headers=dict(headers),timeout=2).json()[0]['timestamp']
-  res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset=0&limit=500', headers=dict(headers), timeout=2) #This needs to be put in a loop in case of more than 500 boxes
-  if res.ok:
-    rJson = res.json()
-    for box in rJson['items']:
-      nodeRes = requests.get(f"{CFG.node}/utils/ergoTreeToAddress/{box['additionalRegisters']['R4']['renderedValue']}").json()
-      buyerAddress = nodeRes['address']
-      redeemPeriod = int(box['additionalRegisters']['R5']['renderedValue'])
-      redeemAmount = int(box['additionalRegisters']['R6']['renderedValue'])
-      vestingStart = int(box['additionalRegisters']['R7']['renderedValue'])
-      totalVested = int(box['additionalRegisters']['R8']['renderedValue'])
-      timeVested = int(currentTime - vestingStart)
-      periods = int(timeVested/redeemPeriod)
-      redeemed = totalVested - box['assets'][0]['amount']
-      totalRedeemable = periods * redeemAmount
-      redeemableTokens = totalVested - redeemed if (totalVested-totalRedeemable) < redeemAmount else totalRedeemable - redeemed
-      if redeemableTokens > 0:
-        if (totalVested-(redeemableTokens+redeemed))>0:
-          outBox = {
-            'address': box['address'],
-            'value': box['value'],
-            'registers': {
-              'R4': box['additionalRegisters']['R4']['serializedValue'],
-              'R5': box['additionalRegisters']['R5']['serializedValue'],
-              'R6': box['additionalRegisters']['R6']['serializedValue'],
-              'R7': box['additionalRegisters']['R7']['serializedValue'],
-              'R8': box['additionalRegisters']['R8']['serializedValue'],
-              'R9': box['additionalRegisters']['R9']['serializedValue']
-            },
-            'assets': [{
-              'tokenId': box['assets'][0]['tokenId'],
-              'amount': (totalVested-(redeemableTokens+redeemed))
-            }]
-          }
-          txBoxTotal_nerg += box['value']
-          outBoxes.append(outBox)
-        outBox = {
-          'address': str(buyerAddress),
-          'value': txFee_nerg,
-          'assets': [{
-            'tokenId': box['assets'][0]['tokenId'],
-            'amount': redeemableTokens
-          }],
-          'registers': {
-            'R4': box['additionalRegisters']['R9']['serializedValue']
-          }
-        }
-        outBoxes.append(outBox)
-        txBoxTotal_nerg += txFee_nerg
-        inBoxes.append(box['boxId'])
+    txFee_nerg = CFG.txFee
+    txBoxTotal_nerg = 0
+    scPurchase = getErgoscript('alwaysTrue', {})
+    outBoxes = []
+    inBoxes = []
+    currentTime = requests.get(f'{CFG.node}/blocks/lastHeaders/1', headers=dict(headers),timeout=2).json()[0]['timestamp']
+    offset = 0
+    res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset={offset}&limit=500', headers=dict(headers), timeout=2) #This needs to be put in a loop in case of more than 500 boxes
+    while res.ok:
+        rJson = res.json()
+        logging.info(rJson['total'])
+        for box in rJson['items']:
+            if len(outBoxes) > 500:
+                break
+            nodeRes = requests.get(f"{CFG.node}/utils/ergoTreeToAddress/{box['additionalRegisters']['R4']['renderedValue']}").json()
+            buyerAddress = nodeRes['address']
+            redeemPeriod = int(box['additionalRegisters']['R5']['renderedValue'])
+            redeemAmount = int(box['additionalRegisters']['R6']['renderedValue'])
+            vestingStart = int(box['additionalRegisters']['R7']['renderedValue'])
+            totalVested = int(box['additionalRegisters']['R8']['renderedValue'])
+            timeVested = int(currentTime - vestingStart)
+            periods = int(timeVested/redeemPeriod)
+            redeemed = totalVested - box['assets'][0]['amount']
+            totalRedeemable = periods * redeemAmount
+            redeemableTokens = totalVested - redeemed if (totalVested-totalRedeemable) < redeemAmount else totalRedeemable - redeemed
+            if redeemableTokens > 0:
+                if (totalVested-(redeemableTokens+redeemed))>0:
+                    outBox = {
+                        'address': box['address'],
+                        'value': box['value'],
+                        'registers': {
+                        'R4': box['additionalRegisters']['R4']['serializedValue'],
+                        'R5': box['additionalRegisters']['R5']['serializedValue'],
+                        'R6': box['additionalRegisters']['R6']['serializedValue'],
+                        'R7': box['additionalRegisters']['R7']['serializedValue'],
+                        'R8': box['additionalRegisters']['R8']['serializedValue'],
+                        'R9': box['additionalRegisters']['R9']['serializedValue']
+                        },
+                        'assets': [{
+                        'tokenId': box['assets'][0]['tokenId'],
+                        'amount': (totalVested-(redeemableTokens+redeemed))
+                        }]
+                    }
+                    txBoxTotal_nerg += box['value']
+                    outBoxes.append(outBox)
+                outBox = {
+                'address': str(buyerAddress),
+                'value': txFee_nerg,
+                'assets': [{
+                    'tokenId': box['assets'][0]['tokenId'],
+                    'amount': redeemableTokens
+                }],
+                'registers': {
+                    'R4': box['additionalRegisters']['R9']['serializedValue']
+                }
+                }
+                outBoxes.append(outBox)
+                txBoxTotal_nerg += txFee_nerg
+                inBoxes.append(box['boxId'])
+
+        if len(res.json()['items']) == 500 and len(outBoxes) < 500:
+            offset += 500
+            res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset={0}&limit=500', headers=dict(headers), timeout=2)
+        else:
+            break
+
     # redeem
-    if outBoxes.__len__() > 0:
-      ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId="", nErgAmount=txBoxTotal_nerg, tokenAmount=0)
-      request = {
-        'address': scPurchase,
-        'returnTo': buyerWallet.address,
-        'startWhen': {
-            'erg': 0, 
-        },
-        'txSpec': {
-            'requests': outBoxes,
-            'fee': txFee_nerg,          
-            'inputs': inBoxes+list(ergopadTokenBoxes.keys()),
-            'dataInputs': [],
-        },
-      }
+    if len(outBoxes) > 0:
+        
+        ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId="", nErgAmount=txBoxTotal_nerg, tokenAmount=0)
+        request = {
+            'address': scPurchase,
+            'returnTo': CFG.nodeWallet,
+            'startWhen': {
+                'erg': 0, 
+            },
+            'txSpec': {
+                'requests': outBoxes,
+                'fee': txFee_nerg,          
+                'inputs': inBoxes+list(ergopadTokenBoxes.keys()),
+                'dataInputs': [],
+            },
+        }
 
-      # make async request to assembler
-      # logging.info(request); exit(); # !! testing
-      logging.debug(request)
-      res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)   
-      logging.debug(res)
+        # make async request to assembler
+        # logging.info(request); exit(); # !! testing
+        logging.debug(request)
+        res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)   
+        logging.debug(res)
 
-  try:
-    return({
-        'status': 'success', 
-        #'details': f'send {txFee_nerg} to {scPurchase}',
-    })
-  
-  except Exception as e:
-    logging.error(f'ERR:{myself()}: unable to redeem ({e})')
-    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to redeem')
+    try:
+        return({
+            'status': 'success', 
+            #'details': f'send {txFee_nerg} to {scPurchase}',
+        })
+    
+    except Exception as e:
+        logging.error(f'ERR:{myself()}: unable to redeem ({e})')
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to redeem')
 
 # find vesting/vested tokens
 @r.get("/vested/{wallet}", name="vesting:findVestedTokens")
@@ -317,12 +329,11 @@ def findVestingTokens(wallet:str):
     userWallet = Wallet(wallet)
     userErgoTree = userWallet.ergoTree()
     address = getErgoscript('vesting2', params={}) # just a quick hack, is always the same so should just be part of the CFG
-    res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset=0&limit=500', headers=dict(headers), timeout=2)
-    if res.ok: 
-        logging.info(userErgoTree)
+    offset = 0
+    res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset={offset}&limit=500', headers=dict(headers), timeout=2)
+    while res.ok: 
         # returns array of dicts
         for box in res.json()["items"]:
-            logging.info(box)
             if box["additionalRegisters"]["R4"]["renderedValue"] == userErgoTree:
                 tokenId = box["assets"][0]["tokenId"]
                 if tokenId not in result:
@@ -346,6 +357,11 @@ def findVestingTokens(wallet:str):
                     remainingVested -= redeemAmount
                     nextRedeemTimestamp += int(box["additionalRegisters"]["R5"]["renderedValue"])/1000.0
                     nextRedeemDate = date.fromtimestamp(nextRedeemTimestamp)
+        if len(res.json()['items']) == 500:
+            offset += 500
+            res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset={0}&limit=500', headers=dict(headers), timeout=2)
+        else:
+            break
     
     resJson = []
     for key in result.keys():
