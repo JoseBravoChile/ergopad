@@ -313,7 +313,7 @@ def findVestingTokens(wallet:str):
   try:
     #tokenId     = CFG.ergopadTokenId
     total       = 0
-    result = []
+    result = {}
     userWallet = Wallet(wallet)
     userErgoTree = userWallet.ergoTree()
     address = getErgoscript('vesting2', params={}) # just a quick hack, is always the same so should just be part of the CFG
@@ -324,27 +324,44 @@ def findVestingTokens(wallet:str):
         for box in res.json()["items"]:
             logging.info(box)
             if box["additionalRegisters"]["R4"]["renderedValue"] == userErgoTree:
-                logging.info("YAY")
+                tokenId = box["assets"][0]["tokenId"]
+                if tokenId not in result:
+                    result[tokenId] = {}
+                    result[tokenId]['name'] = box["assets"][0]["name"]
+                    result[tokenId]['totalVested'] = 0.0
+                    result[tokenId]['outstanding'] = {}
                 tokenDecimals = 10**box["assets"][0]["decimals"]
                 initialVestedAmount = int(box["additionalRegisters"]["R8"]["renderedValue"])/tokenDecimals
                 nextRedeemAmount = int(box["additionalRegisters"]["R6"]["renderedValue"])/tokenDecimals
                 remainingVested = int(box["assets"][0]["amount"])/tokenDecimals
-                tokenName = box["assets"][0]["name"]
+                result[tokenId]['totalVested'] += remainingVested
                 nextRedeemTimestamp = (((initialVestedAmount-remainingVested)/nextRedeemAmount+1)*int(box["additionalRegisters"]["R5"]["renderedValue"])+int(box["additionalRegisters"]["R7"]["renderedValue"]))/1000.0
                 nextRedeemDate = date.fromtimestamp(nextRedeemTimestamp)
-                result.append(
-                    {
-                        'initialVestedAmount': initialVestedAmount,
-                        'nextRedeemAmount': nextRedeemAmount,
-                        'remainingVested': remainingVested,
-                        'tokenName': tokenName,
-                        'nextRedeemDate': nextRedeemDate
-                    }
-                )
+                while remainingVested > 0:
+                    if nextRedeemDate not in result[tokenId]['outstanding']:
+                        result[tokenId]['outstanding'][nextRedeemDate] = {}
+                        result[tokenId]['outstanding'][nextRedeemDate]['amount'] = 0.0
+                    redeemAmount = nextRedeemAmount if remainingVested >= 2*nextRedeemAmount else remainingVested
+                    result[tokenId]['outstanding'][nextRedeemDate]['amount'] += redeemAmount
+                    remainingVested -= redeemAmount
+                    nextRedeemTimestamp += int(box["additionalRegisters"]["R5"]["renderedValue"])/1000.0
+                    nextRedeemDate = date.fromtimestamp(nextRedeemTimestamp)
+    
+    resJson = []
+    for key in result.keys():
+        tokenResult = {}
+        value = result[key]
+        tokenResult['tokenId'] = key
+        tokenResult['name'] = value['name']
+        tokenResult['totalVested'] = value['totalVested']
+        tokenResult['outstanding'] = []
+        for redeemDate in sorted(value['outstanding'].keys()):
+            tokenResult['outstanding'].append({'date': redeemDate, 'amount': value['outstanding'][redeemDate]['amount']})
+        resJson.append(tokenResult)
 
     return({
         'status': 'success', 
-        'vested': result
+        'vested': resJson
     })
 
   except Exception as e:
