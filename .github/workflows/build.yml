@@ -22,9 +22,9 @@ jobs:
       - name: Set Test Environment Variables and Configuration
         run: mv .env.template .env && mv ergonode/ergonode.conf.template ergonode/testnet.conf
 
-      - name: Install Node Packages
-        working-directory: frontend
-        run: yarn install
+#      - name: Install Node Packages
+#        working-directory: frontend
+#        run: yarn install
 
       - name: Docker Compose Up
         working-directory: .
