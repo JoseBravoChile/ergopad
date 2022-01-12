@@ -1,6 +1,5 @@
 # import requests
 import ssl
-import os
 import pandas as pd
 
 from sqlalchemy import create_engine
@@ -9,8 +8,11 @@ from fastapi.encoders import jsonable_encoder
 from typing import Optional
 from pydantic import BaseModel
 from time import time
-
 from smtplib import SMTP
+from config import Config, Network # api specific config
+CFG = Config[Network]
+
+util_router = r = APIRouter()
 
 #region BLOCKHEADER
 """
@@ -24,14 +26,10 @@ Notes:
 """
 #endregion BLOCKHEADER
 
-#region LOGGING
-import logging
-logging.basicConfig(format="%(asctime)s %(levelname)s %(threadName)s %(name)s %(message)s", datefmt='%m-%d %H:%M', level=logging.DEBUG)
-#endregion LOGGING
+#region INIT
+DEBUG = CFG.debug
+st = time() # stopwatch
 
-# testing
-# email = Email(to='erickson.winter@gmail.com', subj='testing', body='hello world 4')
-# email(email)
 class Email(BaseModel):
     to: str
     # sender: str
@@ -44,16 +42,23 @@ class Email(BaseModel):
             'subject': 'greetings',
             'body': 'this is a message.'
         }
-
-util_router = r = APIRouter()
 #endregion INIT
+
+#region LOGGING
+import logging
+levelname = (logging.WARN, logging.DEBUG)[DEBUG]
+logging.basicConfig(format='{asctime}:{name:>8s}:{levelname:<8s}::{message}', style='{', levelname=levelname)
+
+import inspect
+myself = lambda: inspect.stack()[1][3]
+#endregion LOGGING
 
 @r.post("/email")
 async def email(email: Email):
-    usr = os.getenv('EMAIL_ERGOPAD_USERNAME')
-    pwd = os.getenv('EMAIL_ERGOPAD_PASSWORD')
-    svr = os.getenv('EMAIL_ERGOPAD_SMTP') 
-    frm = os.getenv('EMAIL_ERGOPAD_FROM')
+    usr = CFG.emailUsername
+    pwd = CFG.emailPassword
+    svr = CFG.emailSMTP
+    frm = CFG.emailFrom
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS)
 
     # create connection
