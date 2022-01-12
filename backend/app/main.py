@@ -9,6 +9,7 @@ from api.v1.routes.asset import asset_router
 from api.v1.routes.blockchain import blockchain_router
 from api.v1.routes.util import util_router
 from api.v1.routes.projects import projects_router
+from api.v1.routes.vesting import vesting_router
 from api.v1.routes.whitelist import whitelist_router
 # from api.v1.routes.wallets import wallets_router
 # from api.v1.routes.tokens import tokens_router
@@ -70,6 +71,8 @@ app.include_router(asset_router, prefix="/api/asset", tags=["asset"])
 app.include_router(blockchain_router, prefix="/api/blockchain", tags=["blockchain"])
 app.include_router(projects_router, prefix="/api/projects", tags=["projects"])
 app.include_router(util_router, prefix="/api/util", tags=["util"])
+app.include_router(vesting_router, prefix="/api/vesting", tags=["vesting"])
+
 app.include_router(whitelist_router, prefix="/api/whitelist", tags=["whitelist"])
 
 # MAIN

@@ -3,14 +3,20 @@ import os
 from types import SimpleNamespace
 # from base64 import b64encode
 
-class dotdict(SimpleNamespace):
-    def __init__(self, dictionary, **kwargs):
-        super().__init__(**kwargs)
-        for key, value in dictionary.items():
-            if isinstance(value, dict):
-                self.__setattr__(key, dotdict(value))
-            else:
-                self.__setattr__(key, value)
+# class dotdict(SimpleNamespace):
+#     def __init__(self, dictionary, **kwargs):
+#         super().__init__(**kwargs)
+#         for key, value in dictionary.items():
+#             if isinstance(value, dict):
+#                 self.__setattr__(key, dotdict(value))
+#             else:
+#                 self.__setattr__(key, value)
+
+class dotdict(dict):
+    """dot.notation access to dictionary attributes"""
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
 
 POSTGRES_PORT = os.getenv('POSTGRES_PORT')
 POSTGRES_USER = os.getenv('POSTGRES_USER')
