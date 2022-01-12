@@ -8,6 +8,11 @@ from fastapi import Path
 from fastapi import Request
 from sqlalchemy.sql.schema import BLANK_SCHEMA
 # from fastapi import Depends
+from time import time
+from config import Config, Network # api specific config
+CFG = Config[Network]
+
+asset_router = r = APIRouter()
 
 #region BLOCKHEADER
 """
@@ -52,6 +57,8 @@ import logging
 logging.basicConfig(format="%(asctime)s %(levelname)s %(threadName)s %(name)s %(message)s", datefmt='%m-%d %H:%M', level=logging.DEBUG)
 #endregion LOGGING
 
+DEBUG = True
+st = time() # stopwatch
 
 #region INIT
 currency = 'usd' # TODO: store with user
@@ -73,8 +80,6 @@ exchange = 'coinex'
 symbol = 'ERG/USDT'
 
 con = create_engine(f'postgresql://{POSTGRES_USER}:{POSTGRES_PASS}@postgres:{POSTGRES_PORT}/{POSTGRES_DBNM}')
-
-asset_router = r = APIRouter()
 #endregion INIT
 
 
@@ -106,11 +111,11 @@ async def get_asset_balance_from_address(address: str = Path(..., min_length=40,
         token['price'] = 0.0
         # if token['name'] == 'SigUSD': # TokenId: 22c6cc341518f4971e66bd118d601004053443ed3f91f50632d79936b90712e9
         if token['tokenId'] == '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04': 
-            price = (await get_asset_current_price('SigUSD'))['price'] * ergPrice
+            price = (await get_asset_current_price('SigUSD'))['price'] # price = (await get_asset_current_price('SigUSD'))['price'] * ergPrice
             token['price'] = price
         # if token['name'] == 'SigRSV': # TokenId: 003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0
         if token['tokenId'] == '003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0':
-            price = (await get_asset_current_price('SigRSV'))['price'] * ergPrice
+            price = (await get_asset_current_price('SigRSV'))['price'] # price = (await get_asset_current_price('SigRSV'))['price'] * ergPrice
             token['price'] = price
         tokens.append(token)
 
@@ -145,18 +150,35 @@ async def get_asset_current_price(coin: str = None) -> None:
         res = requests.get(ergo_watch_api).json()
         if res:
             if coin == 'sigusd':
-                price = 1/(res['peg_rate_nano']/nerg2erg)
+                try:
+                    # peg_rate_nano: current USD/ERG price [nanoERG]
+                    # ERG/USD
+                    ergo_price = (await get_asset_current_price("ergo"))["price"]
+                    price = (res['peg_rate_nano'] / nerg2erg) * \
+                        ergo_price  # SIGUSD
+                except:
+                    # if get_asset_current_price("ergo") fails
+                    price = 1.0
             else:
-                circ_sigusd_cents = res['circ_sigusd']/100.0 # given in cents
-                peg_rate_nano = res['peg_rate_nano'] # also SigUSD
-                reserves = res['reserves'] # total amt in reserves (nanoerg)
-                liabilities = min(circ_sigusd_cents * peg_rate_nano, reserves) # lower of reserves or SigUSD*SigUSD_in_circulation
-                equity = reserves - liabilities # find equity, at least 0
-                if equity < 0: equity = 0
+                # calc for sigrsv
+                # circ_sigusd: circulating SigUSD tokens in cents
+                circ_sigusd = res['circ_sigusd']/100.0
+                # peg_rate_nano: current USD/ERG price [nanoERG]
+                peg_rate_nano = res['peg_rate_nano']
+                # reserves: total amt in reserves [nanoERG]
+                reserves = res['reserves']
+                # liabilities in nanoERG's to cover stable coins in circulation
+                # lower of reserves or SigUSD * SigUSD_in_circulation
+                liabilities = min(circ_sigusd * peg_rate_nano, reserves)
+                # find equity, at least 0
+                equity = reserves - liabilities
+                if equity < 0:
+                    equity = 0
                 if res['circ_sigrsv'] <= 1:
                     price = 0
                 else:
-                    price = equity/res['circ_sigrsv']/nerg2erg # SigRSV
+                    price = (equity / res['circ_sigrsv']) / \
+                        peg_rate_nano  # SigRSV/USD
 
     # ...all other prices
     else:

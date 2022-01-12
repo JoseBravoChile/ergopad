@@ -120,6 +120,9 @@ async def upload(fileobject: UploadFile = File(...), current_user=Depends(get_cu
     """
     Upload files to s3 bucket
     """
+    S3_KEY='assets'
+    S3_BUCKET='ergopad-public'
+    AWS_REGION='us-west-2'
     filename = fileobject.filename
     current_time = datetime.datetime.now()
     # split the file name into two different path (string + extention)

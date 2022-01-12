@@ -29,7 +29,7 @@ Notes:
 #endregion BLOCKHEADER
 
 #region INIT
-DEBUG = CFG.debug
+DEBUG = True # CFG.debug
 st = time() # stopwatch
 
 EVENTNAME = 'IDO'
@@ -37,14 +37,12 @@ EVENTID = 3 # lookup in public.events
 MAXSIGUSD = 20000
 DATEFORMAT = '%m/%d/%Y %H:%M'
 EVENTBEGINS = int(dt.timestamp(dt.strptime('1/11/2022 00:00', DATEFORMAT)))
-EVENTFINISH = int(dt.timestamp(dt.strptime('1/11/2022 23:59', DATEFORMAT)))
+EVENTFINISH = int(dt.timestamp(dt.strptime('1/12/2022 23:59', DATEFORMAT)))
 NOW = int(time())
 ONAIR = (NOW > EVENTBEGINS) and (NOW < EVENTFINISH)
 
+CFG.connectionString = f'postgresql://ergopad:8e!8Ba8!64xCk3i@postgres:5432/ergopad'
 DATABASE = CFG.connectionString
-
-DEBUG = True
-st = time() # stopwatch
 #endregion INIT
 
 #region LOGGING
