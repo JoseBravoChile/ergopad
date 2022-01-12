@@ -169,6 +169,9 @@ async def handleAllowance():
     # blacklist = asyncio.run(getBlacklist())
     blacklist = await getBlacklist()
     statuslist = getAssemblerIds(blacklist)
+    print(blacklist)
+    print(statuslist)
+    exit(1);
     spentlist = getSpentlist(blacklist, statuslist)
 
     # logging.debug(whitelist)

@@ -99,7 +99,7 @@ try:
   # mainnet
   else:
     validCurrencies    = {
-      # 'seedsale' : '8eb9a97f4c8e5409ade9a13625f2bbb9f8b081e51d37f623233444743fae8321', # xeed1k
+      'seedsale' : '8eb9a97f4c8e5409ade9a13625f2bbb9f8b081e51d37f623233444743fae8321', # xeed1k
       # 'sigusd'   : '8eb9a97f4c8e5409ade9a13625f2bbb9f8b081e51d37f623233444743fae8321', # xeed1k
       # 'sigusd'   : '29275cf36ffae29ed186df55ac6f8d47b367fe8e398721e200acb71bc32b10a0', # xyzpad
       # 'sigusd'   : '191dd93523e052d9be49680508f675f82e461ef5452d60143212beb42b7f62a8',
@@ -113,9 +113,9 @@ try:
 
     # CFG.node           = 'http://73.203.30.137:9053'
     # CFG.assembler      = 'http://73.203.30.137:8080'
-    CFG.node           = 'http://38.15.40.14:9053'
-    CFG.assembler      = 'http://38.15.40.14:8888'
-    CFG.ergopadApiKey  = 'headerbasketcandyjourney'
+    CFG.node           = 'http://ergonode:9053' # 'http://38.15.40.14:9053'
+    CFG.assembler      = 'http://assembler:8080' # 'http://38.15.40.14:8888'
+    CFG.ergopadApiKey  = 'M7&5bEXE6F46Fjyo' # 'headerbasketcandyjourney'
     nodeWallet         = Wallet('9gibNzudNny7MtB725qGM3Pqftho1SMpQJ2GYLYRDDAftMaC285') # contains ergopad tokens (xerg10M)
     # buyerWallet        = Wallet('9f2sfNnZDzwFGjFRqLGtPQYu94cVh3TcE2HmHksvZeg1PY5tGrZ') # simulate buyer / seed tokens
     buyerWallet        = Wallet('9iLSsvi2zobapQmi7tXVK4mnrbQwpK3oTfPcCpF9n7J2DQVpxq2') # simulate buyer / seed tokens
@@ -221,6 +221,7 @@ def getBoxesWithUnspentTokens(nErgAmount=-1, tokenId=CFG.ergopadTokenId, tokenAm
     ergopadTokenBoxes = {}    
 
     res = requests.get(f'{CFG.node}/wallet/boxes/unspent?minInclusionHeight=0&minConfirmations={(0, -1)[allowMempool]}', headers=dict(headers, **{'api_key': CFG.ergopadApiKey}))
+    logging.info(res)
     if res.ok:
       assets = res.json()
       for ast in assets:
@@ -570,6 +571,7 @@ async def allowance(wallet:str):
 # purchase tokens
 @r.post("/purchase/", name="blockchain:purchaseToken")
 async def purchaseToken(tokenPurchase: TokenPurchase):  
+  # return {'status'  : 'disabled', 'now'     : now,'message' : 'troubleshooting',} 
   # early check
   try:
     nodeInfo = await getInfo()

@@ -11,9 +11,9 @@ services:
   nginx:
     container_name: nginx
     env_file: .env
-    image: nginx:1.17
+    image: nginx:1.21
     volumes: 
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx:/etc/nginx
     ports: 
       - ${NGINX_PORT}:80
     profiles: 
@@ -122,7 +122,7 @@ services:
     image: openjdk
     volumes:
       - ./ergonode/:/opt/ergo # jar/conf
-      - /ergo/mainnet/.ergo:/opt/ergo/.ergo # blockchain
+      - /ergo/mainnet/:/ergo # blockchain
     ports:
       - ${ERGONODE_PORT}:${ERGONODE_PORT}
     working_dir: /opt/ergo
@@ -138,8 +138,8 @@ services:
     env_file: .env
     image: openjdk
     volumes:
-      - ./ergonode/:/opt/ergo # jar/conf
-      # - /ergo/ergonode2/.ergo:/opt/ergo/.ergo # blockchain
+      # - ./ergonode/:/opt/ergo # jar/conf
+      - /ergo/ergonode2/:/ergo # blockchain
     ports:
       - ${ERGONODE2_PORT}:${ERGONODE2_PORT}
     working_dir: /opt/ergo
