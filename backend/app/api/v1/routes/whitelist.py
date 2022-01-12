@@ -1,18 +1,18 @@
+import requests, json, os
+import pandas as pd
+
 from starlette.responses import JSONResponse 
 from sqlalchemy import create_engine
 from wallet import Wallet, NetworkEnvironment # ergopad.io library
-from config import Config, Network # api specific config
 from fastapi import APIRouter, Response, status #, Request
 from fastapi.encoders import jsonable_encoder
 from typing import Optional
 from pydantic import BaseModel
 from time import time
 from datetime import datetime as dt
+from config import Config, Network # api specific config
+CFG = Config[Network]
 
-import requests, json, os
-import pandas as pd
-
-### ROUTER
 whitelist_router = r = APIRouter()
 
 #region BLOCKHEADER
@@ -28,9 +28,9 @@ Notes:
 """
 #endregion BLOCKHEADER
 
-
 #region INIT
-CFG = Config[Network]
+DEBUG = CFG.debug
+st = time() # stopwatch
 
 EVENTNAME = 'IDO'
 EVENTID = 3 # lookup in public.events
@@ -51,8 +51,6 @@ st = time() # stopwatch
 import logging
 levelname = (logging.WARN, logging.DEBUG)[DEBUG]
 logging.basicConfig(format='{asctime}:{name:>8s}:{levelname:<8s}::{message}', style='{', levelname=levelname)
-# import coloredlogs
-# coloredlogs.install(level=levelname, logger=logging.getLogger(__name__))
 
 import inspect
 myself = lambda: inspect.stack()[1][3]

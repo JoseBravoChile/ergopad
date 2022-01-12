@@ -1,8 +1,9 @@
 import requests, json, os
 import math
+import uuid
+
 from starlette.responses import JSONResponse 
 from wallet import Wallet, NetworkEnvironment # ergopad.io library
-from config import Config, Network # api specific config
 from fastapi import APIRouter, status
 from typing import Optional
 from pydantic import BaseModel
@@ -11,7 +12,10 @@ from api.v1.routes.asset import get_asset_current_price
 from base64 import b64encode
 from ergo.updateAllowance import handleAllowance
 from ergo.util import encodeLong, encodeString
-import uuid
+from config import Config, Network # api specific config
+CFG = Config[Network]
+
+blockchain_router = r = APIRouter()
 
 #region BLOCKHEADER
 """
@@ -56,8 +60,43 @@ Complete
 """
 #endregion BLOCKHEADER
 
-DEBUG = True
+#region INIT
+DEBUG = CFG.debug
 st = time() # stopwatch
+
+class TokenPurchase(BaseModel):
+  wallet: str
+  amount: float
+  isToken: Optional[bool] = True
+  currency: Optional[str] = 'sigusd'
+
+try:
+  headers            = {'Content-Type': 'application/json'}
+  tokenInfo          = requests.get(f'{CFG.explorer}/tokens/{CFG.ergopadTokenId}')
+
+  if Network == 'testnet':
+    validCurrencies    = {
+      'sigusd'   : '82d030c7373263c0f048031bfd214d49fea6942a114a291e36120694b4304e9e',
+      'ergopad'  : '5ff2d1cc22ebf959b1cc65453e4ee225b0fdaf4c38a12e3b4ba32ff769bed70f', # 
+    }
+    nodeWallet         = Wallet('3WxMzA9TwMYh9M5ivSfHi5VqUDhUS6nX4B8ZQNqGLupZqZfivmUw') # contains tokens
+    buyerWallet        = Wallet('3WzKuUxmG7HtfmZNxxHw3ArPzsZZR96yrNkTLq4i1qFwVqBXAU8M') # simulate buyer
+
+  # mainnet
+  else:
+    validCurrencies    = {
+      'ergopad'  : '60def1ed45ffc6493c8c6a576c7a23818b6b2dfc4ff4967e9867e3795886c437', # official
+      'sigusd'   : '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04', # official SigUSD (SigmaUSD - V2)
+    }
+    nodeWallet         = Wallet('9gibNzudNny7MtB725qGM3Pqftho1SMpQJ2GYLYRDDAftMaC285') # contains ergopad tokens (xerg10M)
+    buyerWallet        = Wallet('9iLSsvi2zobapQmi7tXVK4mnrbQwpK3oTfPcCpF9n7J2DQVpxq2') # simulate buyer / seed tokens
+
+  CFG.ergopadTokenId = validCurrencies['ergopad'] 
+  CFG.sigusdTokenId  = validCurrencies['sigusd']
+
+except Exception as e:
+  logging.error(f'Init {e}')
+#endregion INIT
 
 #region LOGGING
 import logging
@@ -67,70 +106,6 @@ logging.basicConfig(format='{asctime}:{name:>8s}:{levelname:<8s}::{message}', st
 import inspect
 myself = lambda: inspect.stack()[1][3]
 #endregion LOGGING
-
-#region INIT
-class TokenPurchase(BaseModel):
-  wallet: str
-  amount: float
-  isToken: Optional[bool] = True
-  currency: Optional[str] = 'sigusd'
-
-try:
-  CFG = Config[Network]
-  headers            = {'Content-Type': 'application/json'}
-  tokenInfo          = requests.get(f'{CFG.explorer}/tokens/{CFG.ergopadTokenId}')
-
-  if Network == 'testnet':
-    validCurrencies    = {
-      'seedsale' : '82d030c7373263c0f048031bfd214d49fea6942a114a291e36120694b4304e9e',
-      'sigusd'   : '82d030c7373263c0f048031bfd214d49fea6942a114a291e36120694b4304e9e',
-      'ergopad'  : '5ff2d1cc22ebf959b1cc65453e4ee225b0fdaf4c38a12e3b4ba32ff769bed70f', # 
-      # 'sigusd'   : '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04', # official SigUSD
-      # 'ergopad'  : '0890ad268cd62f29d09245baa423f2251f1d77ea21443a27d60c3c92377d2e4d', # TODO: need official ergonad token
-      # 'kushti' : '??',
-      # '$COMET' : '??',
-    }
-
-    #CFG.node           = 'http://ergonode:9052'
-    #CFG.assembler      = 'http://assembler:8080'
-    #CFG.ergopadApiKey  = 'oncejournalstrangeweather'
-
-    nodeWallet         = Wallet('3WxMzA9TwMYh9M5ivSfHi5VqUDhUS6nX4B8ZQNqGLupZqZfivmUw') # contains tokens
-    buyerWallet        = Wallet('3WzKuUxmG7HtfmZNxxHw3ArPzsZZR96yrNkTLq4i1qFwVqBXAU8M') # simulate buyer
-
-  # mainnet
-  else:
-    validCurrencies    = {
-      # 'seedsale' : '8eb9a97f4c8e5409ade9a13625f2bbb9f8b081e51d37f623233444743fae8321', # xeed1k
-      # 'sigusd'   : '8eb9a97f4c8e5409ade9a13625f2bbb9f8b081e51d37f623233444743fae8321', # xeed1k
-      # 'sigusd'   : '29275cf36ffae29ed186df55ac6f8d47b367fe8e398721e200acb71bc32b10a0', # xyzpad
-      # 'sigusd'   : '191dd93523e052d9be49680508f675f82e461ef5452d60143212beb42b7f62a8',
-      # 'ergopad'  : 'cc3c5dc01bb4b2a05475b2d9a5b4202ed235f7182b46677ed8f40358333b92bb', # xerg10M / TESTING, strategic token
-      'ergopad'  : '60def1ed45ffc6493c8c6a576c7a23818b6b2dfc4ff4967e9867e3795886c437', # official
-      'sigusd'   : '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04', # official SigUSD (SigmaUSD - V2)
-      # 'ergopad'  : 'cc3c5dc01bb4b2a05475b2d9a5b4202ed235f7182b46677ed8f40358333b92bb', # TODO: need official ergopad token
-      # 'kushti' : '??',
-      # '$COMET' : '??',
-    }
-
-    # CFG.node           = 'http://73.203.30.137:9053'
-    # CFG.assembler      = 'http://73.203.30.137:8080'
-    CFG.node           = 'http://38.15.40.14:9053'
-    CFG.assembler      = 'http://38.15.40.14:8888'
-    CFG.ergopadApiKey  = 'headerbasketcandyjourney'
-    nodeWallet         = Wallet('9gibNzudNny7MtB725qGM3Pqftho1SMpQJ2GYLYRDDAftMaC285') # contains ergopad tokens (xerg10M)
-    # buyerWallet        = Wallet('9f2sfNnZDzwFGjFRqLGtPQYu94cVh3TcE2HmHksvZeg1PY5tGrZ') # simulate buyer / seed tokens
-    buyerWallet        = Wallet('9iLSsvi2zobapQmi7tXVK4mnrbQwpK3oTfPcCpF9n7J2DQVpxq2') # simulate buyer / seed tokens
-
-  CFG.ergopadTokenId = validCurrencies['ergopad'] 
-  CFG.seedTokenId    = validCurrencies['seedsale']
-  CFG.sigusdTokenId  = validCurrencies['sigusd']
-
-except Exception as e:
-  logging.error(f'Init {e}')
-#endregion INIT
-
-blockchain_router = r = APIRouter()
 
 #region ROUTES
 # current node info (and more)
@@ -668,6 +643,7 @@ def sendPayment(address, nergs, tokens):
   except Exception as e:
     logging.error(f'ERR:{myself()}: unable to send payment ({e})')
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to send payment')
+#endregion ROUTES
 
 ### MAIN
 if __name__ == '__main__':
