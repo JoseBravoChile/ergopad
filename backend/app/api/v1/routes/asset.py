@@ -1,13 +1,16 @@
 import requests 
 import pandas as pd
-# import json
 
 from sqlalchemy import create_engine
 from fastapi import APIRouter
 from fastapi import Path
 from fastapi import Request
 from sqlalchemy.sql.schema import BLANK_SCHEMA
-# from fastapi import Depends
+from time import time
+from config import Config, Network # api specific config
+CFG = Config[Network]
+
+asset_router = r = APIRouter()
 
 #region BLOCKHEADER
 """
@@ -37,46 +40,31 @@ mainnet: 9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS
 """
 #endregion BLOCKHEADER
 
-
-#region ENVIRONMENT
-import os
-POSTGRES_PORT = os.getenv('POSTGRES_PORT')
-POSTGRES_USER = os.getenv('POSTGRES_USER')
-POSTGRES_PASS = 'world' #os.getenv('POSTGRES_PASS')
-POSTGRES_DBNM = 'hello' #os.getenv('POSTGRES_DBNM')
-#endregion ENVIRONMENT
-
-
-#region LOGGING
-import logging
-logging.basicConfig(format="%(asctime)s %(levelname)s %(threadName)s %(name)s %(message)s", datefmt='%m-%d %H:%M', level=logging.DEBUG)
-#endregion LOGGING
-
-
 #region INIT
+DEBUG = CFG.debug
+st = time() # stopwatch
+
 currency = 'usd' # TODO: store with user
 total_sigrsv = 100000000000.01 # initial amount SigRSV
 default_rsv_price = 1000000 # lower bound/default SigRSV value
 nerg2erg = 1000000000.0 # 1e9 satoshis/kushtis in 1 erg
-
-NETWORK = 'mainnet'
-# NETWORK = 'testnet'
-ERGO_PLATFORM_URL = { 
-    'mainnet': 'https://api.ergoplatform.com/api/v1',
-    'testnet': 'https://api-testnet.ergoplatform.com/api/v1'
-}
-ergo_watch_api: str = 'https://ergo.watch/api/sigmausd/state'
-oracle_pool_url: str = 'https://erg-oracle-ergusd.spirepools.com/frontendData'
-coingecko_url: str = 'https://api.coingecko.com/api/v3' # coins/markets?vs_currency=usd&ids=bitcoin"
-
+ergo_watch_api = CFG.ergoWatch
+oracle_pool_url = CFG.oraclePool
+coingecko_url = CFG.coinGecko
 exchange = 'coinex'
 symbol = 'ERG/USDT'
 
-con = create_engine(f'postgresql://{POSTGRES_USER}:{POSTGRES_PASS}@postgres:{POSTGRES_PORT}/{POSTGRES_DBNM}')
-
-asset_router = r = APIRouter()
+con = create_engine(CFG.connectionString)
 #endregion INIT
 
+#region LOGGING
+import logging
+level = (logging.WARN, logging.DEBUG)[DEBUG]
+logging.basicConfig(format='{asctime}:{name:>8s}:{levelname:<8s}::{message}', style='{', level=level)
+
+import inspect
+myself = lambda: inspect.stack()[1][3]
+#endregion LOGGING
 
 #region ROUTES
 #
@@ -87,7 +75,7 @@ async def get_asset_balance_from_address(address: str = Path(..., min_length=40,
 
     # get balance from ergo explorer api
     logging.debug(f'find balance for [blockchain], address: {address}...')
-    res = requests.get(f'{ERGO_PLATFORM_URL[NETWORK]}/addresses/{address}/balance/total')    
+    res = requests.get(f'{CFG.ergoPlatform}/addresses/{address}/balance/total')    
 
     # handle invalid address or other error
     wallet_assets = {}
@@ -249,19 +237,7 @@ from pydantic import BaseModel
 class Wallets(BaseModel):
     type: str
 
-# 
-# Test with some random wallets: 
-# POST with this body
-#
-# headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-# data = {
-#    "ergo" : ["9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS", "9h3DjWYXLriAn5cox3CeCFGxngTY3JQpy9RwZwP4x1xYAjeSN1G"],
-#    "ethereum": ["0x668Cc4E8aEa7E893242cC1d7Ab8109E99f71Cfe1", "0x0FF24158220A14398F047a80a513617Ddc4f5289"]
-# }
-#
-# Python example:
-# > res = requests.post('http://localhost:8000/api/asset/balance/all', data=data, headers=headers)
-#
+# balance of all wallets
 @r.post("/balance/all", name="asset:all-wallet-balances")
 async def get_all_assets(request: Request) -> None:
     
