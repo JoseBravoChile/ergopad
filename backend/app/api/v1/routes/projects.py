@@ -1,5 +1,12 @@
 from fastapi import APIRouter, Request, Depends, Response, encoders
+from fastapi.datastructures import UploadFile
+from fastapi.exceptions import HTTPException
+from fastapi.param_functions import File
+
 import typing as t
+import datetime
+import os
+
 from core.auth import get_current_active_superuser
 
 from db.session import get_db
@@ -12,6 +19,8 @@ from db.crud import (
     delete_project
 )
 from db.schemas import CreateAndUpdateProjectWithTeam, Project, ProjectWithTeam
+
+from aws.s3 import AWS_REGION, S3, S3_BUCKET, S3_KEY
 
 projects_router = r = APIRouter()
 
@@ -104,3 +113,27 @@ async def project_delete(
     Delete existing project
     """
     return delete_project(db, project_id)
+
+
+@r.post("/upload_image", name="projects:upload-image-to-S3")
+async def upload(fileobject: UploadFile = File(...), current_user=Depends(get_current_active_superuser)):
+    """
+    Upload files to s3 bucket
+    """
+    filename = fileobject.filename
+    current_time = datetime.datetime.now()
+    # split the file name into two different path (string + extention)
+    split_file_name = os.path.splitext(filename)
+    # for realtime application you must have genertae unique name for the file
+    file_name_unique = split_file_name[0] + "." + \
+        str(current_time.timestamp()).replace('.', '')
+    file_extension = split_file_name[1]  # file extention
+    data = fileobject.file._file  # Converting tempfile.SpooledTemporaryFile to io.BytesIO
+    filename_mod = S3_KEY + "." + file_name_unique + file_extension
+    uploads3 = S3.Bucket(S3_BUCKET).put_object(
+        Key=filename_mod, Body=data, ACL='public-read')
+    if uploads3:
+        s3_url = f"https://{S3_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{filename_mod}"
+        return {"status": "success", "image_url": s3_url}  # response added
+    else:
+        raise HTTPException(status_code=400, detail="Failed to upload in S3")
