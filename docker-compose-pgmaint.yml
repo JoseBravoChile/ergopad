@@ -1,13 +1,20 @@
-
 version: '3.9'
 
-services:
+# docker compose -f docker-compose-pgmaint.yml up pgmaint -d
 
+services:
   pgmaint:
+    container_name: pgmaint
     image: postgres:alpine
-    env_file: .env
-    workdir: /app
+    env_file: .env.production.local # backup production
+    working_dir: /app
+    environment:
+      - BASEDIR=/backups
+      - DBLIST=hello alpha
+      - DUMPPREFIX=ergopad
     volumes:
       - /backups/pgmaint:/backups
+      - ./pgmaint/periodic/daily:/etc/periodic/daily/:ro
       - ./app:/app
-    command: start.sh
+    # command: start.sh
+    command: tail /dev/null -f
