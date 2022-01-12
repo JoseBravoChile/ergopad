@@ -52,7 +52,8 @@ Config = {
       # 'ergopad'  : '0890ad268cd62f29d09245baa423f2251f1d77ea21443a27d60c3c92377d2e4d', # TODO: need official ergonad token
       # 'kushti' : '??',
       # '$COMET' : '??',
-    }
+    },
+    'connectionString'  : f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DBNM')}",
   }),
   'mainnet': dotdict({
     'node'              : os.getenv('ERGONODE_HOST'),
@@ -71,6 +72,7 @@ Config = {
     'buyerWallet'       : os.getenv('BUYER_WALLET'),
     'buyerNode'         : 'http://ergonode2:9053',
     'vestingPeriods_1'  : 9,
-    'vestingDuration_1' : 30 # days
+    'vestingDuration_1' : 30, # days
+    'connectionString'  : f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DBNM')}",
   })
 }
