@@ -21,7 +21,7 @@ Brief overview of the components of the system:
 | Contract | Stake State | Script ensuring correctness of the Stake State box |
 | Contract | Stake | Script to guard staked funds |
 | Contract | Stake Pool | Box to hold the funds that are to be distributed through staking |
-| Contract | Emission | Box to hold funds to be distributed during a staking cycle and keep track progress |
+| Contract | Emission | Box to hold funds to be distributed during a staking cycle and keep track of progress |
 
 # Contracts/Box Types
 
