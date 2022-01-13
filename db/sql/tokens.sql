@@ -7,6 +7,6 @@ CREATE TABLE "tokens" (
     "description" TEXT NULL,
     "type" TEXT NOT NULL,
     "decimals" SMALLINT DEFAULT 0
-)
+);
 INSERT INTO "tokens" ("id", "address", "name", "location", "emissionAmount", "description", "type", "decimals")
-VALUES (-1, '', '__unknown', '', 0, '__unknown', '', 0)
+VALUES (-1, '', '__unknown', '', 0, '__unknown', '', 0);

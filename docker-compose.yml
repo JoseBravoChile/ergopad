@@ -110,7 +110,8 @@ services:
       - ./ergonode/:/opt/ergo # jar/conf
       - /ergo/mainnet/.ergo:/opt/ergo/.ergo # blockchain
     ports:
-      - ${ERGONODE_PORT}:9053
+      - ${ERGONODE_PORT}:${ERGONODE_PORT}
+      - 9030:9030
     working_dir: /opt/ergo
     logging:
         driver: "json-file"

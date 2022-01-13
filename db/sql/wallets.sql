@@ -13,9 +13,9 @@ CREATE TABLE "wallets" (
     "chatPlatform" TEXT NULL,
     "created_dtz" timestamptz NOT NULL DEFAULT now(),
     "lastSeen_dtz" timestamptz NOT NULL DEFAULT now()
-)
+);
 INSERT INTO "wallets" (id, "address", "blockChainId", "network", "walletPass", "mneumonic", "created_dtz", "lastSeen_dtz", "socialHandle", "socialPlatform", "chatHandle", "chatPlatform") 
-VALUES (-1, '__unknown', -1, '__unknown', '__unknown', '__unknown', '1/1/1900', '1/1/1900', '__unknown', '__unknown', '__unknown', '__unknown')
+VALUES (-1, '__unknown', -1, '__unknown', '__unknown', '__unknown', '1/1/1900', '1/1/1900', '__unknown', '__unknown', '__unknown', '__unknown');
 
 -- blockchains
 CREATE TABLE "blockChains" (
@@ -23,6 +23,6 @@ CREATE TABLE "blockChains" (
     "name" TEXT NOT NULL,
     "coin" TEXT NOT NULL,
     "notes" TEXT NULL
-)
+);
 INSERT INTO "blockChains" (id, "name", "coin", "notes") 
-VALUES (-1, '__unknown', '__unknown', '__unknown')
+VALUES (-1, '__unknown', '__unknown', '__unknown');
