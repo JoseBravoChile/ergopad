@@ -86,7 +86,7 @@ class Whitelist(BaseModel):
 #endregion CLASSES
 
 #region ROUTES
-@r.post("/signup")
+@r.post("/whitelist")
 async def email(whitelist: Whitelist, response: Response):
     try:
         if not ONAIR:
@@ -142,51 +142,20 @@ async def email(whitelist: Whitelist, response: Response):
         logging.error(f'ERR:{myself()}: {e}')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to save whitelist request')
 
-@r.get("/info/{eventName}")
-async def whitelist(eventName):
+@r.get("/whitelist")
+async def whitelist():
     try:
-        logging.debug(DATABASE)
         con = create_engine(DATABASE)
-        logging.debug('sql')
-        sql = f"""
-            with wht as (
-                select "eventId"
-                    , coalesce(sum("allowance_sigusd"), 0.0) as allowance_sigusd
-                    , coalesce(sum("remaining_sigusd"), 0.0) as remaining_sigusd
-                from whitelist
-                group by "eventId"
-            )
-            select 
-                name
-                , description
-                , total_sigusd
-                , buffer_sigusd
-                , start_dtz
-                , end_dtz
-                , coalesce(allowance_sigusd, 0.0) as allowance_sigusd
-                , coalesce(remaining_sigusd, 0.0) as remaining_sigusd
-            from "events" evt
-                left join wht on wht."eventId" = evt.id
-            where evt.name = '{eventName}'
-        """
-        logging.debug(sql)
-        res = con.execute(sql).fetchone()
-        logging.debug(res)
-        return {
-            'status': 'success', 
-            'name': res['name'], 
-            'description': res['description'], 
-            'total_sigusd': res['total_sigusd'], 
-            'buffer_sigusd': res['buffer_sigusd'], 
-            'start_dtz': res['start_dtz'], 
-            'end_dtz': res['end_dtz'], 
-            'allowance_sigusd': int(res['allowance_sigusd']), 
-            'remaining_sigusd': int(res['remaining_sigusd']), 
-            'gmt': NOW
-        }
+        res = con.execute(f"""
+            select coalesce(sum("allowance_sigusd"), 0.0) as total
+                , coalesce(sum("allowance_sigusd"), 0.0) - coalesce(sum("spent_sigusd"), 0.0) as remaining
+            from "whitelist"
+            where "eventId" = {EVENTID}
+        """).fetchone()
+        return {'status': 'success', 'total_sigusd': int(res['total']), 'remaining_sigusd': int(res['remaining']), 'gmt': NOW}
 
     except Exception as e:
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'invalid whitelist request')
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to determine remaining whitelist sigUSD for event')
 #endregion ROUTES
 
 ### MAIN

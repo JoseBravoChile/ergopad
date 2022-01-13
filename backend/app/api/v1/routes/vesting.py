@@ -7,7 +7,7 @@ from fastapi import APIRouter, status
 from typing import Optional
 from pydantic import BaseModel
 from time import time
-from datetime import date, datetime, timezone
+from datetime import date
 from api.v1.routes.asset import get_asset_current_price
 from base64 import b64encode
 from ergo.updateAllowance import handleAllowance
@@ -36,7 +36,7 @@ nergsPerErg        = 1000000000
 headers            = {'Content-Type': 'application/json'}
 
 duration_ms = {
-    'month': 365*24*60*60*1000/12,
+    'month': 30*24*60*60*1000,
     'week': 7*24*60*60*1000,
     'day': 24*60*60*1000,
     'minute': 60*1000
@@ -45,98 +45,39 @@ duration_ms = {
 class Vestment(BaseModel):
     wallet: str
     vestingAmount: float
-    vestingScenario: str
-
-class VestmentScenario(BaseModel):
-    currency: str
-    currencyPrice: Optional[float]
-    vestedToken: str
-    vestedTokenPrice: float
+    currency: Optional[str] = 'sigusd'
+    currencyPrice: Optional[float] = None
+    vestedToken: Optional[str] = 'ergopad'
+    vestedTokenPrice: Optional[float] = None
     vestingPeriods: float
     periodDuration: float
     periodType: str
-    vestingBegin: float
-    enabled: bool
+    vestingBegin: Optional[float] = int(time()*1000)
 
-def getScenario(scenarioName: str):
-    if scenarioName == "seedsale":
-        return VestmentScenario(
-            currency = "seedsale",
-            currencyPrice = 0.011,
-            vestedToken = "ergopad",
-            vestedTokenPrice = 0.011,
-            vestingPeriods = 9,
-            periodDuration = 1,
-            periodType = "month",
-            enabled = True,
-            vestingBegin = datetime(2022,1,26,21,tzinfo=timezone.utc).timestamp()*1000-duration_ms['month'] #The first tokens should be released on jan 26th
-        )
-    if scenarioName == "strategic_sale":
-        return VestmentScenario(
-            currency = "strategic_sale",
-            currencyPrice = 0.02,
-            vestedToken = "ergopad",
-            vestedTokenPrice = 0.02,
-            vestingPeriods = 6,
-            periodDuration = 1,
-            periodType = "month",
-            enabled = True,
-            vestingBegin = datetime(2022,1,26,21,tzinfo=timezone.utc).timestamp()*1000-duration_ms['month'] #The first tokens should be released on jan 26th
-        )
-    if scenarioName == "presale_ergo":
-        return VestmentScenario(
-            currency = "ergo",
-            currencyPrice = None,
-            vestedToken = "ergopad",
-            vestedTokenPrice = 0.03,
-            vestingPeriods = 3,
-            periodDuration = 1,
-            periodType = "month",
-            enabled = False,
-            vestingBegin = datetime(2022,1,26,21,tzinfo=timezone.utc).timestamp()*1000-duration_ms['month'] #The first tokens should be released on jan 26th
-        )
-    if scenarioName == "presale_sigusd":
-        return VestmentScenario(
-            currency = "sigusd",
-            currencyPrice = 1.0,
-            vestedToken = "ergopad",
-            vestedTokenPrice = 0.03,
-            vestingPeriods = 3,
-            periodDuration = 1,
-            periodType = "month",
-            enabled = False,
-            vestingBegin = datetime(2022,1,26,21,tzinfo=timezone.utc).timestamp()*1000-duration_ms['month'] #The first tokens should be released on jan 26th
-        )
-    return
 
 # purchase tokens
 @r.post("/vest/", name="vesting:vestToken")
 async def vestToken(vestment: Vestment): 
-    vs = getScenario(vestment.vestingScenario)
-    if vs is None:
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Unknown vesting scenario')
-    if not vs.enabled:
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Disabled vesting scenario')
 
-    if vs.currencyPrice is None:
-        vs.currencyPrice = (await get_asset_current_price(vs.currency))["price"]
-    if vs.vestedTokenPrice is None:
-        vs.vestedTokenPrice = (await get_asset_current_price(vs.vestedToken))["price"]
-    isToken = vs.currency != "ergo"
-    logging.info(f'Price info: {vs.currency} = {vs.currencyPrice} USD, {vs.vestedToken} = {vs.vestedTokenPrice}')
+    if vestment.currencyPrice is None:
+        vestment.currencyPrice = (await get_asset_current_price(vestment.currency))["price"]
+    if vestment.vestedTokenPrice is None:
+        vestment.vestedTokenPrice = (await get_asset_current_price(vestment.vestedToken))["price"]
+    isToken = vestment.currency != "ergo"
+    logging.info(f'Price info: {vestment.currency} = {vestment.currencyPrice} USD, {vestment.vestedToken} = {vestment.vestedTokenPrice}')
 
     # handle token params
     currencyDecimals = 0
     vestedTokenDecimals = 0
     try:
         if isToken:
-            tokenDecimals = getTokenInfo(CFG.validCurrencies[vs.currency])
+            tokenDecimals = getTokenInfo(CFG.validCurrencies[vestment.currency])
             logging.debug(tokenDecimals)
             if 'decimals' in tokenDecimals:
                 currencyDecimals = int(tokenDecimals['decimals'])
         else:
             currencyDecimals = 9
-        tokenDecimals = getTokenInfo(CFG.validCurrencies[vs.vestedToken])
+        tokenDecimals = getTokenInfo(CFG.validCurrencies[vestment.vestedToken])
         if 'decimals' in tokenDecimals:
             vestedTokenDecimals = int(tokenDecimals['decimals'])
     except Exception as e:
@@ -151,22 +92,22 @@ async def vestToken(vestment: Vestment):
     try:
         buyerWallet        = Wallet(vestment.wallet)
         nodeWallet = Wallet(CFG.nodeWallet)
-        amountInUSD             = vestment.vestingAmount*vs.vestedTokenPrice
+        amountInUSD             = vestment.vestingAmount*vestment.vestedTokenPrice
         
-        vestingDuration_ms = duration_ms[vs.periodType]*vs.periodDuration
-        vestingBegin_ms    = vs.vestingBegin
+        vestingDuration_ms = duration_ms[vestment.periodType]*vestment.periodDuration
+        vestingBegin_ms    = vestment.vestingBegin
 
         txFee_nerg         = int(.001*nergsPerErg)
 
         tokenAmount        = vestment.vestingAmount*vestedTokenDecimals
         logging.info(f"1 {amountInUSD}")
-        currencyAmount = amountInUSD/vs.currencyPrice
+        currencyAmount = amountInUSD/vestment.currencyPrice
         coinAmount_nerg    = int(.01*nergsPerErg)
-        if vs.currency == "ergo":
+        if vestment.currency == "ergo":
             coinAmount_nerg = int(currencyAmount*nergsPerErg)
         sendAmount_nerg    = coinAmount_nerg
 
-        logging.info(f'using {vs.currency}, amount={vestment.vestingAmount:.2f} at price={vs.vestedTokenPrice} for {amountInUSD}sigusd')
+        logging.info(f'using {vestment.currency}, amount={vestment.vestingAmount:.2f} at price={vestment.vestedTokenPrice} for {amountInUSD}sigusd')
 
         # pay ergopad for tokens with coins or tokens
         startWhen = {'erg': sendAmount_nerg}
@@ -176,10 +117,10 @@ async def vestToken(vestment: Vestment):
         }]
         if isToken:
             outBox[0]['assets'] = [{
-                'tokenId': CFG.validCurrencies[vs.currency], # sigusd
+                'tokenId': CFG.validCurrencies[vestment.currency], # sigusd
                 'amount': int(currencyAmount*currencyDecimals),
             }]
-            startWhen[CFG.validCurrencies[vs.currency]] = int(currencyAmount*currencyDecimals)
+            startWhen[CFG.validCurrencies[vestment.currency]] = int(currencyAmount*currencyDecimals)
     
         logging.info(f'startWhen: {startWhen}')
 
@@ -188,7 +129,7 @@ async def vestToken(vestment: Vestment):
         # create outputs for each vesting period; add remainder to final output, if exists
         r4 = encodeString(buyerWallet.ergoTree()) # convert to bytearray
         r5 = encodeLong(int(vestingDuration_ms))
-        r6 = encodeLong(int(tokenAmount/vs.vestingPeriods))
+        r6 = encodeLong(int(tokenAmount/vestment.vestingPeriods))
         r7 = encodeLong(int(vestingBegin_ms))
         r8 = encodeLong(int(tokenAmount))
         r9 = encodeString(uuid.uuid4().hex)
@@ -204,28 +145,28 @@ async def vestToken(vestment: Vestment):
                 'R9': r9
             },
             'assets': [{ 
-                'tokenId': CFG.validCurrencies[vs.vestedToken],
+                'tokenId': CFG.validCurrencies[vestment.vestedToken],
                 'amount': tokenAmount
             }]
         })
-        currencyID = CFG.validCurrencies[vs.currency] if isToken else ""
+        currencyID = CFG.validCurrencies[vestment.currency] if isToken else ""
         params = {
             'nodeWallet': nodeWallet.address,
             'buyerWallet': buyerWallet.address,
             'vestingErgoTree': b64encode(bytes.fromhex(Wallet(scVesting).ergoTree()[2:])).decode('utf-8'),
-            'saleToken': b64encode(bytes.fromhex(CFG.validCurrencies[vs.vestedToken])).decode('utf-8'),
+            'saleToken': b64encode(bytes.fromhex(CFG.validCurrencies[vestment.vestedToken])).decode('utf-8'),
             'saleTokenAmount': int(tokenAmount),
             'timestamp': int(time()),
             'purchaseToken': b64encode(bytes.fromhex(currencyID)).decode('utf-8'),
             'purchaseTokenAmount': int(currencyAmount*currencyDecimals),
             'redeemPeriod': int(vestingDuration_ms),
-            'redeemAmount': int(tokenAmount/vs.vestingPeriods),
+            'redeemAmount': int(tokenAmount/vestment.vestingPeriods),
             'vestingStart': int(vestingBegin_ms)
         }
         logging.info(params)
         scPurchase = getErgoscript('vesting1', params=params)
         # create transaction with smartcontract, into outbox(es), using tokens from ergopad token box
-        ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId=CFG.validCurrencies[vs.vestedToken], nErgAmount=txFee_nerg*3, tokenAmount=tokenAmount)
+        ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId=CFG.validCurrencies[vestment.vestedToken], nErgAmount=txFee_nerg*3, tokenAmount=tokenAmount)
         logging.info(f'build request')
         request = {
             'address': scPurchase,
@@ -255,7 +196,7 @@ async def vestToken(vestment: Vestment):
 
         logging.debug(f'::TOOK {time()-st:.2f}s')
         if isToken:
-            message = f'send {sendAmount_nerg/nergsPerErg} ergs and {currencyAmount} {vs.currency} to {scPurchase}'
+            message = f'send {sendAmount_nerg/nergsPerErg} ergs and {currencyAmount} {vestment.currency} to {scPurchase}'
         else:
             message = f'send {sendAmount_nerg/nergsPerErg} ergs to {scPurchase}'
         return({
@@ -283,7 +224,7 @@ def redeemToken(address:str):
     scPurchase = getErgoscript('alwaysTrue', {})
     outBoxes = []
     inBoxes = []
-    currentTime = requests.get(f'{CFG.ergopadNode}/blocks/lastHeaders/1', headers=dict(headers),timeout=2).json()[0]['timestamp']
+    currentTime = requests.get(f'{CFG.node}/blocks/lastHeaders/1', headers=dict(headers),timeout=2).json()[0]['timestamp']
     offset = 0
     res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset={offset}&limit=500', headers=dict(headers), timeout=2) #This needs to be put in a loop in case of more than 500 boxes
     while res.ok:
@@ -292,7 +233,7 @@ def redeemToken(address:str):
         for box in rJson['items']:
             if len(outBoxes) > 500:
                 break
-            nodeRes = requests.get(f"{CFG.ergopadNode}/utils/ergoTreeToAddress/{box['additionalRegisters']['R4']['renderedValue']}").json()
+            nodeRes = requests.get(f"{CFG.node}/utils/ergoTreeToAddress/{box['additionalRegisters']['R4']['renderedValue']}").json()
             buyerAddress = nodeRes['address']
             redeemPeriod = int(box['additionalRegisters']['R5']['renderedValue'])
             redeemAmount = int(box['additionalRegisters']['R6']['renderedValue'])

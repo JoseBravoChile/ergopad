@@ -72,6 +72,7 @@ app.include_router(blockchain_router, prefix="/api/blockchain", tags=["blockchai
 app.include_router(projects_router, prefix="/api/projects", tags=["projects"])
 app.include_router(util_router, prefix="/api/util", tags=["util"])
 app.include_router(vesting_router, prefix="/api/vesting", tags=["vesting"])
+
 app.include_router(whitelist_router, prefix="/api/whitelist", tags=["whitelist"])
 
 # MAIN
