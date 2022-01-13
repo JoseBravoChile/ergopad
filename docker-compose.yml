@@ -7,9 +7,9 @@ version: '3.9'
 # docker compose -f docker-compose-dev.yml -f docker-compose.yml up flower
 
 services:
-
   nginx:
     container_name: nginx
+    env_file: .env
     image: nginx:1.21
     volumes: 
       - ./nginx:/etc/nginx
@@ -18,6 +18,7 @@ services:
 
   backend:
     container_name: backend
+    env_file: .env
     build:
       context: .
       dockerfile: Dockerfile.backend
@@ -29,21 +30,9 @@ services:
       - postgres
     command: uvicorn main:app --reload --workers 4 --reload-dir /app --host 0.0.0.0 --port ${BACKEND_PORT}
 
-  frontend:
-    container_name: frontend
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    volumes: 
-      - ./frontend:/app
-    ports: 
-      - ${FRONTEND_PORT}:${FRONTEND_PORT}
-    profiles: 
-      - frontend
-    command: yarn start
-
   postgres:
     container_name: postgres
+    env_file: .env
     image: postgres:14-alpine
     restart: always
     volumes: 
@@ -53,6 +42,7 @@ services:
 
   redis:
     container_name: redis
+    env_file: .env
     image: redis
     volumes: 
       - redis_data:/data # redis persistence
@@ -62,6 +52,7 @@ services:
 
   pgadmin:
     container_name: pgadmin
+    env_file: .env
     image: dpage/pgadmin4
     ports: 
       - ${PGADMIN_LISTEN_PORT}:${PGADMIN_LISTEN_PORT}
@@ -72,6 +63,7 @@ services:
 
   aggregator:
     container_name: aggregator
+    env_file: .env
     build:
       context: .
       dockerfile: Dockerfile.aggregator
@@ -84,6 +76,7 @@ services:
 
   celery:
     container_name: celery
+    env_file: .env
     build:
       context: .
       dockerfile: Dockerfile.celery
@@ -93,6 +86,7 @@ services:
 
   flower:  
     container_name: flower
+    env_file: .env
     image: mher/flower
     ports: 
       - ${FLOWER_PORT}:${FLOWER_PORT}
@@ -105,6 +99,7 @@ services:
 
   ergonode:
     container_name: ergonode
+    env_file: .env
     image: openjdk
     volumes:
       - ./ergonode/:/opt/ergo # jar/conf
@@ -122,6 +117,7 @@ services:
 
   assembler:
     container_name: assembler
+    env_file: .env
     image: openjdk:11.0.13-jdk-buster
     volumes: 
       - ./assembler/:/opt/assembler

@@ -22,10 +22,6 @@ jobs:
       - name: Set Test Environment Variables and Configuration
         run: mv .env.template .env && mv ergonode/ergonode.conf.template ergonode/testnet.conf
 
-      - name: Install Node Packages
-        working-directory: frontend
-        run: yarn install
-
       - name: Docker Compose Up
         working-directory: .
         run: docker compose -f docker-compose-ci.yml up -d && docker ps
@@ -36,5 +32,3 @@ jobs:
       - name: Run Integration Backend
         run: python3 test/backend.py
 
-      - name: Run Integration Frontend
-        run: python3 test/frontend.py
