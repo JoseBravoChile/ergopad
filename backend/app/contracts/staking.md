@@ -1,6 +1,8 @@
 # ErgoPad Staking Setup
 
-Tokens can be staked on ErgoPad. The benefits of staking for the staker is described [here](https://github.com/ergo-pad/ergopad/tree/staking-contracts/docs#staking)
+Credit to [ErgoProfitSharingDapp](https://github.com/mhssamadani/ErgoProfitSharingDapp) for providing inspiration for this setup.
+
+Tokens can be staked on ErgoPad. The benefits of staking for the staker is described [here](https://github.com/ergo-pad/ergopad/tree/main/docs#staking)
 The goal of the staking contracts is long term security of the stakers and the locked tokens waiting for emission.
 Because the staking runs over a long period of time it is important to keep the contracts as secure as possible and make it possible for anyone to interact with them and not hard code any wallets.
 
