@@ -1,3 +1,4 @@
+DROP TABLE "whitelist";
 CREATE TABLE "whitelist" (
     id SERIAL PRIMARY KEY,
     "walletId" INTEGER NOT NULL,
