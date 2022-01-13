@@ -1,3 +1,4 @@
+DROP TABLE "wallets";
 -- wallets
 CREATE TABLE "wallets" (
     id SERIAL PRIMARY KEY,
@@ -17,6 +18,7 @@ CREATE TABLE "wallets" (
 INSERT INTO "wallets" (id, "address", "blockChainId", "network", "walletPass", "mneumonic", "created_dtz", "lastSeen_dtz", "socialHandle", "socialPlatform", "chatHandle", "chatPlatform") 
 VALUES (-1, '__unknown', -1, '__unknown', '__unknown', '__unknown', '1/1/1900', '1/1/1900', '__unknown', '__unknown', '__unknown', '__unknown');
 
+DROP TABLE "blockChains";
 -- blockchains
 CREATE TABLE "blockChains" (
     id SERIAL PRIMARY KEY,
