@@ -112,6 +112,7 @@ Box holding tokens for one staking cycle. Ensures all stake boxes that belong to
 | 4 | Long | Total amount staked |
 | 5 | Long | Checkpoint |
 | 6 | Long | Stakers |
+| 7 | Long | Emission amount |
 
 ### Assets
 
