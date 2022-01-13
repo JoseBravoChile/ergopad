@@ -1,3 +1,4 @@
+DROP TABLE "tokens";
 CREATE TABLE "tokens" (
     id SERIAL PRIMARY KEY,
     "address" TEXT NOT NULL,
