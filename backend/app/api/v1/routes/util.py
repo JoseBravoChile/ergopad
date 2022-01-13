@@ -1,6 +1,5 @@
 # import requests
 import ssl
-import os
 import pandas as pd
 
 from sqlalchemy import create_engine
@@ -9,8 +8,11 @@ from fastapi.encoders import jsonable_encoder
 from typing import Optional
 from pydantic import BaseModel
 from time import time
-
 from smtplib import SMTP
+from config import Config, Network # api specific config
+CFG = Config[Network]
+
+util_router = r = APIRouter()
 
 #region BLOCKHEADER
 """
@@ -24,14 +26,10 @@ Notes:
 """
 #endregion BLOCKHEADER
 
-#region LOGGING
-import logging
-logging.basicConfig(format="%(asctime)s %(levelname)s %(threadName)s %(name)s %(message)s", datefmt='%m-%d %H:%M', level=logging.DEBUG)
-#endregion LOGGING
+#region INIT
+DEBUG = CFG.debug
+st = time() # stopwatch
 
-# testing
-# email = Email(to='erickson.winter@gmail.com', subj='testing', body='hello world 4')
-# email(email)
 class Email(BaseModel):
     to: str
     # sender: str
@@ -44,34 +42,23 @@ class Email(BaseModel):
             'subject': 'greetings',
             'body': 'this is a message.'
         }
-
-# dat = {'name': 'bob', 'email': 'email', 'qty': 9, 'wallet': '1234', 'handle1': 'h1', 'platform1': 'p1', 'handle2': 'h2', 'platform2': 'p2', 'canInvest': 1, 'hasRisk': 1, 'isIDO': 1}
-class Whitelist(BaseModel):
-    chatHandle: str
-    chatPlatform: str
-    email: str
-    ergoAddress: str
-    name: str
-    sigValue: int
-    socialHandle: str
-    socialPlatform: str
-
-    class Config:
-        schema_extra = {
-            'to': 'hello@world.com',
-            'subject': 'greetings',
-            'body': 'this is a message.'
-        }
-
-util_router = r = APIRouter()
 #endregion INIT
+
+#region LOGGING
+import logging
+levelname = (logging.WARN, logging.DEBUG)[DEBUG]
+logging.basicConfig(format='{asctime}:{name:>8s}:{levelname:<8s}::{message}', style='{', levelname=levelname)
+
+import inspect
+myself = lambda: inspect.stack()[1][3]
+#endregion LOGGING
 
 @r.post("/email")
 async def email(email: Email):
-    usr = os.getenv('EMAIL_ERGOPAD_USERNAME')
-    pwd = os.getenv('EMAIL_ERGOPAD_PASSWORD')
-    svr = os.getenv('EMAIL_ERGOPAD_SMTP') 
-    frm = os.getenv('EMAIL_ERGOPAD_FROM')
+    usr = CFG.emailUsername
+    pwd = CFG.emailPassword
+    svr = CFG.emailSMTP
+    frm = CFG.emailFrom
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS)
 
     # create connection
@@ -93,57 +80,3 @@ async def email(email: Email):
 
     return {'status': 'success', 'detail': f'email sent to {email.to}'}
 
-@r.post("/whitelist")
-async def email(whitelist: Whitelist, response: Response):
-    if int(time()) < 1640538000:
-        response.status_code = status.HTTP_406_NOT_ACCEPTABLE
-        return {'status': 'error', 'message': 'entry not allowed until designated time'}
-
-    usr = os.getenv('EMAIL_ERGOPAD_USERNAME')
-    pwd = os.getenv('EMAIL_ERGOPAD_PASSWORD')
-    svr = os.getenv('EMAIL_ERGOPAD_SMTP') 
-    frm = 'whitelist@ergopad.io'
-    to = 'ergopad.marketing@gmail.com'
-    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS)
-
-    # create connection
-    logging.info(f'creating connection for: {svr} as {usr}')
-    con = SMTP(svr, 587)
-    res = con.ehlo()
-    res = con.starttls(context=ctx)
-    if res[0] == 220: logging.info('starttls success')
-    else: logging.error(res)
-    res = con.ehlo()
-    res = con.login(usr, pwd)
-    if res[0] == 235: logging.info('login success')
-    else: logging.error(res)
-
-    msg = f"""From: {frm}\nTo: {to}\nSubject: ERGOPAD WHITELIST\n\n{whitelist}"""
-    res = con.sendmail(frm, to, msg) # con.sendmail(frm, 'beanbrown@gmail.com', msg)
-    if res == {}: logging.info('message sent')
-    else: logging.error(res)
-
-    # save to database
-    # con = create_engine('postgresql://frontend:invitetokencornerworld@3.87.194.195/ergopad')
-    con = create_engine('postgresql://frontend:invitetokencornerworld@localhost:5432/ergopad')
-    df = pd.DataFrame(jsonable_encoder(whitelist), index=[0])
-    df['eventName'] = 'strategic-20211226'
-    df.to_sql('whitelist', con=con, if_exists='append', index=False)
-
-    return {'status': 'success', 'detail': f'email sent to whitelist'}
-
-@r.get("/whitelist")
-async def whitelist():
-    try:
-        con = create_engine('postgresql://frontend:invitetokencornerworld@localhost:5432/ergopad')
-        res = con.execute("""
-            select coalesce(sum("sigValue"), 0.0) as qty 
-            from whitelist 
-            where "eventName" = 'strategic-20211226'
-        """).fetchall()
-
-        # return {'status': 'success', 'qty': int(res[0]['qty']), 'gmt': 1640538001} # testing; enable submit button
-        return {'status': 'success', 'qty': int(res[0]['qty']), 'gmt': int(time())}
-
-    except Exception as e:
-        return {'status': 'error', 'count': -1, 'desc': e}

@@ -8,16 +8,22 @@ from api.v1.routes.auth import auth_router
 from api.v1.routes.asset import asset_router
 from api.v1.routes.blockchain import blockchain_router
 from api.v1.routes.util import util_router
+from api.v1.routes.projects import projects_router
+from api.v1.routes.vesting import vesting_router
+from api.v1.routes.whitelist import whitelist_router
+# from api.v1.routes.wallets import wallets_router
+# from api.v1.routes.tokens import tokens_router
+# from api.v1.routes.purchases import purchases_router
+
 from core import config
 # from app.db.session import SessionLocal
 from core.auth import get_current_active_user
 from core.celery_app import celery_app
 from worker import tasks
 
-
 app = FastAPI(
-    title=config.PROJECT_NAME, 
-    docs_url="/api/docs", 
+    title=config.PROJECT_NAME,
+    docs_url="/api/docs",
     openapi_url="/api"
 )
 
@@ -53,28 +59,21 @@ async def db_session_middleware(request: Request, call_next):
 async def ping():
     return {"hello": "world"}
 
-
-@app.get("/login")
-async def ping():
-    return {"authToken": "helloworld"}
-
-
 @app.get("/api/task")
 async def example_task():
     celery_app.send_task("tasks.example_task", args=["Hello World"])
-
     return {"message": "success"}
-
 
 # Routers
 app.include_router(users_router, prefix="/api/users", tags=["users"], dependencies=[Depends(get_current_active_user)])
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(asset_router, prefix="/api/asset", tags=["asset"])
 app.include_router(blockchain_router, prefix="/api/blockchain", tags=["blockchain"])
+app.include_router(projects_router, prefix="/api/projects", tags=["projects"])
 app.include_router(util_router, prefix="/api/util", tags=["util"])
+app.include_router(vesting_router, prefix="/api/vesting", tags=["vesting"])
+app.include_router(whitelist_router, prefix="/api/whitelist", tags=["whitelist"])
 
-
-### MAIN
+# MAIN
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", reload=True, port=4000)
-
+    uvicorn.run("main:app", host="0.0.0.0", reload=True, port=8000)

@@ -2,19 +2,21 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import APIRouter, Depends, HTTPException, status
 from datetime import timedelta
 
+from db.crud import blacklist_token
 from db.session import get_db
+
 from core import security
-from core.auth import authenticate_user, sign_up_new_user
+from core.auth import authenticate_user, get_current_active_user, sign_up_new_user
 
 auth_router = r = APIRouter()
 
 # from starlette.responses import HTMLResponse
 # @r.get("/form", response_class=HTMLResponse)
 # def form_get():
-#     return '''<html<head></head><body><form method="post" action="/api/token"> 
+#     return '''<html<head></head><body><form method="post" action="/api/token">
 #     <input type="text" name="username" value="hello"/><br>
-#     <input type="password" name="password" value="world"/><br> 
-#     <input type="submit"/> 
+#     <input type="password" name="password" value="world"/><br>
+#     <input type="submit"/>
 #     </form></body></html>'''
 
 
@@ -42,7 +44,7 @@ async def login(
         expires_delta=access_token_expires,
     )
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "permissions": permissions}
 
 
 @r.post("/signup")
@@ -70,3 +72,8 @@ async def signup(
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@r.post("/logout")
+async def logout(db=Depends(get_db), token: str = Depends(security.oauth2_scheme), current_user=Depends(get_current_active_user)):
+    return blacklist_token(db, token)
