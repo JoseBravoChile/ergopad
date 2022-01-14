@@ -8,176 +8,196 @@ version: '3.9'
 
 services:
 
-  nginx:
-    container_name: nginx
-    env_file: .env.development.local
-    image: nginx:1.21
-    volumes: 
-      - ./nginx:/etc/nginx
-    ports: 
-      - ${NGINX_PORT}:${NGINX_PORT}
+    nginx:
+        container_name: nginx
+        env_file: .env.development.local
+        image: nginx:1.21
+        volumes: 
+            - ./nginx:/etc/nginx
+        ports: 
+            - ${NGINX_PORT}:${NGINX_PORT}
 
-  backend:
-    container_name: backend
-    env_file: .env.development.local
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
-    volumes: 
-      - ./backend/app:/app
-    ports: 
-      - ${BACKEND_PORT}:${BACKEND_PORT}
-    depends_on: 
-      - postgres
-    command: uvicorn main:app --reload --workers 2 --reload-dir /app --host 0.0.0.0 --port ${BACKEND_PORT}
+    backend:
+        container_name: backend
+        env_file: .env.development.local
+        build:
+            context: .
+            dockerfile: Dockerfile.backend
+        volumes: 
+            - ./backend/app:/app
+        ports: 
+            - ${BACKEND_PORT}:${BACKEND_PORT}
+        depends_on: 
+            - postgres
+        command: uvicorn main:app --reload --workers 2 --reload-dir /app --host 0.0.0.0 --port ${BACKEND_PORT}
 
-  frontend:
-    container_name: frontend
-    env_file: .env.development.local
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    volumes: 
-      - ./frontend:/app
-    ports: 
-      - ${FRONTEND_PORT}:${FRONTEND_PORT}
-    profiles: 
-      - frontend
-    command: yarn dev
+    frontend:
+        container_name: frontend
+        env_file: .env.development.local
+        build:
+            context: .
+            dockerfile: Dockerfile.frontend
+        volumes: 
+            - ./frontend:/app
+        ports: 
+            - ${FRONTEND_PORT}:${FRONTEND_PORT}
+        profiles: 
+            - frontend
+        command: yarn dev
 
-  postgres:
-    container_name: postgres
-    env_file: .env.development.local
-    image: postgres:14
-    restart: always
-    volumes: 
-      - postgres_data_dev:/var/lib/postgresql/data:cached
-    ports: 
-      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    postgres:
+        container_name: postgres
+        env_file: .env.development.local
+        image: postgres:14
+        restart: always
+        volumes: 
+            - postgres_data_dev:/var/lib/postgresql/data:cached
+        ports: 
+            - ${POSTGRES_PORT}:${POSTGRES_PORT}
 
-  redis:
-    container_name: redis
-    env_file: .env.development.local
-    image: redis
-    volumes: 
-      - redis_data_dev:/data # redis persistence
-    ports: 
-      - ${REDIS_PORT}:${REDIS_PORT}
-    entrypoint: redis-server --appendonly yes
+    redis:
+        container_name: redis
+        env_file: .env.development.local
+        image: redis
+        volumes: 
+            - redis_data_dev:/data # redis persistence
+        ports: 
+            - ${REDIS_PORT}:${REDIS_PORT}
+        entrypoint: redis-server --appendonly yes
 
-  pgadmin:
-    container_name: pgadmin
-    env_file: .env.development.local
-    image: dpage/pgadmin4
-    ports: 
-      - ${PGADMIN_LISTEN_PORT}:80
-    depends_on:
-      - postgres
+    pgadmin:
+        container_name: pgadmin
+        env_file: .env.development.local
+        image: dpage/pgadmin4
+        ports: 
+            - ${PGADMIN_LISTEN_PORT}:80
+        depends_on:
+            - postgres
 
-  pgmaint:
-    container_name: pgmaint
-    image: postgres:alpine
-    env_file: .env.production.local
-    working_dir: /app
-    environment:
-      - BASEDIR=/backups
-      - DBLIST=hello alpha
-      - DUMPPREFIX=ergopad
-    volumes:
-      - /backups/pgmaint:/backups
-      - ./pgmaint/periodic/daily:/etc/periodic/daily/:ro
-      - ./app:/app
-    # command: start.sh
-    command: tail /dev/null -f
+    pgmaint:
+        container_name: pgmaint
+        image: postgres:alpine
+        env_file: .env.production.local
+        working_dir: /app
+        environment:
+            - BASEDIR=/backups
+            - DBLIST=hello alpha
+            - DUMPPREFIX=ergopad
+        volumes:
+            - /backups/pgmaint:/backups
+            - ./pgmaint/periodic/daily:/etc/periodic/daily/:ro
+            - ./app:/app
+        # command: start.sh
+        command: tail /dev/null -f
 
-  aggregator:
-    container_name: aggregator
-    env_file: .env.development.local
-    build:
-      context: .
-      dockerfile: Dockerfile.aggregator
-    volumes: 
-      - ./aggregator/app:/app # !! update for main docker-compose file
-    ports: 
-      - ${AGGREGATOR_PORT}:${AGGREGATOR_PORT}
-    # command: uvicorn main:app --reload --workers 4 --reload-dir /app --host 0.0.0.0 --port ${AGGREGATOR_PORT}
-    command: python main.py # TODO: automate with celery and API to call refreshes; infinite loop for now
+    aggregator:
+        container_name: aggregator
+        env_file: .env.development.local
+        build:
+            context: .
+            dockerfile: Dockerfile.aggregator
+        volumes: 
+            - ./aggregator/app:/app # !! update for main docker-compose file
+        ports: 
+            - ${AGGREGATOR_PORT}:${AGGREGATOR_PORT}
+        # command: uvicorn main:app --reload --workers 4 --reload-dir /app --host 0.0.0.0 --port ${AGGREGATOR_PORT}
+        command: python main.py # TODO: automate with celery and API to call refreshes; infinite loop for now
 
-  celery:
-    container_name: celery
-    env_file: .env.development.local
-    build:
-      context: .
-      dockerfile: Dockerfile.celery
-    environment:
-      - CELERY_QUEUE
-    volumes: 
-      - ./celery/app:/app # !! update for main docker-compose file
-    # command: celery --app main.celery worker --loglevel=${CELERY_LOGLEVEL} -Q ${CELERY_QUEUE} -c 1
-    command: tail /dev/null -f
+    celery:
+        container_name: celery
+        env_file: .env.development.local
+        build:
+            context: .
+            dockerfile: Dockerfile.celery
+        environment:
+            - CELERY_QUEUE
+        volumes: 
+            - ./celery/app:/app # !! update for main docker-compose file
+        # command: celery --app main.celery worker --loglevel=${CELERY_LOGLEVEL} -Q ${CELERY_QUEUE} -c 1
+        command: tail /dev/null -f
 
-  flower:  
-    container_name: flower
-    env_file: .env.development.local
-    image: mher/flower
-    ports: 
-      - ${FLOWER_PORT}:${FLOWER_PORT}
-    depends_on:
-      - redis
-      - celery
-    command: celery --broker=redis://redis:${REDIS_PORT}/0 flower --port=${FLOWER_PORT}
+    flower:  
+        container_name: flower
+        env_file: .env.development.local
+        image: mher/flower
+        ports: 
+            - ${FLOWER_PORT}:${FLOWER_PORT}
+        depends_on:
+            - redis
+            - celery
+        command: celery --broker=redis://redis:${REDIS_PORT}/0 flower --port=${FLOWER_PORT}
 
-  ergonode:
-    container_name: ergonode
-    env_file: .env.development.local
-    image: openjdk
-    volumes:
-      - ./ergonode:/opt/ergo # jar/conf
-      - /ergo/testnet/.ergo:/ergo/.ergo # blockchain
-    ports:
-      - ${ERGONODE_PORT}:${ERGONODE_PORT}
-      - 9030:9030
-    working_dir: /opt/ergo
-    logging:
-        driver: "json-file"
-        options:
-            max-file: 5
-            max-size: 10m
-    command: java -jar -Xmx3G -Dlogback.stdout.level=${ERGONODE_LOGLEVEL} -Dlogback.file.level=${ERGONODE_LOGLEVEL} ergo.jar --${ERGONODE_NETWORK} -c ${ERGONODE_CONF}
+        
+    ergonode:
+        container_name: ergonode
+        env_file: .env.development.local
+        image: openjdk
+        volumes:
+            - ./ergonode:/opt/ergo # jar/conf
+            - /ergo/testnet/.ergo:/ergo/.ergo # blockchain
+        ports:
+            - ${ERGONODE_PORT}:${ERGONODE_PORT}
+            - 9030:9030
+        working_dir: /opt/ergo
+        logging:
+                driver: "json-file"
+                options:
+                        max-file: 5
+                        max-size: 10m
+        command: java -jar -Xmx3G -Dlogback.stdout.level=${ERGONODE_LOGLEVEL} -Dlogback.file.level=${ERGONODE_LOGLEVEL} ergo.jar --${ERGONODE_NETWORK} -c ${ERGONODE_CONF}
 
-  # only in dev.yml
-  ergonode2:
-    container_name: ergonode2
-    env_file: .env.development.local
-    image: openjdk
-    volumes:
-      - ./ergonode/ergonode2:/opt/ergo # jar/conf
-      - /ergo/testnet2/.ergo:/ergo/.ergo # blockchain
-    ports:
-      - ${ERGONODE2_PORT}:${ERGONODE_PORT}
-    working_dir: /opt/ergo
-    logging:
-        driver: "json-file"
-        options:
-            max-file: 5
-            max-size: 10m
-    command: java -jar -Xmx3G -Dlogback.stdout.level=${ERGONODE_LOGLEVEL} -Dlogback.file.level=${ERGONODE_LOGLEVEL} ergo.jar --${ERGONODE_NETWORK} -c ${ERGONODE2_CONF}
+    ergonode2:
+        container_name: ergonode2
+        env_file: .env.development.local
+        image: ergoplatform/ergo
+        environment:
+          - MAX_HEAP=3G # if using default entrypoint
+        ports:
+            - 9054:${ERGONODE_PORT}
+            # - 9030:9030
+        volumes:
+            - ./ergonode/testnet2.conf:/etc/myergo.conf # ergo config
+            - /ergo/testnet2/.ergo:/home/ergo/.ergo # blockchain data
+        logging:
+                driver: "json-file"
+                options:
+                        max-file: 5
+                        max-size: 10m
+        entrypoint: java -jar -Xmx3G -Dlogback.stdout.level=${ERGONODE_LOGLEVEL} -Dlogback.file.level=${ERGONODE_LOGLEVEL} ergo.jar --${ERGONODE_NETWORK} -c /etc/myergo.conf
+    
+    # only in dev.yml
+    # ergonode2:
+    #     container_name: ergonode2
+    #     env_file: .env.development.local
+    #     image: openjdk
+    #     volumes:
+    #         - ./ergonode/ergonode2:/opt/ergo # jar/conf
+    #         - /ergo/testnet2/.ergo:/ergo/.ergo # blockchain
+    #     ports:
+    #         - ${ERGONODE2_PORT}:${ERGONODE_PORT}
+    #     working_dir: /opt/ergo
+    #     logging:
+    #             driver: "json-file"
+    #             options:
+    #                     max-file: 5
+    #                     max-size: 10m
+    #     command: java -jar -Xmx3G -Dlogback.stdout.level=${ERGONODE_LOGLEVEL} -Dlogback.file.level=${ERGONODE_LOGLEVEL} ergo.jar --${ERGONODE_NETWORK} -c ${ERGONODE2_CONF}
 
-  assembler:
-    container_name: assembler
-    env_file: .env.development.local
-    image: openjdk:11.0.13-jdk-buster
-    volumes: 
-      - ./assembler/:/opt/assembler
-    ports: 
-      - ${ASSEMBLER_PORT}:${ASSEMBLER_PORT}
-    working_dir: /opt/assembler # set this if using image and not build
-    logging:
-        driver: "json-file"
-        options:
-            max-file: 5
-            max-size: 10m
-    command: java -jar -Dconfig.file=${ASSEMBLER_CONF} -Dhttp.port=${ASSEMBLER_PORT} ${ASSEMBLER_JAR}
+    assembler:
+        container_name: assembler
+        env_file: .env.development.local
+        image: openjdk:11.0.13-jdk-buster
+        volumes: 
+            - ./assembler/:/opt/assembler
+        ports: 
+            - ${ASSEMBLER_PORT}:${ASSEMBLER_PORT}
+        working_dir: /opt/assembler # set this if using image and not build
+        logging:
+                driver: "json-file"
+                options:
+                        max-file: 5
+                        max-size: 10m
+        command: java -jar -Dconfig.file=${ASSEMBLER_CONF} -Dhttp.port=${ASSEMBLER_PORT} ${ASSEMBLER_JAR}
 
 #   ergostratum:
 #     container_name: ergostratum
@@ -191,5 +211,5 @@ services:
 #     command: nodemon ./tulip.js -e js # restart on js file changes
 
 volumes:
-  postgres_data_dev:
-  redis_data_dev:
+    postgres_data_dev:
+    redis_data_dev:
