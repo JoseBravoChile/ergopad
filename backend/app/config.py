@@ -57,6 +57,7 @@ Config = {
     'vestingPeriods_1'  : 9,
     'vestingDuration_1' : 30, # days
     'connectionString'  : f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DBNM')}",
+    'jwtSecret'         : os.getenv('JWT_SECRET_KEY'),
     'debug'             : True,
     'validCurrencies'   : {
       'seedsale' : '82d030c7373263c0f048031bfd214d49fea6942a114a291e36120694b4304e9e',
@@ -95,6 +96,7 @@ Config = {
     'vestingPeriods_1'  : 9,
     'vestingDuration_1' : 30, # days
     'connectionString'  : f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DBNM')}",
+    'jwtSecret'         : os.getenv('JWT_SECRET_KEY'),
     'debug'             : True,
     'validCurrencies'   : {
       # 'seedsale' : '8eb9a97f4c8e5409ade9a13625f2bbb9f8b081e51d37f623233444743fae8321', # xeed1k
