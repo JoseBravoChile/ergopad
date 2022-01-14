@@ -1,18 +1,22 @@
-import requests, json, os
+import requests
+import json
+import os
 import pandas as pd
+import typing as t
 
-from starlette.responses import JSONResponse 
+from starlette.responses import JSONResponse
 from sqlalchemy import create_engine
-from wallet import Wallet, NetworkEnvironment # ergopad.io library
-from fastapi import APIRouter, Response, status #, Request
+from db.session import get_db
+from wallet import Wallet, NetworkEnvironment  # ergopad.io library
+from fastapi import APIRouter, Response, status, Depends  # , Request
 from fastapi.encoders import jsonable_encoder
 from typing import Optional
 from pydantic import BaseModel
 from time import time
 from datetime import datetime as dt
-from config import Config, Network # api specific config
-CFG = Config[Network]
+from config import Config, Network  # api specific config
 
+CFG = Config[Network]
 whitelist_router = r = APIRouter()
 
 #region BLOCKHEADER
@@ -83,6 +87,12 @@ class Whitelist(BaseModel):
                 'chatPlatform': 'discord',
             }
         }
+
+class Event(BaseModel):
+    id: int
+    name: str = EVENTNAME
+    description: str
+
 #endregion CLASSES
 
 #region ROUTES
@@ -187,6 +197,18 @@ async def whitelist(eventName):
 
     except Exception as e:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'invalid whitelist request')
+
+
+@r.get("/events", response_model=t.List[Event], response_model_exclude_none=True, name="whitelist:all-events")
+async def whitelist(db=Depends(get_db)):
+    sql = f"""
+    select id, name, description from events
+    """
+    res = db.execute(sql).fetchall()
+    ret = [Event(id=event['id'], name=event['name'],
+                 description=event['description']) for event in res]
+    return ret
+
 #endregion ROUTES
 
 ### MAIN
