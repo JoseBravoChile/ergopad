@@ -201,13 +201,16 @@ async def whitelist(eventName):
 
 @r.get("/events", response_model=t.List[Event], response_model_exclude_none=True, name="whitelist:all-events")
 async def whitelist(db=Depends(get_db)):
-    sql = f"""
-    select id, name, description from events
-    """
-    res = db.execute(sql).fetchall()
-    ret = [Event(id=event['id'], name=event['name'],
-                 description=event['description']) for event in res]
-    return ret
+    try:
+        sql = f"""
+        select id, name, description from events
+        """
+        res = db.execute(sql).fetchall()
+        ret = [Event(id=event['id'], name=event['name'],
+                     description=event['description']) for event in res]
+        return ret
+    except:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'invalid whitelist request')
 
 #endregion ROUTES
 
