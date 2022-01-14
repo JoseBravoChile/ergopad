@@ -11,7 +11,6 @@ from api.v1.routes.util import util_router
 from api.v1.routes.projects import projects_router
 from api.v1.routes.vesting import vesting_router
 from api.v1.routes.whitelist import whitelist_router
-from api.v1.routes.purchase import purchase_router
 # from api.v1.routes.wallets import wallets_router
 # from api.v1.routes.tokens import tokens_router
 # from api.v1.routes.purchases import purchases_router
@@ -74,7 +73,6 @@ app.include_router(projects_router, prefix="/api/projects", tags=["projects"])
 app.include_router(util_router, prefix="/api/util", tags=["util"])
 app.include_router(vesting_router, prefix="/api/vesting", tags=["vesting"])
 app.include_router(whitelist_router, prefix="/api/whitelist", tags=["whitelist"])
-app.include_router(purchase_router, prefix="/api/purchase", tags=["purchase"])
 
 # MAIN
 if __name__ == "__main__":
