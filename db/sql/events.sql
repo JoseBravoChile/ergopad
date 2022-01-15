@@ -8,6 +8,12 @@ create table "events" (
     "buffer_sigusd" NUMERIC(16,6) DEFAULT 0.0,
     "owner" TEXT NOT NULL DEFAULT 'sigma@ergopad.io',
     "walletId" INTEGER,
+    "individualCap" INTEGER,
+    "vestedTokenId" INTEGER,
+    "vestinPeriods" INTEGER,
+    "vestinPeriodDuration" INTEGER,
+    "vestinPeriodType" INTEGER,
+    "tokenPrice" INTEGER,
     "isWhitelist" SMALLINT DEFAULT 0,
     "start_dtz" timestamptz NOT NULL DEFAULT now(),
     "end_dtz" timestamptz NOT NULL DEFAULT now()

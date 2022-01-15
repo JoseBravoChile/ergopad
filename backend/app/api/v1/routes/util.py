@@ -80,3 +80,51 @@ async def email(email: Email):
 
     return {'status': 'success', 'detail': f'email sent to {email.to}'}
 
+# TEST - send payment from test wallet
+@r.get("/sendPayment/{address}/{nergs}/{tokens}", name="blockchain:sendPayment")
+def sendPayment(address, nergs, tokens):
+  # TODO: require login/password or something; disable in PROD
+  try:
+    if not DEBUG:
+      return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=f'not found')
+      # return {'status': 'fail', 'detail': f'only available in DEBUG mode'}    
+
+    sendMe = ''
+    isWalletLocked = False
+    
+    # !! add in check for wallet lock, and unlock/relock if needed
+    lck = requests.get(f'http://ergonode2:9052/wallet/status', headers={'Content-Type': 'application/json', 'api_key': 'goalspentchillyamber'})
+    logging.info(lck.content)
+    if lck.ok:
+        if lck.json()['isUnlocked'] == False:
+            ulk = requests.post(f'http://ergonode2:9052/wallet/unlock', headers={'Content-Type': 'application/json', 'api_key': 'goalspentchillyamber'}, json={'pass': 'crowdvacationancientamber'})
+            logging.info(ulk.content)
+            if ulk.ok: isWalletLocked = False
+            else: isWalletLocked = True
+        else: isWalletLocked = True
+    else: isWalletLocked = True
+
+    # unlock wallet
+    if isWalletLocked:
+        logging.info('unlock wallet')
+
+    # send nergs to address/smartContract from the buyer wallet
+    # for testing, address/smartContract is 1==1, which anyone could fulfill
+    sendMe = [{
+        'address': address,
+        'value': int(nergs),
+        'assets': [{"tokenId": validCurrencies['seedsale'], "amount": tokens}],
+        # 'assets': [],
+
+    }]
+    pay = requests.post(f'http://ergonode2:9052/wallet/payment/send', headers={'Content-Type': 'application/json', 'api_key': 'goalspentchillyamber'}, json=sendMe)
+
+    # relock wallet
+    if not isWalletLocked:
+        logging.info('relock wallet')
+
+    return {'status': 'success', 'detail': f'payment: {pay.json()}'}
+
+  except Exception as e:
+    logging.error(f'ERR:{myself()}: unable to send payment ({e})')
+    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to send payment')
