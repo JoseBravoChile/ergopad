@@ -44,6 +44,37 @@ import inspect
 myself = lambda: inspect.stack()[1][3]
 #endregion LOGGING
 
+@r.get("/summary/{eventName}")
+def summary(eventName):
+    try:
+        con = create_engine(DATABASE)
+        sql = f"""
+            with evt as (
+                select id
+                from events
+                where name = 'presale-ergopad-202201wl'
+            )
+            select evt.id
+                , coalesce(max(allowance_sigusd), 0.0) as sigusd
+                , coalesce(count(*), 0.0) as entries
+                , coalesce(max(created_dtz), '1/1/1900') as last_entry
+            from whitelist wht
+                join evt on evt.id = wht."eventId"
+            group by evt.id;
+        """
+        res = con.execute(sql).fetchone()
+        return {
+            'event': eventName,
+            'id': res['id'],
+            'total (sigusd)': f"\u01A9{res['sigusd']:,.2f}",
+            'number of entries': res['entries'],
+            'time of last entry': res['last_entry'],
+        }
+
+    except Exception as e:
+        logging.error(f'ERR:{myself()}: events info {e}')
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'invalid events request')
+
 @r.get("/info/{eventName}")
 def events(eventName):
     # return {'hello': 'world'}
@@ -58,9 +89,9 @@ def events(eventName):
             from events
             {where}
         """
-        logging.debug(sql)
+        # logging.debug(sql)
         res = con.execute(sql)
-        logging.debug(sql)
+        # logging.debug(res)
         events = []
         for r in res:
             events.append({
