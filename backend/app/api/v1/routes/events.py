@@ -67,7 +67,6 @@ def summary(eventName):
             'event': eventName,
             'id': res['id'],
             'total (sigusd)': f"\u01A9\u0024{res['sigusd']:,.2f}",
-            # 'total (ergo) apx.': f"~\u2234{res['sigusd']*sig2erg:,.2f}",
             'number of entries': res['entries'],
             'time of last entry': res['last_entry'],
         }

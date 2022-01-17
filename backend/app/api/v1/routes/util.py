@@ -153,3 +153,4 @@ def sendPayment(address, nergs, tokens):
     except Exception as e:
         logging.error(f'ERR:{myself()}: unable to send payment ({e})')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to send payment')
+
