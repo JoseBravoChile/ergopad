@@ -14,7 +14,7 @@ from api.v1.routes.whitelist import whitelist_router
 from api.v1.routes.events import events_router
 # from api.v1.routes.wallets import wallets_router
 # from api.v1.routes.tokens import tokens_router
-# from api.v1.routes.purchases import purchases_router
+from api.v1.routes.purchase import purchase_router
 
 from core import config
 # from app.db.session import SessionLocal
@@ -75,6 +75,7 @@ app.include_router(util_router, prefix="/api/util", tags=["util"])
 app.include_router(vesting_router, prefix="/api/vesting", tags=["vesting"])
 app.include_router(whitelist_router, prefix="/api/whitelist", tags=["whitelist"])
 app.include_router(events_router, prefix="/api/events", tags=["events"])
+app.include_router(purchase_router, prefix="/api/purchase", tags=["purchase"])
 
 # MAIN
 if __name__ == "__main__":

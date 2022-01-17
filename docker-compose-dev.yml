@@ -137,17 +137,28 @@ services:
       - monitor
     command: celery --broker=redis://redis:${REDIS_PORT}/0 flower --port=${FLOWER_PORT}
 
+  # working really well 1/17/2022
+  # - ?? will 3G be enough for mainnet
+  # - alpine doesn't seem to work
+  # - permission issues with ergoplatform pre-built (plus potentially additional unused image bytes)
   ergonode:
     container_name: ergonode
     env_file: .env.development.local
-    image: openjdk
+    image: openjdk # :alpine
     volumes:
-      - ./ergonode:/opt/ergo # jar/conf
-      - /ergo/testnet/.ergo:/ergo/.ergo # blockchain
+      - ergonode_data:/opt/ergo/.ergo # blockchain data
+      - ./ergonode/testnet.conf:${ERGONODE_CONF} # conf file
+      - ./ergonode/ergo-4.0.20.2.jar:/opt/ergo/ergo.jar # jar executable
     ports:
       - ${ERGONODE_PORT}:${ERGONODE_PORT}
       - 9030:9030
     working_dir: /opt/ergo
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 90s
     logging:
         driver: "json-file"
         options:
@@ -159,13 +170,19 @@ services:
   ergonode2:
     container_name: ergonode2
     env_file: .env.development.local
-    image: openjdk
+    image: openjdk # openjdk:alpine # ?? latest
     volumes:
       - ./ergonode/ergonode2:/opt/ergo # jar/conf
       - /ergo/testnet2/.ergo:/ergo/.ergo # blockchain
     ports:
       - ${ERGONODE2_PORT}:${ERGONODE_PORT}
     working_dir: /opt/ergo
+    healthcheck:
+      test: python healthcheck.py -p ${ERGONODE_PORT}
+      interval: 5m # > block time; look for change in height
+      timeout: 30s
+      # retries: 5
+      start_period: 30s
     logging:
         driver: "json-file"
         options:
@@ -188,6 +205,12 @@ services:
       - 9054:9052
     environment:
       - MAX_HEAP=3G
+    deploy:
+      restart_policy:
+        condition: any # One of none, on-failure or any (default: any).
+        delay: 2s
+        # max_attempts: 3
+        window: 30s # How long to wait before deciding if a restart has succeeded, specified as a duration (default: decide immediately).
     # working_dir: /home/ergo
     logging:
         driver: "json-file"
@@ -199,6 +222,35 @@ services:
     # command: tail /dev/null -f
     entrypoint: tail /dev/null -f
     # entrypoint: java -jar -Xmx3G -Dlogback.stdout.level=${ERGONODE_LOGLEVEL} -Dlogback.file.level=${ERGONODE_LOGLEVEL} ergo.jar --${ERGONODE_NETWORK} -c /etc/myergo.conf
+
+  # only in dev.yml
+  ergonode4:
+    container_name: ergonode4
+    env_file: .env.production.local
+    image: ergoplatform/ergo
+    volumes:
+      # - ./ergonode/ergonode2:/opt/ergo # jar/conf
+      - ergonode4_data:/home/ergo/.ergo # blockchain
+      - ./ergonode/myergo4.conf:/etc/myergo.conf
+    ports:
+      - 9055:9053
+    environment:
+      - MAX_HEAP=3G
+    # working_dir: /home/ergo
+    deploy:
+      restart_policy:
+        condition: on-failure # One of none, on-failure or any (default: any).
+        delay: 2s
+        # max_attempts: 3
+        window: 30s # How long to wait before deciding if a restart has succeeded, specified as a duration (default: decide immediately).
+    logging:
+        driver: "json-file"
+        options:
+            max-file: 5
+            max-size: 10m
+    # command: tail /dev/null -f
+    # entrypoint: tail /dev/null -f
+    entrypoint: java -jar -Xmx5G -Dlogback.stdout.level=DEBUG -Dlogback.file.level=ERROR ergo.jar --mainnet -c /etc/myergo.conf
 
   assembler:
     container_name: assembler
@@ -230,3 +282,5 @@ services:
 volumes:
   postgres_data_dev:
   redis_data_dev:
+  ergonode4_data:
+  ergonode_data:

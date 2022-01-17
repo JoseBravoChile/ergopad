@@ -18,6 +18,32 @@ class dotdict(dict):
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
 
+class Stopwatch(object):
+    def __init__(self):
+        self.start_time = None
+        self.stop_time = None
+
+    def start(self):
+        self.start_time = time.time()
+
+    def stop(self):
+        self.stop_time = time.time()
+
+    @property
+    def time_elapsed(self):
+        return time.time() - self.start_time
+
+    @property
+    def total_run_time(self):
+        return self.stop_time - self.start_time
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self):
+        self.stop()
+
 POSTGRES_PORT = os.getenv('POSTGRES_PORT')
 POSTGRES_USER = os.getenv('POSTGRES_USER')
 
@@ -39,7 +65,6 @@ Config = {
     'ergopadApiKey'     : os.getenv('ERGOPAD_APIKEY'),
     'ergopadWallet'     : os.getenv('ERGOPAD_WALLET'),
     'buyerApiKey'       : os.getenv('BUYER_APIKEY'),
-    'buyerWallet'       : os.getenv('BUYER_WALLET'),
     'buyerWallet'       : os.getenv('BUYER_WALLET'),
     'nodeWallet'        : os.getenv('NODE_WALLET'),
     'ergopadToken'      : os.getenv('ERGOPAD_TOKEN'),
