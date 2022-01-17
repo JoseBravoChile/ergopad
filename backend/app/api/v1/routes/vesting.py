@@ -150,8 +150,8 @@ async def vestToken(vestment: Vestment):
 
     try:
         buyerWallet        = Wallet(vestment.wallet)
-        nodeWallet = Wallet(CFG.nodeWallet)
-        amountInUSD             = vestment.vestingAmount*vs.vestedTokenPrice
+        nodeWallet         = Wallet(CFG.nodeWallet)
+        amountInUSD        = vestment.vestingAmount*vs.vestedTokenPrice
         
         vestingDuration_ms = duration_ms[vs.periodType]*vs.periodDuration
         vestingBegin_ms    = vs.vestingBegin
