@@ -93,6 +93,7 @@ The contract guarding the boxes holding the users ErgoPad tokens. Keeps track of
 | --- | --- | --- |
 | 4 | Long | Checkpoint |
 | 5 | Coll\[Byte\] | Stake Key ID |
+| 6 | Long | Staking Time |
 
 ### Assets
 
