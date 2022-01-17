@@ -55,7 +55,7 @@ def summary(eventName):
                 where name = 'presale-ergopad-202201wl'
             )
             select evt.id
-                , coalesce(max(allowance_sigusd), 0.0) as sigusd
+                , coalesce(sum(allowance_sigusd), 0.0) as sigusd
                 , coalesce(count(*), 0.0) as entries
                 , coalesce(max(created_dtz), '1/1/1900') as last_entry
             from whitelist wht
@@ -66,7 +66,7 @@ def summary(eventName):
         return {
             'event': eventName,
             'id': res['id'],
-            'total (sigusd)': f"\u01A9{res['sigusd']:,.2f}",
+            'total (sigusd)': f"\u01A9\u0024{res['sigusd']:,.2f}",
             'number of entries': res['entries'],
             'time of last entry': res['last_entry'],
         }

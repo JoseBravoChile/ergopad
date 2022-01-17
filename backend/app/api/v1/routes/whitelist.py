@@ -29,15 +29,11 @@ Notes:
 #endregion BLOCKHEADER
 
 #region INIT
-DEBUG = CFG.debug
-st = time() # stopwatch
-
-DATABASE = CFG.connectionString
+DEBUG      = CFG.debug
+DATABASE   = CFG.connectionString
 DATEFORMAT = '%m/%d/%Y %H:%M'
-NOW = int(time())
-
-DEBUG = True
-st = time() # stopwatch
+headers    = {'Content-Type': 'application/json'}
+# NOW = int(time()) # !! NOTE: can't use here; will only update once if being imported
 #endregion INIT
 
 #region LOGGING
@@ -81,9 +77,9 @@ class Whitelist(BaseModel):
 #region ROUTES
 @r.post("/signup")
 async def email(whitelist: Whitelist, response: Response):
+    NOW = int(time())
     try:
         eventName = whitelist.event
-        NOW = int(time())
 
         logging.debug(DATABASE)
         con = create_engine(DATABASE)
@@ -108,7 +104,7 @@ async def email(whitelist: Whitelist, response: Response):
                 , coalesce(spent_sigusd, 0.0) as spent_sigusd
             from "events" evt
                 left join wht on wht."eventId" = evt.id
-            where evt.name = '{eventName}'
+            where evt.name = {eventName!r}
                 and evt."isWhitelist" = 1
         """
         # logging.debug(sql)
@@ -183,10 +179,10 @@ async def email(whitelist: Whitelist, response: Response):
 
 @r.get("/info/{eventName}")
 async def whitelist(eventName):
+    NOW = int(time())
     try:
         logging.debug(DATABASE)
         con = create_engine(DATABASE)
-        logging.debug('sql')
         sql = f"""
             with wht as (
                 select "eventId"
@@ -206,7 +202,7 @@ async def whitelist(eventName):
                 , coalesce(spent_sigusd, 0.0) as spent_sigusd
             from "events" evt
                 left join wht on wht."eventId" = evt.id
-            where evt.name = '{eventName}'
+            where evt.name = {eventName!r}
         """
         # logging.debug(sql)
         res = con.execute(sql).fetchone()

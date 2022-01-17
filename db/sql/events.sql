@@ -28,4 +28,4 @@ INSERT INTO "events" ("id", "name", "description", "blockChain", "total_sigusd",
 VALUES (2, 'strategic-ergopad-202201', 'ErgoPad Strategic', 'ERGO', 100000.0, 20000.0, 'sigma@ergopad.io', '12/28/2021 17:00', '12/30/2021 17:00', 1);
 
 INSERT INTO "events" ("id", "name", "description", "blockChain", "total_sigusd", "buffer_sigusd", "owner", "start_dtz", "end_dtz", "isWhitelist")
-VALUES (3, 'presale-ergopad-202201wl', 'ErgoPad Presale', 'ERGO', 600000.0, 600000.0, 'sigma@ergopad.io', '1/15/2022 17:00', '1/15/2022 17:00', 1);
+VALUES (3, 'presale-ergopad-202201wl', 'ErgoPad Presale', 'ERGO', 600000.0, 600000.0, 'sigma@ergopad.io', '1/15/2022 17:00', '1/17/2022 17:00', 1);
