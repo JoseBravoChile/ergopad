@@ -60,6 +60,9 @@ myself = lambda: inspect.stack()[1][3]
 # purchase tokens
 @r.post("/", name="blockchain:purchaseToken")
 async def purchaseToken(tokenPurchase: TokenPurchase):
+    # close route for now
+    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'use api/vesting')
+    
     NOW = int(time())
 
     # early check
