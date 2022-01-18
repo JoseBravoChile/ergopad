@@ -9,6 +9,7 @@ CREATE TABLE "purchases" (
     "currency" TEXT NOT NULL,
     "currencyAmount" NUMERIC(32, 8),
     "feeAmount" NUMERIC(16,8),
+    "assemblerId" TEXT,
     "ipAddress" TEXT NULL
 );
 INSERT INTO "purchases" ("walletAddress", "eventName", "toAddress", "tokenId", "tokenAmount", "currency", "currencyAmount", "feeAmount")
