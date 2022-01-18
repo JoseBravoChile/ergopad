@@ -66,10 +66,10 @@ def getScenario(scenarioName: str):
             vestedToken = "ergopad",
             vestedTokenPrice = 0.011,
             vestingPeriods = 9,
-            periodDuration = 1,
-            periodType = "month",
+            periodDuration = 5, # 1,
+            periodType = "minute", # "month",
             enabled = True,
-            vestingBegin = datetime(2022,1,26,21,tzinfo=timezone.utc).timestamp()*1000-duration_ms['month'] #The first tokens should be released on jan 26th
+            vestingBegin = datetime.utcnow().timestamp()*1000 # datetime(2022,1,26,21,tzinfo=timezone.utc).timestamp()*1000-duration_ms['month'] #The first tokens should be released on jan 26th
         )
     if scenarioName == "strategic_sale":
         return VestmentScenario(
@@ -290,10 +290,17 @@ async def vestToken(vestment: Vestment):
         # logging.info(f'build request: {request}')
         # logging.info(f'\n::REQUEST::::::::::::::::::\n{json.dumps(request)}\n::REQUEST::::::::::::::::::\n')
 
+        # make async request to assembler
+        res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)    
+        logging.debug(res)
+        assemblerId = res.json()['id']
+        fin = requests.get(f'{CFG.assembler}/result/{assemblerId}')
+        logging.info({'status': 'success', 'fin': fin.json(), 'followId': assemblerId})
+
         # track purchases
         con = create_engine(DATABASE)
         sql = f"""
-            insert into purchases ("walletAddress", "eventName", "toAddress", "tokenId", "tokenAmount", "currency", "currencyAmount", "feeAmount")
+            insert into purchases ("walletAddress", "eventName", "toAddress", "tokenId", "tokenAmount", "currency", "currencyAmount", "feeAmount", "assemblerId")
             values (
                 {buyerWallet.address!r}
                 , {vestment.vestingScenario!r}
@@ -303,18 +310,12 @@ async def vestToken(vestment: Vestment):
                 , {vs.currency!r}
                 , {vestment.vestingAmount!r}
                 , {txFee_nerg!r}
+                , {assemblerId!r}
             )
         """
         logging.debug(f'SQL::PURCHASES::\n{sql}')
         res = con.execute(sql)
         logging.debug(res)
-
-        # make async request to assembler
-        res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)    
-        logging.debug(res)
-        id = res.json()['id']
-        fin = requests.get(f'{CFG.assembler}/result/{id}')
-        logging.info({'status': 'success', 'fin': fin.json(), 'followId': id})
 
         logging.debug(f'::TOOK {time()-st:.2f}s')
         if isToken:
