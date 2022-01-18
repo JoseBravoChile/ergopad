@@ -7,8 +7,8 @@
 // 1: Staked Token (ErgoPad): The tokens staked by the user
 {{
     val stakeStateNFT = fromBase64("{stakeStateNFT}")
-    
-    if () {{ // Compoung transaction
+
+    if () {{ // Compound transaction
     }} else {{
     if () {{ // Unstake
     }} else {{

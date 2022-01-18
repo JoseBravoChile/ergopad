@@ -63,33 +63,16 @@
             OUTPUTS(0).R7[Long].get == SELF.R7[Long].get + SELF.R8[Long].get,
             OUTPUTS(0).R8[Long].get == SELF.R8[Long].get,
             OUTPUTS(0).R7[Long].get < blockTime,
-            OUTPUTS(0).tokens(1)._2 == SELF.tokens(1)._2,
-            //Stake Pool
-            OUTPUTS(1).propositionBytes == INPUTS(1).propositionBytes,
-            OUTPUTS(1).tokens(0)._1 == stakePoolNFT,
-            OUTPUTS(1).tokens(1)._1 == stakedTokenID == INPUTS(1).tokens(1)._1,
-            OUTPUTS(1).tokens(1)._2 == INPUTS(1).tokens(1)._2 + INPUTS(2).tokens(1)._2 - OUTPUTS(1).R4[Long].get,
-            OUTPUTS(1).R4[Long].get == INPUTS(1).R4[Long].get,
-            //Emission
-            OUTPUTS(2).propositionBytes == INPUTS(2).propositionBytes,
-            OUTPUTS(2).R4[Long].get == SELF.R4[Long].get,
-            OUTPUTS(2).R5[Long].get == OUTPUTS(0).R5[Long].get,
-            OUTPUTS(2).R6[Long].get == SELF.R6[Long].get,
-            OUTPUTS(2).R7[Long].get == INPUTS(1).R4[Long],
-            OUTPUTS(2).tokens(0)._1 == emissionNFT,
-            OUTPUTS(2).tokens(1)._2 == OUTPUTS(2).R7[Long].get
+            OUTPUTS(0).tokens(1)._2 == SELF.tokens(1)._2
         )))
     }} else {{
     if (INPUTS(1).tokens(0)._1 == emissionNFT) {{ // Compound transaction
         // Stake State (SELF), Emission, Stake*N => Stake State, Emission, Stake*N
         val validInputs = INPUTS.filter({{(box: Box) => isCompoundBox(box)}}).size == INPUTS.size
         val validOutputs = OUTPUTS.filter({{(box: Box) => isCompoundBox(box)}}).size == OUTPUTS.size-1 // Miner output
-        val stakeBoxes = INPUTS.filter({{(box: Box) => isStakeBox(box)}}).size
-        val stakeInOut = OUTPUTS.filter({{(box: Box) => isStakeBox(box)}}).size == stakeBoxes
         sigmaProp(allOf(Coll(
             validInputs,
             validOutputs,
-            stakeInOut,
             selfReplication,
             //Stake State
             OUTPUTS(0).R4[Long].get == SELF.R4[Long].get + (INPUTS(1).tokens(1)._2 - (if OUTPUTS(1).tokens.size == 1 0L else OUTPUTS(1).tokens(1)._2)),
@@ -97,15 +80,7 @@
             OUTPUTS(0).R6[Long].get == SELF.R6[Long].get,
             OUTPUTS(0).R7[Long].get == SELF.R7[Long].get,
             OUTPUTS(0).R8[Long].get == SELF.R8[Long].get,
-            OUTPUTS(0).tokens(1)._2 == SELF.tokens(1)._2,
-            //Emission
-            OUTPUTS(1).propositionBytes == INPUTS(1).propositionBytes,
-            OUTPUTS(1).tokens(0)._1 == INPUTS(1).tokens(0)._1,
-            OUTPUTS(1).tokens.size == 1 || OUTPUTS(1).tokens(1)._1 == stakedTokenID,
-            OUTPUTS(1).R4[Long].get == INPUTS(1).R4[Long].get,
-            OUTPUTS(1).R5[Long].get == INPUTS(1).R5[Long].get,
-            OUTPUTS(1).R6[Long].get == INPUTS(1).R6[Long].get - stakeBoxes,
-            OUTPUTS(1).R7[Long].get == INPUTS(1).R7[Long].get
+            OUTPUTS(0).tokens(1)._2 == SELF.tokens(1)._2
         )))
     }} else {{
     if (SELF.R6[Long].get > OUTPUTS(0).R6[Long].get) {{ // Unstake
@@ -126,7 +101,7 @@
             OUTPUTS(0).R8[Long].get == SELF.R8[Long].get,
             OUTPUTS(0).tokens(1)._2 == SELF.tokens(1)._2+1,
             //User wallet
-            OUTPUTS(1).propositionBytes == INPUTS(1).R5[Coll[Byte]].get,
+            OUTPUTS(1).propositionBytes == INPUTS(2).R5[Coll[Byte]].get,
             OUTPUTS(1).tokens(1)._1 == INPUTS(1).tokens(1)._1,
             OUTPUTS(1).tokens(1)._2 == INPUTS(1).tokens(1)._2 - penalty
         )))
