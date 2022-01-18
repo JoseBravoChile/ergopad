@@ -13,10 +13,9 @@ from api.v1.routes.vesting import vesting_router
 from api.v1.routes.whitelist import whitelist_router
 from api.v1.routes.events import events_router
 from api.v1.routes.assembler import assembler_router
+from api.v1.routes.purchase import purchase_router
 # from api.v1.routes.wallets import wallets_router
 # from api.v1.routes.tokens import tokens_router
-from api.v1.routes.purchase import purchase_router
-from api.v1.routes.assembler import assembler_router
 
 from core import config
 # from app.db.session import SessionLocal
@@ -32,7 +31,6 @@ app = FastAPI(
 
 #region Routers
 app.include_router(users_router,      prefix="/api/users",      tags=["users"], dependencies=[Depends(get_current_active_user)])
-app.include_router(users_router,      prefix="/api/users",      tags=["users"], dependencies=[Depends(get_current_active_user)])
 app.include_router(auth_router,       prefix="/api/auth",       tags=["auth"])
 app.include_router(asset_router,      prefix="/api/asset",      tags=["asset"])
 app.include_router(blockchain_router, prefix="/api/blockchain", tags=["blockchain"])
@@ -42,7 +40,7 @@ app.include_router(vesting_router,    prefix="/api/vesting",    tags=["vesting"]
 app.include_router(whitelist_router,  prefix="/api/whitelist",  tags=["whitelist"])
 app.include_router(events_router,     prefix="/api/events",     tags=["events"])
 app.include_router(purchase_router,   prefix="/api/purchase",   tags=["purchase"])
-app.include_router(purchase_router,   prefix="/api/assembler",  tags=["assembler"])
+app.include_router(assembler_router,   prefix="/api/assembler",  tags=["assembler"])
 #endregion Routers
 
 # init database?
