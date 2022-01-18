@@ -12,6 +12,7 @@ from api.v1.routes.projects import projects_router
 from api.v1.routes.vesting import vesting_router
 from api.v1.routes.whitelist import whitelist_router
 from api.v1.routes.events import events_router
+from api.v1.routes.assembler import assembler_router
 # from api.v1.routes.wallets import wallets_router
 # from api.v1.routes.tokens import tokens_router
 from api.v1.routes.purchase import purchase_router
@@ -68,9 +69,11 @@ app.add_middleware(
 # async def catch_all(request: Request, path_name: str):
 #     return {"request_method": request.method, "path_name": path_name}
 
+
 @app.get("/api/ping")
 async def ping():
     return {"hello": "world"}
+
 
 @app.get("/api/task")
 async def example_task():
