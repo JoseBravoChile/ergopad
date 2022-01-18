@@ -1,5 +1,6 @@
 import requests, json, os
 import math
+from sqlalchemy import create_engine
 from starlette.responses import JSONResponse 
 from wallet import Wallet, NetworkEnvironment # ergopad.io library
 from config import Config, Network # api specific config
@@ -16,21 +17,11 @@ import uuid
 from hashlib import blake2b
 from api.v1.routes.blockchain import getTokenInfo, getErgoscript, getBoxesWithUnspentTokens
 
-DEBUG = True
-st = time() # stopwatch
-
-#region LOGGING
-import logging
-levelname = (logging.WARN, logging.DEBUG)[DEBUG]
-logging.basicConfig(format='{asctime}:{name:>8s}:{levelname:<8s}::{message}', style='{', levelname=levelname)
-
-import inspect
-myself = lambda: inspect.stack()[1][3]
-#endregion LOGGING
-
 vesting_router = r = APIRouter()
 
 CFG = Config[Network]
+DEBUG = True # CFG.DEBUG
+DATABASE = CFG.connectionString
 
 nergsPerErg        = 1000000000
 headers            = {'Content-Type': 'application/json'}
@@ -41,6 +32,15 @@ duration_ms = {
     'day': 24*60*60*1000,
     'minute': 60*1000
 }
+
+#region LOGGING
+import logging
+levelname = (logging.WARN, logging.DEBUG)[DEBUG]
+logging.basicConfig(format='{asctime}:{name:>8s}:{levelname:<8s}::{message}', style='{', levelname=levelname)
+
+import inspect
+myself = lambda: inspect.stack()[1][3]
+#endregion LOGGING
 
 class Vestment(BaseModel):
     wallet: str
@@ -112,6 +112,7 @@ def getScenario(scenarioName: str):
 # purchase tokens
 @r.post("/vest/", name="vesting:vestToken")
 async def vestToken(vestment: Vestment): 
+    st = int(time())
     vs = getScenario(vestment.vestingScenario)
     if vs is None:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Unknown vesting scenario')
@@ -156,6 +157,8 @@ async def vestToken(vestment: Vestment):
         presale['allowance_sigusd'] = res['allowance_sigusd']
         presale['spent_sigusd'] = res['spent_sigusd']
         presale['remaining_sigusd'] = res['allowance_sigusd'] - res['spent_sigusd']
+        presale['walletId'] = res['walletId']
+        presale['eventId'] = res['eventId']
 
         # missing legit response from whitelist
         if res == None or len(res) == 0:
@@ -191,6 +194,7 @@ async def vestToken(vestment: Vestment):
     currencyDecimals = 10**currencyDecimals
 
     try:
+        logging.info(CFG.nodeWallet)
         buyerWallet        = Wallet(vestment.wallet)
         nodeWallet = Wallet(CFG.nodeWallet)
         amountInUSD             = vestment.vestingAmount*vs.vestedTokenPrice
@@ -199,7 +203,6 @@ async def vestToken(vestment: Vestment):
         vestingBegin_ms    = vs.vestingBegin
 
         txFee_nerg         = int(.001*nergsPerErg)
-
         tokenAmount        = vestment.vestingAmount*vestedTokenDecimals
         logging.info(f"1 {amountInUSD}")
         currencyAmount = amountInUSD/vs.currencyPrice
@@ -224,7 +227,6 @@ async def vestToken(vestment: Vestment):
             startWhen[CFG.validCurrencies[vs.currency]] = int(currencyAmount*currencyDecimals)
     
         logging.info(f'startWhen: {startWhen}')
-
         scVesting = getErgoscript('vesting2', params={})
 
         # create outputs for each vesting period; add remainder to final output, if exists
@@ -288,21 +290,24 @@ async def vestToken(vestment: Vestment):
         # logging.info(f'build request: {request}')
         # logging.info(f'\n::REQUEST::::::::::::::::::\n{json.dumps(request)}\n::REQUEST::::::::::::::::::\n')
 
-        # handle presale
-        if presale != {}:
-            sql = f"""
-                insert into purchases ("walletId", "eventId", "toAddress", "tokenId", "tokenAmount", "currency", "feeAmount")
-                values (
-                    {presale['walletId']!r}
-                    , {presale['eventId']!r}
-                    , {scPurchase!r}
-                    , {CFG.validCurrencies[vs.vestedToken]!r}
-                    , {tokenAmount!r}
-                    , {('erg', 'sigusd')[isToken]!r}
-                    , {txFee_nerg!r}
-                )
-            """
-            res = con.execute(sql)
+        # track purchases
+        con = create_engine(DATABASE)
+        sql = f"""
+            insert into purchases ("walletAddress", "eventName", "toAddress", "tokenId", "tokenAmount", "currency", "currencyAmount", "feeAmount")
+            values (
+                {buyerWallet.address!r}
+                , {vestment.vestingScenario!r}
+                , {scPurchase!r}
+                , {CFG.validCurrencies[vs.vestedToken]!r}
+                , {tokenAmount!r}
+                , {vs.currency!r}
+                , {vestment.vestingAmount!r}
+                , {txFee_nerg!r}
+            )
+        """
+        logging.debug(f'SQL::PURCHASES::\n{sql}')
+        res = con.execute(sql)
+        logging.debug(res)
 
         # make async request to assembler
         res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)    
