@@ -125,6 +125,48 @@ async def vestToken(vestment: Vestment):
     isToken = vs.currency != "ergo"
     logging.info(f'Price info: {vs.currency} = {vs.currencyPrice} USD, {vs.vestedToken} = {vs.vestedTokenPrice}')
 
+    # for presale, verify on whitelist and that allowance is respected
+    presale = {}
+    if vestment.vestingScenario == "presale_sigusd" or vestment.vestingScenario == "presale_ergo":
+        con = create_engine(DATABASE)
+        sql = f"""
+            with wal as (
+                select id, address, email, "chatHandle", "chatPlatform"
+                from wallets
+                where address = {vestment.wallet!r}
+            )
+            , evt as (
+                select id
+                from events 
+                where name = 'presale-ergopad-202201wl'
+            )
+            select 
+                wht.id as "whitelistId", wht.allowance_sigusd, wht.spent_sigusd -- , wht.created_dtz
+                , wal.id as "walletId" -- , wal.address, wal.email, wal."chatHandle", wal."chatPlatform"
+                , evt.id as "eventId"
+            from whitelist wht 
+                join wal on wal.id = wht."walletId" 
+                join evt on evt.id = wht."eventId" 
+            
+        """
+        logging.debug(sql)
+        res = con.execute(sql).fetchone()
+        logging.debug(f'res: {res.content}')
+
+        presale['allowance_sigusd'] = res['allowance_sigusd']
+        presale['spent_sigusd'] = res['spent_sigusd']
+        presale['remaining_sigusd'] = res['allowance_sigusd'] - res['spent_sigusd']
+
+        # missing legit response from whitelist
+        if res == None or len(res) == 0:
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return {'status': 'error', 'message': f'presale info not found.'}
+
+        # allowance is fully spent
+        if res['spent_sigusd'] >= res['allowance_sigusd']:
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return {'status': 'error', 'message': f'purchase limit reached.'}
+
     # handle token params
     currencyDecimals = 0
     vestedTokenDecimals = 0
@@ -245,6 +287,22 @@ async def vestToken(vestment: Vestment):
 
         # logging.info(f'build request: {request}')
         # logging.info(f'\n::REQUEST::::::::::::::::::\n{json.dumps(request)}\n::REQUEST::::::::::::::::::\n')
+
+        # handle presale
+        if presale != {}:
+            sql = f"""
+                insert into purchases ("walletId", "eventId", "toAddress", "tokenId", "tokenAmount", "currency", "feeAmount")
+                values (
+                    {presale['walletId']!r}
+                    , {presale['eventId']!r}
+                    , {scPurchase!r}
+                    , {CFG.validCurrencies[vs.vestedToken]!r}
+                    , {tokenAmount!r}
+                    , {('erg', 'sigusd')[isToken]!r}
+                    , {txFee_nerg!r}
+                )
+            """
+            res = con.execute(sql)
 
         # make async request to assembler
         res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)    

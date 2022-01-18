@@ -28,6 +28,20 @@ app = FastAPI(
     openapi_url="/api"
 )
 
+#region Routers
+app.include_router(users_router,      prefix="/api/users",      tags=["users"], dependencies=[Depends(get_current_active_user)])
+app.include_router(users_router,      prefix="/api/users",      tags=["users"], dependencies=[Depends(get_current_active_user)])
+app.include_router(auth_router,       prefix="/api/auth",       tags=["auth"])
+app.include_router(asset_router,      prefix="/api/asset",      tags=["asset"])
+app.include_router(blockchain_router, prefix="/api/blockchain", tags=["blockchain"])
+app.include_router(projects_router,   prefix="/api/projects",   tags=["projects"])
+app.include_router(util_router,       prefix="/api/util",       tags=["util"])
+app.include_router(vesting_router,    prefix="/api/vesting",    tags=["vesting"])
+app.include_router(whitelist_router,  prefix="/api/whitelist",  tags=["whitelist"])
+app.include_router(events_router,     prefix="/api/events",     tags=["events"])
+app.include_router(purchase_router,   prefix="/api/purchase",   tags=["purchase"])
+#endregion Routers
+
 # init database?
 # app.add_event_handler("startup", tasks.create_start_app_handler(app))
 # app.add_event_handler("shutdown", tasks.create_stop_app_handler(app))
@@ -47,14 +61,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-"""
-@app.middleware("http")
-async def db_session_middleware(request: Request, call_next):
-    request.state.db = SessionLocal()
-    response = await call_next(request)
-    request.state.db.close()
-    return response
-"""
+# catch all route (useful?)
+# @app.api_route("/{path_name:path}", methods=["GET"])
+# async def catch_all(request: Request, path_name: str):
+#     return {"request_method": request.method, "path_name": path_name}
 
 @app.get("/api/ping")
 async def ping():
@@ -64,18 +74,6 @@ async def ping():
 async def example_task():
     celery_app.send_task("tasks.example_task", args=["Hello World"])
     return {"message": "success"}
-
-# Routers
-app.include_router(users_router, prefix="/api/users", tags=["users"], dependencies=[Depends(get_current_active_user)])
-app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
-app.include_router(asset_router, prefix="/api/asset", tags=["asset"])
-app.include_router(blockchain_router, prefix="/api/blockchain", tags=["blockchain"])
-app.include_router(projects_router, prefix="/api/projects", tags=["projects"])
-app.include_router(util_router, prefix="/api/util", tags=["util"])
-app.include_router(vesting_router, prefix="/api/vesting", tags=["vesting"])
-app.include_router(whitelist_router, prefix="/api/whitelist", tags=["whitelist"])
-app.include_router(events_router, prefix="/api/events", tags=["events"])
-app.include_router(purchase_router, prefix="/api/purchase", tags=["purchase"])
 
 # MAIN
 if __name__ == "__main__":
