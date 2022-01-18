@@ -24,7 +24,8 @@ async def assemblerReturn(wallet: str, smartContract: str):
         return JSONResponse(status_code=res.status_code, content=res.json())
 
     except:
-        logging.debug(f'request failed for "wallet": {wallet}, "smartContract": {smartContract}')
+        logging.debug(
+            f'request failed for "wallet": {wallet}, "smartContract": {smartContract}')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'network failure could not connect to assembler')
 
 @r.get("/result/{assemblerId}")

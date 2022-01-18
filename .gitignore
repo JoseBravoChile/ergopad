@@ -39,6 +39,10 @@ yarn-error.log*
 docker-compose-luitest.yml
 
 # ergonode
+/ergonode/history
+/ergonode/peers
+/ergonode/wallet
+/ergonode/state
 /ergonode/*.conf
 /ergonode/ergo-*.jar
 ergo.conf
@@ -49,7 +53,7 @@ ergo.conf
 .vscode/*
 
 # ergo
-.ergo 
+.ergo
 ergo*.log
 ergo*.tmp
 ergo.*.log.gz
