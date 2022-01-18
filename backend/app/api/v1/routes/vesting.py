@@ -66,10 +66,10 @@ def getScenario(scenarioName: str):
             vestedToken = "ergopad",
             vestedTokenPrice = 0.011,
             vestingPeriods = 9,
-            periodDuration = 5, # 1,
-            periodType = "minute", # "month",
+            periodDuration = 1,
+            periodType = "month",
             enabled = True,
-            vestingBegin = datetime.utcnow().timestamp()*1000 # datetime(2022,1,26,21,tzinfo=timezone.utc).timestamp()*1000-duration_ms['month'] #The first tokens should be released on jan 26th
+            vestingBegin = datetime(2022,1,26,21,tzinfo=timezone.utc).timestamp()*1000-duration_ms['month'] #The first tokens should be released on jan 26th
         )
     if scenarioName == "strategic_sale":
         return VestmentScenario(
@@ -92,7 +92,7 @@ def getScenario(scenarioName: str):
             vestingPeriods = 3,
             periodDuration = 1,
             periodType = "month",
-            enabled = False,
+            enabled = True,
             vestingBegin = datetime(2022,1,26,21,tzinfo=timezone.utc).timestamp()*1000-duration_ms['month'] #The first tokens should be released on jan 26th
         )
     if scenarioName == "presale_sigusd":
@@ -104,7 +104,7 @@ def getScenario(scenarioName: str):
             vestingPeriods = 3,
             periodDuration = 1,
             periodType = "month",
-            enabled = False,
+            enabled = True,
             vestingBegin = datetime(2022,1,26,21,tzinfo=timezone.utc).timestamp()*1000-duration_ms['month'] #The first tokens should be released on jan 26th
         )
     return
@@ -152,7 +152,7 @@ async def vestToken(vestment: Vestment):
         """
         logging.debug(sql)
         res = con.execute(sql).fetchone()
-        logging.debug(f'res: {res.content}')
+        logging.debug(f'res: {res}')
 
         presale['allowance_sigusd'] = res['allowance_sigusd']
         presale['spent_sigusd'] = res['spent_sigusd']
