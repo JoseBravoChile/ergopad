@@ -22,8 +22,10 @@ async def assemblerReturn(wallet: str, smartContract: str):
         res = requests.get(f'{CFG.assembler}/return/{wallet}/{smartContract}')
         return JSONResponse(status_code=res.status_code, content=res.json())
     except:
-        logging.debug(f'request failed for "wallet": {wallet}, "smartContract": {smartContract}')
+        logging.debug(
+            f'request failed for "wallet": {wallet}, "smartContract": {smartContract}')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'network failure could not connect to assembler')
+
 
 @r.get("/status/{assemblerId}")
 async def assemblerStatus(assemblerId: str):
@@ -31,5 +33,5 @@ async def assemblerStatus(assemblerId: str):
         res = requests.get(f'{CFG.assembler}/result/{assemblerId}')
         return JSONResponse(status_code=res.status_code, content=res.json())
     except:
-        logging.debug(f'request failed for "wallet": {wallet}, "smartContract": {smartContract}')
+        logging.debug(f'request failed for "assemblerId": {assemblerId}')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'network failure could not connect to assembler')
