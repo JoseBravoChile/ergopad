@@ -1,13 +1,16 @@
 import jwt
+
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
+from config import Config, Network
+CFG = Config[Network]
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-SECRET_KEY = "{{cookiecutter.secret_key}}"
+SECRET_KEY = CFG.jwtSecret
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

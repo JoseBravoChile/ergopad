@@ -1,13 +1,16 @@
 import requests 
 import pandas as pd
-# import json
 
 from sqlalchemy import create_engine
 from fastapi import APIRouter
 from fastapi import Path
 from fastapi import Request
 from sqlalchemy.sql.schema import BLANK_SCHEMA
-# from fastapi import Depends
+from time import time
+from config import Config, Network # api specific config
+CFG = Config[Network]
+
+asset_router = r = APIRouter()
 
 #region BLOCKHEADER
 """
@@ -37,46 +40,31 @@ mainnet: 9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS
 """
 #endregion BLOCKHEADER
 
-
-#region ENVIRONMENT
-import os
-POSTGRES_PORT = os.getenv('POSTGRES_PORT')
-POSTGRES_USER = os.getenv('POSTGRES_USER')
-POSTGRES_PASS = 'world' #os.getenv('POSTGRES_PASS')
-POSTGRES_DBNM = 'hello' #os.getenv('POSTGRES_DBNM')
-#endregion ENVIRONMENT
-
-
-#region LOGGING
-import logging
-logging.basicConfig(format="%(asctime)s %(levelname)s %(threadName)s %(name)s %(message)s", datefmt='%m-%d %H:%M', level=logging.DEBUG)
-#endregion LOGGING
-
-
 #region INIT
+DEBUG = CFG.debug
+st = time() # stopwatch
+
 currency = 'usd' # TODO: store with user
 total_sigrsv = 100000000000.01 # initial amount SigRSV
 default_rsv_price = 1000000 # lower bound/default SigRSV value
 nerg2erg = 1000000000.0 # 1e9 satoshis/kushtis in 1 erg
-
-NETWORK = 'mainnet'
-# NETWORK = 'testnet'
-ERGO_PLATFORM_URL = { 
-    'mainnet': 'https://api.ergoplatform.com/api/v1',
-    'testnet': 'https://api-testnet.ergoplatform.com/api/v1'
-}
-ergo_watch_api: str = 'https://ergo.watch/api/sigmausd/state'
-oracle_pool_url: str = 'https://erg-oracle-ergusd.spirepools.com/frontendData'
-coingecko_url: str = 'https://api.coingecko.com/api/v3' # coins/markets?vs_currency=usd&ids=bitcoin"
-
+ergo_watch_api = CFG.ergoWatch
+oracle_pool_url = CFG.oraclePool
+coingecko_url = CFG.coinGecko
 exchange = 'coinex'
 symbol = 'ERG/USDT'
 
-con = create_engine(f'postgresql://{POSTGRES_USER}:{POSTGRES_PASS}@postgres:{POSTGRES_PORT}/{POSTGRES_DBNM}')
-
-asset_router = r = APIRouter()
+con = create_engine(CFG.connectionString)
 #endregion INIT
 
+#region LOGGING
+import logging
+level = (logging.WARN, logging.DEBUG)[DEBUG]
+logging.basicConfig(format='{asctime}:{name:>8s}:{levelname:<8s}::{message}', style='{', level=level)
+
+import inspect
+myself = lambda: inspect.stack()[1][3]
+#endregion LOGGING
 
 #region ROUTES
 #
@@ -87,7 +75,7 @@ async def get_asset_balance_from_address(address: str = Path(..., min_length=40,
 
     # get balance from ergo explorer api
     logging.debug(f'find balance for [blockchain], address: {address}...')
-    res = requests.get(f'{ERGO_PLATFORM_URL[NETWORK]}/addresses/{address}/balance/total')    
+    res = requests.get(f'{CFG.ergoPlatform}/addresses/{address}/balance/total')    
 
     # handle invalid address or other error
     wallet_assets = {}
@@ -105,12 +93,12 @@ async def get_asset_balance_from_address(address: str = Path(..., min_length=40,
     for token in balance['confirmed']['tokens']:
         token['price'] = 0.0
         # if token['name'] == 'SigUSD': # TokenId: 22c6cc341518f4971e66bd118d601004053443ed3f91f50632d79936b90712e9
-        if token['tokenId'] == '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04': 
-            price = (await get_asset_current_price('SigUSD'))['price'] * ergPrice
+        if token['tokenId'] == '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04':
+            price = (await get_asset_current_price('SigUSD'))['price']
             token['price'] = price
         # if token['name'] == 'SigRSV': # TokenId: 003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0
         if token['tokenId'] == '003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0':
-            price = (await get_asset_current_price('SigRSV'))['price'] * ergPrice
+            price = (await get_asset_current_price('SigRSV'))['price']
             token['price'] = price
         tokens.append(token)
 
@@ -131,13 +119,14 @@ async def get_asset_balance_from_address(address: str = Path(..., min_length=40,
 
 #
 # Find price by coin
+# Base currency is USD for all coins and tokens.
 # - Allow SigUSD/RSV ergo tokens to be listed as coins (TODO: change from ergo.watch api)
 # - Allow multiple coins per blockchain (TODO: change from CoinGecko api)
 #
 @r.get("/price/{coin}", name="coin:coin-price")
 async def get_asset_current_price(coin: str = None) -> None:
 
-    price = 0.0 # init/default
+    price = 0.0  # init/default
     coin = coin.lower()
 
     # SigUSD/SigRSV
@@ -145,18 +134,35 @@ async def get_asset_current_price(coin: str = None) -> None:
         res = requests.get(ergo_watch_api).json()
         if res:
             if coin == 'sigusd':
-                price = 1/(res['peg_rate_nano']/nerg2erg)
+                try:
+                    # peg_rate_nano: current USD/ERG price [nanoERG]
+                    # ERG/USD
+                    ergo_price = (await get_asset_current_price("ergo"))["price"]
+                    price = (res['peg_rate_nano'] / nerg2erg) * \
+                        ergo_price  # SIGUSD
+                except:
+                    # if get_asset_current_price("ergo") fails
+                    price = 1.0
             else:
-                circ_sigusd_cents = res['circ_sigusd']/100.0 # given in cents
-                peg_rate_nano = res['peg_rate_nano'] # also SigUSD
-                reserves = res['reserves'] # total amt in reserves (nanoerg)
-                liabilities = min(circ_sigusd_cents * peg_rate_nano, reserves) # lower of reserves or SigUSD*SigUSD_in_circulation
-                equity = reserves - liabilities # find equity, at least 0
-                if equity < 0: equity = 0
+                # calc for sigrsv
+                # circ_sigusd: circulating SigUSD tokens in cents
+                circ_sigusd = res['circ_sigusd']/100.0
+                # peg_rate_nano: current USD/ERG price [nanoERG]
+                peg_rate_nano = res['peg_rate_nano']
+                # reserves: total amt in reserves [nanoERG]
+                reserves = res['reserves']
+                # liabilities in nanoERG's to cover stable coins in circulation
+                # lower of reserves or SigUSD * SigUSD_in_circulation
+                liabilities = min(circ_sigusd * peg_rate_nano, reserves)
+                # find equity, at least 0
+                equity = reserves - liabilities
+                if equity < 0:
+                    equity = 0
                 if res['circ_sigrsv'] <= 1:
                     price = 0
                 else:
-                    price = equity/res['circ_sigrsv']/nerg2erg # SigRSV
+                    price = (equity / res['circ_sigrsv']) / \
+                        peg_rate_nano  # SigRSV/USD
 
     # ...all other prices
     else:
@@ -231,19 +237,7 @@ from pydantic import BaseModel
 class Wallets(BaseModel):
     type: str
 
-# 
-# Test with some random wallets: 
-# POST with this body
-#
-# headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-# data = {
-#    "ergo" : ["9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS", "9h3DjWYXLriAn5cox3CeCFGxngTY3JQpy9RwZwP4x1xYAjeSN1G"],
-#    "ethereum": ["0x668Cc4E8aEa7E893242cC1d7Ab8109E99f71Cfe1", "0x0FF24158220A14398F047a80a513617Ddc4f5289"]
-# }
-#
-# Python example:
-# > res = requests.post('http://localhost:8000/api/asset/balance/all', data=data, headers=headers)
-#
+# balance of all wallets
 @r.post("/balance/all", name="asset:all-wallet-balances")
 async def get_all_assets(request: Request) -> None:
     

@@ -2,9 +2,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from core import config
+from config import Config, Network  # api specific config
+CFG = Config[Network]
 
-engine = create_engine('postgresql://hello:world@postgres:5432/hello')
+engine = create_engine(CFG.connectionString)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
