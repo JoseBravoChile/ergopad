@@ -1,11 +1,11 @@
-// Stake Pool
-// Registers:
-// 4: Long: Emission amount per cycle
-// Assets:
-// 0: Stake Pool NFT
-// 1: Remaining Staked Tokens for future distribution (ErgoPad)
-// Most logic is handled in the stake state contract
 {{
+    // Stake Pool
+    // Registers:
+    // 4: Long: Emission amount per cycle
+    // Assets:
+    // 0: Stake Pool NFT
+    // 1: Remaining Staked Tokens for future distribution (ErgoPad)
+
     val stakeStateNFT = fromBase64("{stakeStateNFT}")
     val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT && blake2b256(INPUTS(0).propositionBytes) == {{stakeStateContractHash}}
     if (stakeStateInput && INPUTS(1).id == SELF.id) {{ // Emit transaction

@@ -1,13 +1,14 @@
-// Emission
-// Registers:
-// 4: Long: Total amount staked
-// 5: Long: Checkpoint
-// 6: Long: Stakers
-// 7: Long: Emission amount
-// Assets:
-// 0: Emission NFT: Identifier for emit box
-// 1: Staked Tokens (ErgoPad): Tokens to be distributed
 {{
+    // Emission
+    // Registers:
+    // 4: Long: Total amount staked
+    // 5: Long: Checkpoint
+    // 6: Long: Stakers
+    // 7: Long: Emission amount
+    // Assets:
+    // 0: Emission NFT: Identifier for emit box
+    // 1: Staked Tokens (ErgoPad): Tokens to be distributed
+    
     val stakeStateNFT = fromBase64("{stakeStateNFT}")
     val stakeTokenID = fromBase64("{stakeTokenID}")
     val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT && blake2b256(INPUTS(0).propositionBytes) == {{stakeStateContractHash}}
