@@ -329,7 +329,7 @@ async def vestToken(vestment: Vestment):
             # 'coins'         : coinAmount_nerg/nergsPerErg,
             # 'boxes'         : txBoxTotal_nerg/nergsPerErg,
             # 'fees'          : txFee_nerg/nergsPerErg,
-            'currencyAmount': vestment.vestingAmount,
+            'currencyAmount': currencyAmount,
             'currency'      : vs.currency,
             'assembler'     : json.dumps(fin.json()),
             'smartContract' : scPurchase, 
