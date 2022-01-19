@@ -98,6 +98,7 @@ Config = {
   'mainnet': dotdict({
     'node'              : os.getenv('ERGONODE_HOST'),
     'explorer'          : 'https://api.ergoplatform.com/api/v1',
+    'ergoPlatform'      : 'https://api.ergoplatform.com/api/v1',
     'assembler'         : 'http://assembler:8080',
     'buyerNode'         : 'http://ergonode2:9053',
     'ergoWatch'         : 'https://ergo.watch/api/sigmausd/state',
@@ -110,7 +111,6 @@ Config = {
     'ergopadWallet'     : os.getenv('ERGOPAD_WALLET'),
     'buyerApiKey'       : os.getenv('BUYER_APIKEY'),
     'buyerWallet'       : os.getenv('BUYER_WALLET'),
-    'ergoPlatform'      : os.getenv('ERGOPLATFORM_HOST'),
     'emailUsername'     : os.getenv('EMAIL_ERGOPAD_USERNAME'),
     'emailPassword'     : os.getenv('EMAIL_ERGOPAD_PASSWORD'),
     'emailSMTP'         : os.getenv('EMAIL_ERGOPAD_SMTP'),
