@@ -1,5 +1,6 @@
-import os
+from config import Config, Network  # api specific config
+CFG = Config[Network]
 
 PROJECT_NAME = "ERGOPAD"
-SQLALCHEMY_DATABASE_URI = f'postgresql://ergopad:8e!8Ba8!64xCk3i@postgres:5432/ergopad'
+SQLALCHEMY_DATABASE_URI = CFG.connectionString
 API_V1_STR = "/api"

@@ -29,20 +29,11 @@ Notes:
 #endregion BLOCKHEADER
 
 #region INIT
-DEBUG = True # CFG.debug
-st = time() # stopwatch
-
-EVENTNAME = 'IDO'
-EVENTID = 3 # lookup in public.events
-MAXSIGUSD = 20000
+DEBUG      = CFG.debug
+DATABASE   = CFG.connectionString
 DATEFORMAT = '%m/%d/%Y %H:%M'
-EVENTBEGINS = int(dt.timestamp(dt.strptime('1/11/2022 00:00', DATEFORMAT)))
-EVENTFINISH = int(dt.timestamp(dt.strptime('1/12/2022 23:59', DATEFORMAT)))
-NOW = int(time())
-ONAIR = (NOW > EVENTBEGINS) and (NOW < EVENTFINISH)
-
-CFG.connectionString = f'postgresql://ergopad:8e!8Ba8!64xCk3i@postgres:5432/ergopad'
-DATABASE = CFG.connectionString
+headers    = {'Content-Type': 'application/json'}
+# NOW = int(time()) # !! NOTE: can't use here; will only update once if being imported
 #endregion INIT
 
 #region LOGGING
@@ -59,7 +50,7 @@ myself = lambda: inspect.stack()[1][3]
 class Whitelist(BaseModel):
     ergoAddress: str # wallet
     email: str
-    event: str = EVENTNAME
+    event: str
     name: str
     sigValue: float
     socialHandle: str
@@ -72,7 +63,7 @@ class Whitelist(BaseModel):
             "example": {
                 'ergoAddress': '3WzKuUxmG7HtfmZNxxHw3ArPzsZZR96yrNkTLq4i1qFwVqBXAU8X',
                 'email': 'hello@world.com',
-                'event': EVENTNAME,
+                'event': 'IDO',
                 'name': 'Jo Smith',
                 'sigValue': 2000.5,
                 'socialHandle': '@tweetyBird',
@@ -84,17 +75,60 @@ class Whitelist(BaseModel):
 #endregion CLASSES
 
 #region ROUTES
-@r.post("/whitelist")
+@r.post("/signup")
 async def email(whitelist: Whitelist, response: Response):
+    NOW = int(time())
     try:
-        if not ONAIR:
-            response.status_code = status.HTTP_406_NOT_ACCEPTABLE
-            return {'status': 'error', 'message': f'whitelist signup between {dt.fromtimestamp(EVENTBEGINS).strftime(DATEFORMAT)} and {dt.fromtimestamp(EVENTFINISH).strftime(DATEFORMAT)}'}
+        eventName = whitelist.event
 
-        logging.debug('ONAIR...')
+        logging.debug(DATABASE)
+        con = create_engine(DATABASE)
+        logging.debug('sql')
+        sql = f"""
+            with wht as (
+                select "eventId"
+                    , coalesce(sum("allowance_sigusd"), 0.0) as allowance_sigusd
+                    , coalesce(sum("spent_sigusd"), 0.0) as spent_sigusd
+                from whitelist
+                group by "eventId"
+            )
+            select 
+                name
+                , evt.id
+                , description
+                , total_sigusd
+                , buffer_sigusd
+                , start_dtz
+                , end_dtz
+                , coalesce(allowance_sigusd, 0.0) as allowance_sigusd
+                , coalesce(spent_sigusd, 0.0) as spent_sigusd
+            from "events" evt
+                left join wht on wht."eventId" = evt.id
+            where evt.name = {eventName!r}
+                and evt."isWhitelist" = 1
+        """
+        # logging.debug(sql)
+        res = con.execute(sql).fetchone()
+        # logging.debug(f'res: {res}')
+
+        # event not found
+        if res == None or len(res) == 0:
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return {'status': 'error', 'message': f'whitelist event, {eventName} not found.'}
+
+        # is valid signup window?
+        if (NOW < int(res['start_dtz'].timestamp())) or (NOW > int(res['end_dtz'].timestamp())):
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return {'status': 'error', 'message': f"whitelist signup between {res['start_dtz']} and {res['end_dtz']}."}
+
+        # is funding complete?
+        if res['allowance_sigusd'] >= (res['total_sigusd'] + res['buffer_sigusd']):
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return {'status': 'error', 'message': f'whitelist funds complete.'}
+
+        logging.debug(f"Current funding: {100*res['allowance_sigusd']/(res['total_sigusd']+res['buffer_sigusd']):.2f}% ({res['allowance_sigusd']} of {res['total_sigusd']+res['buffer_sigusd']})")
+        eventId = res['id']
         whitelist.sigValue = int(whitelist.sigValue)
-        if whitelist.sigValue > MAXSIGUSD:
-            whitelist.sigValue = MAXSIGUSD
         
         # find wallet
         logging.debug(f'connecting to: {CFG.connectionString}')
@@ -119,17 +153,19 @@ async def email(whitelist: Whitelist, response: Response):
         # check this wallet has not already registered for this event
         res = con.execute(sqlFindWallet).fetchone()
         walletId = res['id']
-        sqlAlreadyWhitelisted = f'select id from "whitelist" where "walletId" = {walletId} and "eventId" = {EVENTID}'
+        sqlAlreadyWhitelisted = f'select id from "whitelist" where "walletId" = {walletId} and "eventId" = {eventId}'
         res = con.execute(sqlAlreadyWhitelisted)
         if res.rowcount == 0:
             # add whitelist entry
             logging.debug(f'found id: {walletId}')
             dfWhitelist = df[['sigValue']]
             dfWhitelist['walletId'] = walletId
-            dfWhitelist['eventId'] = EVENTID
+            dfWhitelist['eventId'] = eventId
             dfWhitelist['created_dtz'] = dt.fromtimestamp(NOW).strftime(DATEFORMAT)
             dfWhitelist = dfWhitelist.rename(columns={'sigValue': 'allowance_sigusd'})
             dfWhitelist.to_sql('whitelist', con=con, if_exists='append', index=False)
+
+            # whitelist success
             return {'status': 'success', 'detail': f'added to whitelist'}
 
         # already whitelisted
@@ -140,20 +176,55 @@ async def email(whitelist: Whitelist, response: Response):
         logging.error(f'ERR:{myself()}: {e}')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to save whitelist request')
 
-@r.get("/whitelist")
-async def whitelist():
+@r.get("/info/{eventName}")
+async def whitelist(eventName):
+    NOW = int(time())
     try:
+        logging.debug(DATABASE)
         con = create_engine(DATABASE)
-        res = con.execute(f"""
-            select coalesce(sum("allowance_sigusd"), 0.0) as total
-                , coalesce(sum("allowance_sigusd"), 0.0) - coalesce(sum("spent_sigusd"), 0.0) as remaining
-            from "whitelist"
-            where "eventId" = {EVENTID}
-        """).fetchone()
-        return {'status': 'success', 'total_sigusd': int(res['total']), 'remaining_sigusd': int(res['remaining']), 'gmt': NOW}
+        sql = f"""
+            with wht as (
+                select "eventId"
+                    , coalesce(sum("allowance_sigusd"), 0.0) as allowance_sigusd
+                    , coalesce(sum("spent_sigusd"), 0.0) as spent_sigusd
+                from whitelist
+                group by "eventId"
+            )
+            select 
+                name
+                , description
+                , total_sigusd
+                , buffer_sigusd
+                , start_dtz
+                , end_dtz
+                , coalesce(allowance_sigusd, 0.0) as allowance_sigusd
+                , coalesce(spent_sigusd, 0.0) as spent_sigusd
+            from "events" evt
+                left join wht on wht."eventId" = evt.id
+            where evt.name = {eventName!r}
+        """
+        # logging.debug(sql)
+        res = con.execute(sql).fetchone()
+        logging.debug(res)
+        return {
+            'status': 'success', 
+            'now': NOW,
+            'isBeforeSignup': NOW < int(res['start_dtz'].timestamp()),
+            'isAfterSignup': NOW > int(res['end_dtz'].timestamp()),
+            'isFundingComplete': res['allowance_sigusd'] >= (res['total_sigusd'] + res['buffer_sigusd']),
+            'name': res['name'], 
+            'description': res['description'], 
+            'total_sigusd': res['total_sigusd'], 
+            'buffer_sigusd': res['buffer_sigusd'], 
+            'start_dtz': int(res['start_dtz'].timestamp()), 
+            'end_dtz': int(res['end_dtz'].timestamp()), 
+            'allowance_sigusd': int(res['allowance_sigusd']), 
+            'spent_sigusd': int(res['spent_sigusd']), 
+            'gmt': NOW
+        }
 
     except Exception as e:
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to determine remaining whitelist sigUSD for event')
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'invalid whitelist request')
 #endregion ROUTES
 
 ### MAIN

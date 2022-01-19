@@ -56,11 +56,11 @@ Late Jan | IDO Project promotions and pre-sale dates announced | There will be s
 
 ### Early Investment Rounds
 
-Early investment rounds will take place starting December 17, 2021. The seed round and strategic round will be capped at 5k sigUSD and 20k sigUSD per person, respectively. There will be a max allocation of 10M tokens for seed round, and 20M tokens for strategic round and pre-sale. You will be able to send Erg native coins to a smart contract and will receive ErgoPad tokens in return, locked according to the vesting schedule. Once each vesting period has passed, you'll be able to claim your tokens that are unlocked for that period. We will provide a form on the website to generate the transaction, to keep it simple. 
+Early investment rounds will take place starting December 17, 2021. The seed round and strategic round will be capped at 5k sigUSD and 20k sigUSD per person, respectively. The pre-sale will also be capped at 20k per person. There will be a max allocation of 10M tokens for seed round, and 20M tokens for strategic round and pre-sale. You will be able to send Erg native coins to a smart contract and will receive ErgoPad tokens in return, locked according to the vesting schedule. Once each vesting period has passed, you'll be able to claim your tokens that are unlocked for that period. We will provide a form on the website to generate the transaction, to keep it simple. 
 
 ### Dao tokens
 
-The ErgoPad DAO will receive 6% of the total supply of tokens. This will be released quarterly to the DAO over 6 quarters (one and a half years). The DAO will vote to determine how those tokens will be spent. Salaries, new hires, marketing, buybacks, and other expenses will be considered, and remaining tokens will be burned. 
+The ErgoPad DAO will receive 6% of the total supply of tokens. This will be released quarterly to the DAO over 6 quarters (one and a half years). The DAO will vote to determine how those tokens will be spent. Salaries, new hires, marketing, buybacks, and other expenses will be considered.
 
 ### Tokenomics and Vesting Schedule
 
@@ -68,7 +68,7 @@ Distributed to | Amount | Price Per Token | Max per person | Percent of IDO | Ve
 --- | --- | --- | --- | --- | ---
 Seed Round | 10M | 0.011 sigUSD | 5k sigUSD | 12.7% | 1/9th Monthly for 9 Months
 Strategic Round | 20M | 0.02 sigUSD | 20k sigUSD | 25.3% | 1/6th Monthly for 6 Months
-Pre-Sale | 20M | 0.03 sigUSD | No limit | 25.3% | 1/3 Monthly for 3 Months
+Pre-Sale | 20M | 0.03 sigUSD | 20k sigUSD | 25.3% | 1/3 Monthly for 3 Months
 Liquidity | 5M | 0.04 sigUSD | N/A | 6.3% | Immediate
 DAO | 24M | N/A | N/A | 30.3% | Quarterly for 6 Quarters
 Staking | 321M | N/A | N/A | N/A | Daily for 36 months
@@ -84,17 +84,16 @@ Staking will go live very shortly after IDO on January 26th.
 
 Tier | Amount | Whitelist Requirements | Allocation Weight
 --- | --- | --- | ---
-(A) Alpha	| 50000	| Twitter like, comment, and retweet | 3
-(Β) Beta | 100000 | Twitter like, comment, and retweet | 10
-(Ω) Omega	| 250000	| Twitter like, retweet | 25
-(Φ) Phi	| 500000	| Twitter like | 60
-(Σ) Sigma	| 1500000 | none | 200
+(A) Alpha | 25000	| Twitter like, retweet | 10
+(Β) Beta | 50000	| Twitter like, retweet | 24
+(Γ) Gamma | 100000 | Twitter like, retweet | 58
+(Ω) Omega	| 250000	| Twitter like | 175
+(Φ) Phi	| 500000	| Twitter like | 420
+(Σ) Sigma	| 1500000 | none | 1500
 
 #### Pool Allocation
 
 Pool allocation will be determined on a case-by-case basis. Each project will have some tokens reserved for ErgoPad stakers at a reduced price. Staking snapshot will be announced ahead of time, and anyone staking in a tier during that time will be eligible for the number of tokens based on their pool weight. 
-
-Eg. if 1000 tokens are available for stakers, and there are 5 people staking at the Sigma level, each of those 5 people will have an opportunity to buy 200 tokens for the project. This is an over-simplified example just to illustrate the concept. There will usually be people staking at all tier levels and many more tokens available. 
 
 ### Emission
 
