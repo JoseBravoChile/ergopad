@@ -29,22 +29,11 @@ Notes:
 #endregion BLOCKHEADER
 
 #region INIT
-DEBUG = CFG.debug
-st = time() # stopwatch
-
-EVENTNAME = 'IDO'
-EVENTID = 3 # lookup in public.events
-MAXSIGUSD = 20000
+DEBUG      = CFG.debug
+DATABASE   = CFG.connectionString
 DATEFORMAT = '%m/%d/%Y %H:%M'
-EVENTBEGINS = int(dt.timestamp(dt.strptime('1/11/2022 00:00', DATEFORMAT)))
-EVENTFINISH = int(dt.timestamp(dt.strptime('1/11/2022 23:59', DATEFORMAT)))
-NOW = int(time())
-ONAIR = (NOW > EVENTBEGINS) and (NOW < EVENTFINISH)
-
-DATABASE = CFG.connectionString
-
-DEBUG = True
-st = time() # stopwatch
+headers    = {'Content-Type': 'application/json'}
+# NOW = int(time()) # !! NOTE: can't use here; will only update once if being imported
 #endregion INIT
 
 #region LOGGING
@@ -61,7 +50,7 @@ myself = lambda: inspect.stack()[1][3]
 class Whitelist(BaseModel):
     ergoAddress: str # wallet
     email: str
-    event: str = EVENTNAME
+    event: str
     name: str
     sigValue: float
     socialHandle: str
@@ -74,7 +63,7 @@ class Whitelist(BaseModel):
             "example": {
                 'ergoAddress': '3WzKuUxmG7HtfmZNxxHw3ArPzsZZR96yrNkTLq4i1qFwVqBXAU8X',
                 'email': 'hello@world.com',
-                'event': EVENTNAME,
+                'event': 'IDO',
                 'name': 'Jo Smith',
                 'sigValue': 2000.5,
                 'socialHandle': '@tweetyBird',
@@ -88,15 +77,58 @@ class Whitelist(BaseModel):
 #region ROUTES
 @r.post("/signup")
 async def email(whitelist: Whitelist, response: Response):
+    NOW = int(time())
     try:
-        if not ONAIR:
-            response.status_code = status.HTTP_406_NOT_ACCEPTABLE
-            return {'status': 'error', 'message': f'whitelist signup between {dt.fromtimestamp(EVENTBEGINS).strftime(DATEFORMAT)} and {dt.fromtimestamp(EVENTFINISH).strftime(DATEFORMAT)}'}
+        eventName = whitelist.event
 
-        logging.debug('ONAIR...')
+        logging.debug(DATABASE)
+        con = create_engine(DATABASE)
+        logging.debug('sql')
+        sql = f"""
+            with wht as (
+                select "eventId"
+                    , coalesce(sum("allowance_sigusd"), 0.0) as allowance_sigusd
+                    , coalesce(sum("spent_sigusd"), 0.0) as spent_sigusd
+                from whitelist
+                group by "eventId"
+            )
+            select 
+                name
+                , evt.id
+                , description
+                , total_sigusd
+                , buffer_sigusd
+                , start_dtz
+                , end_dtz
+                , coalesce(allowance_sigusd, 0.0) as allowance_sigusd
+                , coalesce(spent_sigusd, 0.0) as spent_sigusd
+            from "events" evt
+                left join wht on wht."eventId" = evt.id
+            where evt.name = {eventName!r}
+                and evt."isWhitelist" = 1
+        """
+        # logging.debug(sql)
+        res = con.execute(sql).fetchone()
+        # logging.debug(f'res: {res}')
+
+        # event not found
+        if res == None or len(res) == 0:
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return {'status': 'error', 'message': f'whitelist event, {eventName} not found.'}
+
+        # is valid signup window?
+        if (NOW < int(res['start_dtz'].timestamp())) or (NOW > int(res['end_dtz'].timestamp())):
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return {'status': 'error', 'message': f"whitelist signup between {res['start_dtz']} and {res['end_dtz']}."}
+
+        # is funding complete?
+        if res['allowance_sigusd'] >= (res['total_sigusd'] + res['buffer_sigusd']):
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return {'status': 'error', 'message': f'whitelist funds complete.'}
+
+        logging.debug(f"Current funding: {100*res['allowance_sigusd']/(res['total_sigusd']+res['buffer_sigusd']):.2f}% ({res['allowance_sigusd']} of {res['total_sigusd']+res['buffer_sigusd']})")
+        eventId = res['id']
         whitelist.sigValue = int(whitelist.sigValue)
-        if whitelist.sigValue > MAXSIGUSD:
-            whitelist.sigValue = MAXSIGUSD
         
         # find wallet
         logging.debug(f'connecting to: {CFG.connectionString}')
@@ -108,6 +140,7 @@ async def email(whitelist: Whitelist, response: Response):
         sqlFindWallet = f"select id from wallets where address = '{whitelist.ergoAddress}'"
         logging.debug(sqlFindWallet)
         res = con.execute(sqlFindWallet)
+
         # create wallet if it doesn't exist
         if res.rowcount == 0:
             dfWallet = df[['ergoAddress', 'email', 'socialHandle', 'socialPlatform', 'chatHandle', 'chatPlatform']]
@@ -121,17 +154,19 @@ async def email(whitelist: Whitelist, response: Response):
         # check this wallet has not already registered for this event
         res = con.execute(sqlFindWallet).fetchone()
         walletId = res['id']
-        sqlAlreadyWhitelisted = f'select id from "whitelist" where "walletId" = {walletId} and "eventId" = {EVENTID}'
+        sqlAlreadyWhitelisted = f'select id from "whitelist" where "walletId" = {walletId} and "eventId" = {eventId}'
         res = con.execute(sqlAlreadyWhitelisted)
         if res.rowcount == 0:
             # add whitelist entry
             logging.debug(f'found id: {walletId}')
             dfWhitelist = df[['sigValue']]
             dfWhitelist['walletId'] = walletId
-            dfWhitelist['eventId'] = EVENTID
+            dfWhitelist['eventId'] = eventId
             dfWhitelist['created_dtz'] = dt.fromtimestamp(NOW).strftime(DATEFORMAT)
             dfWhitelist = dfWhitelist.rename(columns={'sigValue': 'allowance_sigusd'})
             dfWhitelist.to_sql('whitelist', con=con, if_exists='append', index=False)
+
+            # whitelist success
             return {'status': 'success', 'detail': f'added to whitelist'}
 
         # already whitelisted
@@ -144,15 +179,15 @@ async def email(whitelist: Whitelist, response: Response):
 
 @r.get("/info/{eventName}")
 async def whitelist(eventName):
+    NOW = int(time())
     try:
         logging.debug(DATABASE)
         con = create_engine(DATABASE)
-        logging.debug('sql')
         sql = f"""
             with wht as (
                 select "eventId"
                     , coalesce(sum("allowance_sigusd"), 0.0) as allowance_sigusd
-                    , coalesce(sum("remaining_sigusd"), 0.0) as remaining_sigusd
+                    , coalesce(sum("spent_sigusd"), 0.0) as spent_sigusd
                 from whitelist
                 group by "eventId"
             )
@@ -164,24 +199,28 @@ async def whitelist(eventName):
                 , start_dtz
                 , end_dtz
                 , coalesce(allowance_sigusd, 0.0) as allowance_sigusd
-                , coalesce(remaining_sigusd, 0.0) as remaining_sigusd
+                , coalesce(spent_sigusd, 0.0) as spent_sigusd
             from "events" evt
                 left join wht on wht."eventId" = evt.id
-            where evt.name = '{eventName}'
+            where evt.name = {eventName!r}
         """
-        logging.debug(sql)
+        # logging.debug(sql)
         res = con.execute(sql).fetchone()
         logging.debug(res)
         return {
             'status': 'success', 
+            'now': NOW,
+            'isBeforeSignup': NOW < int(res['start_dtz'].timestamp()),
+            'isAfterSignup': NOW > int(res['end_dtz'].timestamp()),
+            'isFundingComplete': res['allowance_sigusd'] >= (res['total_sigusd'] + res['buffer_sigusd']),
             'name': res['name'], 
             'description': res['description'], 
             'total_sigusd': res['total_sigusd'], 
             'buffer_sigusd': res['buffer_sigusd'], 
-            'start_dtz': res['start_dtz'], 
-            'end_dtz': res['end_dtz'], 
+            'start_dtz': int(res['start_dtz'].timestamp()), 
+            'end_dtz': int(res['end_dtz'].timestamp()), 
             'allowance_sigusd': int(res['allowance_sigusd']), 
-            'remaining_sigusd': int(res['remaining_sigusd']), 
+            'spent_sigusd': int(res['spent_sigusd']), 
             'gmt': NOW
         }
 

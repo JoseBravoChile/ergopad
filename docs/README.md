@@ -84,17 +84,16 @@ Staking will go live very shortly after IDO on January 26th.
 
 Tier | Amount | Whitelist Requirements | Allocation Weight
 --- | --- | --- | ---
-(A) Alpha	| 50000	| Twitter like, comment, and retweet | 3
-(Β) Beta | 100000 | Twitter like, comment, and retweet | 10
-(Ω) Omega	| 250000	| Twitter like, retweet | 25
-(Φ) Phi	| 500000	| Twitter like | 60
-(Σ) Sigma	| 1500000 | none | 200
+(A) Alpha | 25000	| Twitter like, retweet | 10
+(Β) Beta | 50000	| Twitter like, retweet | 24
+(Γ) Gamma | 100000 | Twitter like, retweet | 58
+(Ω) Omega	| 250000	| Twitter like | 175
+(Φ) Phi	| 500000	| Twitter like | 420
+(Σ) Sigma	| 1500000 | none | 1500
 
 #### Pool Allocation
 
 Pool allocation will be determined on a case-by-case basis. Each project will have some tokens reserved for ErgoPad stakers at a reduced price. Staking snapshot will be announced ahead of time, and anyone staking in a tier during that time will be eligible for the number of tokens based on their pool weight. 
-
-Eg. if 1000 tokens are available for stakers, and there are 5 people staking at the Sigma level, each of those 5 people will have an opportunity to buy 200 tokens for the project. This is an over-simplified example just to illustrate the concept. There will usually be people staking at all tier levels and many more tokens available. 
 
 ### Emission
 
