@@ -17,12 +17,15 @@ CFG = Config[Network]
 DATABASE = CFG.connectionString
 headers = {'Content-Type': 'application/json'}
 
+
 @r.get("/return/{wallet}/{smartContract}", name="assembler:return")
 async def assemblerReturn(wallet: str, smartContract: str):
     try:
         res = requests.get(f'{CFG.assembler}/return/{wallet}/{smartContract}')
-        return JSONResponse(status_code=res.status_code, content=res.json())
-
+        if res.status_code == 200:
+            return JSONResponse(status_code=res.status_code, content=res.text)
+        else:
+            return JSONResponse(status_code=res.status_code, content=res.json())
     except:
         logging.debug(
             f'request failed for "wallet": {wallet}, "smartContract": {smartContract}')
