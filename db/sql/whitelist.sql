@@ -8,5 +8,6 @@ CREATE TABLE "whitelist" (
     "spent_sigusd" NUMERIC(16,6) DEFAULT 0.0,
     "isAvailable" SMALLINT DEFAULT 0,
     "lastAssemblerId" TEXT,
-    "lastAssemblerStatus" TEXT
+    "lastAssemblerStatus" TEXT,
+    "isWhitelist" SMALLINT DEFAULT 0
 );
