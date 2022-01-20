@@ -43,22 +43,33 @@ async def pendingStatus(wallet: str):
     try:
         con = create_engine(DATABASE)
         sql = f"""
-            select distinct "assemblerId" 
+            select distinct "assemblerStatus", "assemblerId"
             from purchases 
             where "walletAddress" = {wallet!r}
+				and "assemblerStatus" not in ('success', 'timeout', 'ignore')
         """
         logging.debug(sql)
         res = con.execute(sql).fetchall()
         logging.debug(f'res: {res}')
+
+        
+        # sql = f"""
+        #     select distinct "assemblerId" 
+        #     from purchases 
+        #     where "walletAddress" = {wallet!r}
+        # """
+        # logging.debug(sql)
+        # res = con.execute(sql).fetchall()
+        # logging.debug(f'res: {res}')
 
         result = {}
         if res == None:
             JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'no wallet status results')
         else:
             for r in res:
-                res = requests.get(f"{CFG.assembler}/result/{r['assemblerId']}")
-                if res.ok:
-                    result[r['assemblerId']] = res.json()['detail']
+                # res = requests.get(f"{CFG.assembler}/result/{r['assemblerId']}")
+                # if res.ok: result[r['assemblerId']] = res.json()['detail']
+                result[r['assemblerId']] = r['assemblerStatus']
         return result
 
     except:

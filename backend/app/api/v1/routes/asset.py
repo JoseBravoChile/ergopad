@@ -6,10 +6,7 @@ from fastapi import APIRouter
 from fastapi import Path
 from fastapi import Request
 from sqlalchemy.sql.schema import BLANK_SCHEMA
-<<<<<<< HEAD
 # from fastapi import Depends
-=======
->>>>>>> 471bcda7a50c2db1710b8e1dc548cac2643f0509
 from time import time
 from config import Config, Network # api specific config
 CFG = Config[Network]

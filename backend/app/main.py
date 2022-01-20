@@ -40,7 +40,7 @@ app.include_router(vesting_router,    prefix="/api/vesting",    tags=["vesting"]
 app.include_router(whitelist_router,  prefix="/api/whitelist",  tags=["whitelist"])
 app.include_router(events_router,     prefix="/api/events",     tags=["events"])
 app.include_router(purchase_router,   prefix="/api/purchase",   tags=["purchase"])
-app.include_router(assembler_router,   prefix="/api/assembler",  tags=["assembler"])
+app.include_router(assembler_router,  prefix="/api/assembler",  tags=["assembler"])
 #endregion Routers
 
 # init database?

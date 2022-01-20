@@ -28,7 +28,7 @@ services:
       - ${BACKEND_PORT}:${BACKEND_PORT}
     depends_on: 
       - postgres
-    command: uvicorn main:app --reload --workers 4 --reload-dir /app --host 0.0.0.0 --port ${BACKEND_PORT}
+    command: uvicorn main:app --workers 4 --proxy-headers --host 0.0.0.0 --port ${BACKEND_PORT} # --reload --reload-dir /app 
 
   postgres:
     container_name: postgres
@@ -102,7 +102,8 @@ services:
     env_file: .env
     image: openjdk
     volumes:
-      - ./ergonode/:/opt/ergo # jar/conf
+      - ./ergonode/mainnet.conf:/etc/mainnet.conf # jar/conf
+      - ./ergonode/ergo.jar:/opt/ergo/ergo.jar
       - /ergo/mainnet/.ergo:/opt/ergo/.ergo # blockchain
     ports:
       - ${ERGONODE_PORT}:${ERGONODE_PORT}

@@ -45,7 +45,7 @@ class TokenPurchase(BaseModel):
     currency: Optional[str] = 'sigusd'
 
 nodeWallet  = Wallet(CFG.ergopadWallet) # contains ergopad tokens (xerg10M)
-buyerWallet = Wallet(CFG.buyerWallet) # simulate buyer / seed tokens
+# buyerWallet = Wallet(CFG.buyerWallet) # simulate buyer / seed tokens
 #endregion INIT
 
 #region LOGGING
@@ -61,7 +61,8 @@ myself = lambda: inspect.stack()[1][3]
 @r.post("/", name="blockchain:purchaseToken")
 async def purchaseToken(tokenPurchase: TokenPurchase):
     # close route for now
-    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'use api/vesting')
+    if int(time()) < 1642698000:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'not now')
     
     NOW = int(time())
 
@@ -151,7 +152,7 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
     # handle purchase
     try:
         buyerWallet          = Wallet(tokenPurchase.wallet)
-        amount               = tokenPurchase.amount #Purchase amount in SigUSD
+        amount               = tokenPurchase.amount # Purchase amount in SigUSD
 
         isToken              = True
         tokenName            = 'sigusd'
@@ -182,7 +183,8 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
                     from events
                     where name = {eventName!r}
                 )
-                select wal.id as walletId
+                select wht.id
+                    , wal.id as walletId
                     , evt.id as eventId
                     , wal.address as wallet
                     , max(wht.allowance_sigusd) as allowance_sigusd
@@ -195,6 +197,7 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
             res = con.execute(sql).fetchall()
             for r in res:
                 whitelist[r['wallet']] = {
+                    'id': r['id'],
                     'walletid': r['walletId'],
                     'eventId': r['eventId'],
                     'total': float(r['allowance_sigusd']),
@@ -276,7 +279,8 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
             params['purchaseTokenId'] = ""
             params['purchaseTokenAmount'] = sendAmount_nerg # coinAmount_nerg
         logging.info(f'params: {params}')
-
+        
+        currencyAmount = params['purchaseTokenAmount']
         scPurchase = getErgoscript('directSale', params=params)
         logging.info(f'scPurchase: {scPurchase}')
 
@@ -309,9 +313,7 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
         fin = requests.get(f'{CFG.assembler}/result/{id}')
         logging.info({'status': 'success', 'fin': fin.json(), 'followId': id})
 
-        # await handleAllowance()
         try:
-            # save transaction (may be multiple)
             sql = f"""
                 insert into purchases ("walletId", "eventId", "toAddress", "tokenId", "tokenAmount", "currency", "currencyAmount", "feeAmount")
                 values (
@@ -321,30 +323,24 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
                     {validCurrencies['ergopad']!r}, 
                     {tokenAmount!r},
                     {('erg', 'sigusd')[isToken]!r},
-                    startWhen,
+                    {currencyAmount!r},
                     txFee_nerg,
                 )
             """
+            logging.debug(sql)
             res = con.execute(sql)
 
             # update summary
             sql = f"""
-                with spt as (
-                    select {whitelist[buyerWallet.address]['id']!r} as "whitelistId"
-                        sum(coalesce(tokenAmount, 0.0)) + {price}*sum(coalesce(currencyAmount, 0.0)) as total_sigusd
-                    from purchases
-                    where "walletId" = {whitelist[buyerWallet.address]['walletId']!r}
-                        and "eventId" = {whitelist[buyerWallet.address]['eventId']!r}
-                )
-                update 
-                    set wht.spent_sigusd = spt.total_sigusd
-                from whitelist wht
-                    join spt on spt."whitelistId" = wht.id
+                update whitelist set spent_sigusd = {tokenPurchase.amount!r}
+                where id = {whitelist[buyerWallet.address]['id']!r}
             """
+            logging.debug(sql)
             res = con.execute(sql)
+
         except:
             with open(BONKFILE, 'a') as f:
-                f.write(f'--purchase ergopad for eventId {eventId}\n--{NOW}\n{sql};\n\n')
+                f.write(f"--purchase ergopad for eventId {whitelist[buyerWallet.address]['eventId']}\n--{NOW}\n{sql};\n\n")
             pass
 
         logging.debug(f'::TOOK {time()-st:.2f}s')
@@ -385,7 +381,8 @@ async def allowance(wallet:str, eventName:Optional[str]='presale-ergopad-202201w
             select sum(coalesce(allowance_sigusd-spent_sigusd, 0.0)) as remaining_sigusd
             from whitelist wht
                 join evt on evt.id = wht."eventId"
-                join wal on wal.id = wht."walletId"        
+                join wal on wal.id = wht."walletId"      
+            where wht."isWhitelist" = 1    
         """
         logging.debug(sql)
         res = con.execute(sql).fetchone()

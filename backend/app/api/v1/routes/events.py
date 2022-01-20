@@ -54,19 +54,32 @@ def summary(eventName):
                 from events
                 where name = 'presale-ergopad-202201wl'
             )
+            , pur as (
+                select 3 as id
+                    , sum(coalesce("tokenAmount"/100, 0.0)) as spent_ergopad
+                from purchases 
+                where "assemblerStatus" = 'success' 
+                    and id > 0
+                    and "eventName" = 'presale-ergopad-202201wl'
+            )
             select evt.id
-                , coalesce(sum(allowance_sigusd), 0.0) as sigusd
+                , coalesce(sum(allowance_sigusd), 0.0) as allowance_sigusd
+				, coalesce(sum(spent_sigusd), 0.0) as spent_sigusd
                 , coalesce(count(*), 0.0) as entries
                 , coalesce(max(created_dtz), '1/1/1900') as last_entry
+				, coalesce(max(spent_ergopad), 0.0) as spent_ergopad
             from whitelist wht
                 join evt on evt.id = wht."eventId"
+                join pur on pur.id = wht."eventId"
             group by evt.id;
         """
         res = con.execute(sql).fetchone()
         return {
             'event': eventName,
             'id': res['id'],
-            'total (sigusd)': f"\u01A9\u0024{res['sigusd']:,.2f}",
+            'total (sigusd)': f"\u01A9\u0024{res['allowance_sigusd']:,.2f}",
+            'spent (sigusd)': f"\u01A9\u0024{res['spent_sigusd']:,.2f}",
+            'spent (ergopad)': f"\u2234{res['spent_ergopad']:,.2f} tokens",
             'number of entries': res['entries'],
             'time of last entry': res['last_entry'],
         }

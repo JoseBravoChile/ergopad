@@ -77,6 +77,7 @@ class Whitelist(BaseModel):
 #region ROUTES
 @r.post("/signup")
 async def email(whitelist: Whitelist, response: Response):
+    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'not now')
     NOW = int(time())
     try:
         eventName = whitelist.event

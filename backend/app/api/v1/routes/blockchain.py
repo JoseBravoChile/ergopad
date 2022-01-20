@@ -171,6 +171,7 @@ def getBoxesWithUnspentTokens(nErgAmount=-1, tokenId=CFG.ergopadTokenId, tokenAm
         foundTokenAmount = 0
         foundNErgAmount = 0
         ergopadTokenBoxes = {}
+        logging.debug(f'TOKEN::{tokenId}')
 
         res = requests.get(f'{CFG.node}/wallet/boxes/unspent?minInclusionHeight=0&minConfirmations={(0, -1)[allowMempool]}', headers=dict(headers, **{'api_key': CFG.ergopadApiKey}))
         if res.ok:
