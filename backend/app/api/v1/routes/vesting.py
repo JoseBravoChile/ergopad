@@ -478,7 +478,7 @@ def findVestingTokens(wallet:str):
                         result[tokenId]['outstanding'][nextRedeemDate] = {}
                         result[tokenId]['outstanding'][nextRedeemDate]['amount'] = 0.0
                     redeemAmount = nextRedeemAmount if remainingVested >= 2*nextRedeemAmount else remainingVested
-                    result[tokenId]['outstanding'][nextRedeemDate]['amount'] += redeemAmount
+                    result[tokenId]['outstanding'][nextRedeemDate]['amount'] += round(redeemAmount,int(box["assets"][0]["decimals"]))
                     remainingVested -= redeemAmount
                     nextRedeemTimestamp += int(box["additionalRegisters"]["R5"]["renderedValue"])/1000.0
                     nextRedeemDate = date.fromtimestamp(nextRedeemTimestamp)
