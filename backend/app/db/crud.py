@@ -1,3 +1,4 @@
+import json
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 import typing as t
@@ -90,19 +91,32 @@ def get_blacklisted_token(db: Session, token: str):
 ### CRUD OPERATIONS FOR PROJECTS ###
 ####################################
 
+def social_compatible_project(project):
+    try:
+        project.socials = schemas.Socials.parse_obj(
+            json.loads(project.socials))
+    except:
+        # make backward compatible with older data
+        project.socials = schemas.Socials(telegram=project.socials)
+    return project
+
 
 def get_projects(
     db: Session, skip: int = 0, limit: int = 100
 ) -> t.List[schemas.Project]:
-    return db.query(models.Project).offset(skip).limit(limit).all()
+    data = db.query(models.Project).offset(skip).limit(limit).all()
+    return [social_compatible_project(project) for project in data]
 
 
-def get_project(db: Session, id: int):
+def get_project(db: Session, id: int, model="out"):
     project = db.query(models.Project).filter(models.Project.id == id).first()
     if not project:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="project not found")
-    return project
+    if model == "db":
+        return project
+    else:
+        return social_compatible_project(project)
 
 
 def get_project_team(db: Session, projectId: int, skip: int = 0, limit: int = 100) -> t.List[schemas.ProjectTeamMember]:
@@ -115,7 +129,7 @@ def create_project(db: Session, project: schemas.CreateAndUpdateProjectWithTeam)
         shortDescription=project.shortDescription,
         description=project.description,
         fundsRaised=project.fundsRaised,
-        teamTelegramHandle=project.teamTelegramHandle,
+        socials=str(project.socials.json()),
         bannerImgUrl=project.bannerImgUrl,
         isLaunched=project.isLaunched,
     )
@@ -130,7 +144,7 @@ def create_project(db: Session, project: schemas.CreateAndUpdateProjectWithTeam)
         shortDescription=db_project.shortDescription,
         description=db_project.description,
         fundsRaised=db_project.fundsRaised,
-        teamTelegramHandle=db_project.teamTelegramHandle,
+        socials=schemas.Socials.parse_obj(json.loads(db_project.socials)),
         bannerImgUrl=db_project.bannerImgUrl,
         isLaunched=db_project.isLaunched,
         team=get_project_team(db, db_project.id)
@@ -147,14 +161,14 @@ def set_project_team(db: Session, projectId: int, teamMembers: t.List[schemas.Cr
 
 
 def delete_project(db: Session, id: int):
-    project = get_project(db, id)
+    project = get_project(db, id, model="db")
     if not project:
         raise HTTPException(status.HTTP_404_NOT_FOUND,
                             detail="project not found")
     delete_project_team(db, id)
     db.delete(project)
     db.commit()
-    return project
+    return social_compatible_project(project)
 
 
 def delete_project_team(db: Session, projectId: int):
@@ -168,14 +182,17 @@ def delete_project_team(db: Session, projectId: int):
 def edit_project(
     db: Session, id: int, project: schemas.CreateAndUpdateProjectWithTeam
 ):
-    db_project = get_project(db, id)
+    db_project = get_project(db, id, model="db")
     if not db_project:
         raise HTTPException(status.HTTP_404_NOT_FOUND,
                             detail="project not found")
 
     update_data = project.dict(exclude_unset=True)
     for key, value in update_data.items():
-        setattr(db_project, key, value)
+        if key == "socials":
+            setattr(db_project, key, str(project.socials.json()))
+        else:
+            setattr(db_project, key, value)
 
     db.add(db_project)
     db.commit()
@@ -190,7 +207,7 @@ def edit_project(
         shortDescription=db_project.shortDescription,
         description=db_project.description,
         fundsRaised=db_project.fundsRaised,
-        teamTelegramHandle=db_project.teamTelegramHandle,
+        socials=schemas.Socials.parse_obj(json.loads(db_project.socials)),
         bannerImgUrl=db_project.bannerImgUrl,
         isLaunched=db_project.isLaunched,
         team=get_project_team(db, db_project.id)
