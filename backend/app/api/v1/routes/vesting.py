@@ -159,6 +159,7 @@ async def vestToken(vestment: Vestment):
         presale['remaining_sigusd'] = res['allowance_sigusd'] - res['spent_sigusd']
         presale['walletId'] = res['walletId']
         presale['eventId'] = res['eventId']
+        presale['whitelistId'] = res['whitelistId']
 
         # missing legit response from whitelist
         if res == None or len(res) == 0:
@@ -303,12 +304,12 @@ async def vestToken(vestment: Vestment):
             insert into purchases ("walletAddress", "eventName", "toAddress", "tokenId", "tokenAmount", "currency", "currencyAmount", "feeAmount", "assemblerId")
             values (
                 {buyerWallet.address!r}
-                , {vestment.vestingScenario!r}
+                , 'presale-ergopad-202201wl'
                 , {scPurchase!r}
                 , {CFG.validCurrencies[vs.vestedToken]!r}
                 , {tokenAmount!r}
                 , {vs.currency!r}
-                , {vestment.vestingAmount!r}
+                , {(sendAmount_nerg/nergsPerErg, currencyAmount)[isToken]!r}
                 , {txFee_nerg!r}
                 , {assemblerId!r}
             )
@@ -316,6 +317,19 @@ async def vestToken(vestment: Vestment):
         logging.debug(f'SQL::PURCHASES::\n{sql}')
         res = con.execute(sql)
         logging.debug(res)
+
+        # update if presale/whitelist
+        if presale != {}:
+            try:
+                sql = f"""
+                    update whitelist 
+                    set spent_sigusd = coalesce(spent_sigusd, 0.0)+{amountInUSD!r}
+                    where id = {presale['whitelistId']!r}
+                """
+                logging.debug(sql)
+                # res = con.execute(sql)
+            except:
+                pass
 
         logging.debug(f'::TOOK {time()-st:.2f}s')
         if isToken:
