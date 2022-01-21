@@ -36,7 +36,7 @@ class Project(Base):
     fundsRaised = Column(Float)
     shortDescription = Column(String)
     description = Column(String)
-    teamTelegramHandle = Column(String)
+    socials = Column(String)
     bannerImgUrl = Column(String)
     isLaunched = Column(Boolean)
 

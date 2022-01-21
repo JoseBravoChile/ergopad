@@ -54,12 +54,19 @@ class TokenData(BaseModel):
 ### SCHEMAS FOR PROJECTS ###
 
 
+class Socials(BaseModel):
+    telegram: t.Optional[str]
+    twitter: t.Optional[str]
+    discord: t.Optional[str]
+    github: t.Optional[str]
+    website: t.Optional[str]
+
 class CreateAndUpdateProject(BaseModel):
     name: str
     shortDescription: str
     description: t.Optional[str]
     fundsRaised: t.Optional[float]
-    teamTelegramHandle: t.Optional[str]
+    socials: Socials
     bannerImgUrl: str
     isLaunched: bool
 
