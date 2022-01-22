@@ -39,7 +39,7 @@ Jan 2, 2022 | First IDO Announcements | By this date, we will announce at least 
 Jan 3, 2021 | Strategic sale | ErgoPad Strategic Sale contracts become available. Whitelisted users will have 48 hours to send Erg and secure their tokens.
 Jan 15, 2022 | Pre-Sale Whitelist | Sign up to reserve access to the pre-sale, the final sale before tokens are released to decentralized exchanges
 Jan 20, 2022 | Pre-Sale | ErgoPad pre-sale contracts become available. 
-Feb 2, 2022 | ErgoPad IDO | ErgoPad IDO where tokens will be available to trade, and the first vesting rounds are unlocked. 
+Feb 2, 2022 | ErgoPad IDO | ErgoPad IDO where tokens will be available to trade on ErgoDex.
 
 ## Tokenomics
 
