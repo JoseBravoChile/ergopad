@@ -132,10 +132,10 @@ async def bootstrapStaking(req: BootstrapRequest):
         'address': stakeStateAddress,
         'value': int(0.001*nergsPerErg),
         'registers': {
-            'R4': encodeLong(0),
-            'R5': encodeLong(0),
-            'R6': encodeLong(0),
-            'R7': encodeLong(0),
+            'R4': encodeLong(int(0)),
+            'R5': encodeLong(int(0)),
+            'R6': encodeLong(int(0)),
+            'R7': encodeLong(int(0)),
             'R8': encodeLong(req.cycleDuration_ms)
         },
         'assets': [
@@ -154,9 +154,9 @@ async def bootstrapStaking(req: BootstrapRequest):
         'address': emissionAddress,
         'value': int(0.001*nergsPerErg),
         'registers': {
-            'R4': encodeLong(0),
-            'R5': encodeLong(0),
-            'R6': encodeLong(0),
+            'R4': encodeLong(int(0)),
+            'R5': encodeLong(int(0)),
+            'R6': encodeLong(int(0)),
             'R7': encodeLong(req.emissionAmount*stakedTokenDecimalMultiplier)
         },
         'assets': [
@@ -167,25 +167,36 @@ async def bootstrapStaking(req: BootstrapRequest):
         ]
     }
 
-    boxes = getBoxesWithUnspentTokens(nErgAmount=99999999999999999)
+    inputs = set()
+
+    for boxId in getBoxesWithUnspentTokens(tokenId=req.emissionNFT,tokenAmount=1).keys():
+        inputs.add(boxId)
+    for boxId in getBoxesWithUnspentTokens(tokenId=req.stakeStateNFT,tokenAmount=1).keys():
+        inputs.add(boxId)
+    for boxId in getBoxesWithUnspentTokens(tokenId=req.stakePoolNFT,tokenAmount=1).keys():
+        inputs.add(boxId)
+    for boxId in getBoxesWithUnspentTokens(tokenId=req.stakedTokenID,tokenAmount=req.stakeAmount*stakedTokenDecimalMultiplier).keys():
+        inputs.add(boxId)
+    for boxId in getBoxesWithUnspentTokens(tokenId=req.stakeTokenID,tokenAmount=1000000000).keys():
+        inputs.add(boxId)
 
     request = {
             'address': getErgoscript('alwaysTrue'),
-            'returnTo': CFG.nodeWallet,
+            'returnTo': CFG.ergopadWallet,
             'startWhen': {
                 'erg': 0, 
             },
             'txSpec': {
                 'requests': [stakePoolBox,stakeStateBox,emissionBox],
                 'fee': int(0.001*nergsPerErg),          
-                'inputs': list(boxes.keys()),
+                'inputs': list(inputs),
                 'dataInputs': [],
             },
         }
 
     logging.debug(request)
     res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)   
-    logging.debug(res)
+    logging.debug(res.content)
 
     return({"success": True})
 

@@ -3,7 +3,7 @@ def zigzag(i: int):
 
 def vlq(i: int):
   ret = []
-  while i != 0:
+  while i != 0 or len(ret)==0:
     b = i & 0x7F
     i >>= 7
     if i > 0:

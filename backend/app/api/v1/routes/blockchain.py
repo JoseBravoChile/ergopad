@@ -179,7 +179,7 @@ def getBoxesWithUnspentTokens(nErgAmount=-1, tokenId=CFG.ergopadTokenId, tokenAm
                 if 'box' in ast:
 
                     # find enough boxes to handle nergs requested
-                    if foundNErgAmount < nErgAmount or nErgAmount == -1:
+                    if foundNErgAmount < nErgAmount:
                         foundNErgAmount += ast['box']['value']
                         ergopadTokenBoxes[ast['box']['boxId']] = []
 
