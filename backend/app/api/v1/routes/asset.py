@@ -7,6 +7,7 @@ from fastapi import Path
 from fastapi import Request
 from sqlalchemy.sql.schema import BLANK_SCHEMA
 from time import time
+from ergodex.price import getErgodexTokenPrice
 from config import Config, Network # api specific config
 CFG = Config[Network]
 
@@ -100,6 +101,15 @@ async def get_asset_balance_from_address(address: str = Path(..., min_length=40,
         if token['tokenId'] == '003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0':
             price = (await get_asset_current_price('SigRSV'))['price']
             token['price'] = price
+        # Ergodex tokens
+        # Lunadog    
+        if token['tokenId'] == '5a34d53ca483924b9a6aa0c771f11888881b516a8d1a9cdc535d063fe26d065e':
+            price = (await get_asset_current_price('LunaDog'))['price']
+            token['price'] = price
+        # Erdoge
+        if token['tokenId'] == '36aba4b4a97b65be491cf9f5ca57b5408b0da8d0194f30ec8330d1e8946161c1':
+            price = (await get_asset_current_price('Erdoge'))['price']
+            token['price'] = price
         tokens.append(token)
 
     # normalize result
@@ -163,34 +173,34 @@ async def get_asset_current_price(coin: str = None) -> None:
                 else:
                     price = (equity / res['circ_sigrsv']) / \
                         peg_rate_nano  # SigRSV/USD
-
     # ...all other prices
     else:
         price = None
 
-        # first, check local database storage for price
-        logging.warning('find price from aggregator...')
-        try:            
-            sqlFindLatestPrice = f'select close from "{exchange}_{coin}_1m" order by timestamp_utc desc limit 1'
-            res = con.execute(sqlFindLatestPrice, con=con)
-            price = res.fetchone()[0]
-        except:
-            pass
+        # first check ergodex
+        logging.warning('find price from ergodex')
+        ret = getErgodexTokenPrice(coin)
+        if (ret["status"] == "success"):
+            price = ret["price"]
+
+        # check local database storage for price
+        if price == None:
+            logging.warning('find price from aggregator...')
+            try:            
+                sqlFindLatestPrice = f'select close from "{exchange}_{coin}_1m" order by timestamp_utc desc limit 1'
+                res = con.execute(sqlFindLatestPrice, con=con)
+                price = res.fetchone()[0]
+            except:
+                pass
 
         # if not in local database, ask for online value
         if price == None:
             logging.warning('fallback to price from exchange')
             res = requests.get(f'{coingecko_url}/simple/price?vs_currencies={currency}&ids={coin}')
-
-            # handle invalid address or other error
-            if res.status_code != 200:
-                # raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Something went wrong.")
-                price = {}
-            else:
-                try:
-                    price = res.json()[coin][currency] 
-                except:
-                    pass
+            try:
+                price = res.json()[coin][currency] 
+            except:
+                pass
 
 
     return {
