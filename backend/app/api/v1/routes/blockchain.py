@@ -215,6 +215,7 @@ def getBoxesWithUnspentTokens(nErgAmount=-1, tokenId=CFG.ergopadTokenId, tokenAm
 @r.get("/script/{name}", name="blockchain:getErgoscript")
 def getErgoscript(name, params={}):
     try:
+        script = None
         if name == 'alwaysTrue':
             script = f"""{{
                 val x = 1
@@ -243,7 +244,7 @@ def getErgoscript(name, params={}):
             }}"""
 
 
-        if name == 'directSale' or name == 'vesting1' or name == 'vesting2':
+        if script is None:
             with open(f'contracts/{name}.es') as f:
                 unformattedScript = f.read()
             script = unformattedScript.format(**params)

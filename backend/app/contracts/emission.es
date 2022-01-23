@@ -11,7 +11,9 @@
     
     val stakeStateNFT = fromBase64("{stakeStateNFT}")
     val stakeTokenID = fromBase64("{stakeTokenID}")
-    val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT && blake2b256(INPUTS(0).propositionBytes) == {{stakeStateContractHash}}
+    val stakedTokenID = fromBase64("{stakedTokenID}")
+    val stakeStateContract = fromBase64("{stakeStateContractHash}")
+    val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT && blake2b256(INPUTS(0).propositionBytes) == stakeStateContract
 
     def isStakeBox(box: Box) = box.tokens(0)._1 == stakeTokenID
     def isCompoundBox(box: Box) = isStakeBox(box) || box.tokens(0)._1 == SELF.tokens(0)._1 || box.tokens(0)._1 == stakeStateNFT
@@ -23,7 +25,7 @@
             OUTPUTS(2).R4[Long].get == INPUTS(1).R4[Long].get,
             OUTPUTS(2).R5[Long].get == INPUTS(0).R5[Long].get,
             OUTPUTS(2).R6[Long].get == INPUTS(0).R6[Long].get,
-            OUTPUTS(2).R7[Long].get == INPUTS(1).R4[Long],
+            OUTPUTS(2).R7[Long].get == INPUTS(1).R4[Long].get,
             OUTPUTS(2).tokens(0)._1 == SELF.tokens(0)._1,
             OUTPUTS(2).tokens(1)._2 == OUTPUTS(2).R7[Long].get
         )))

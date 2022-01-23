@@ -7,7 +7,8 @@
     // 1: Remaining Staked Tokens for future distribution (ErgoPad)
 
     val stakeStateNFT = fromBase64("{stakeStateNFT}")
-    val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT && blake2b256(INPUTS(0).propositionBytes) == {{stakeStateContractHash}}
+    val stakeStateContract = fromBase64("{stakeStateContractHash}")
+    val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT && blake2b256(INPUTS(0).propositionBytes) == stakeStateContract
     if (stakeStateInput && INPUTS(1).id == SELF.id) {{ // Emit transaction
         sigmaProp(allOf(Coll(
             //Stake State, Stake Pool (self), Emission => Stake State, Stake Pool, Emission
