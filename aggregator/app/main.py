@@ -5,6 +5,7 @@ from core.config import POWERNAP, TIMEFRAMES, SYMBOLS
 from core.parser import EXCHANGE_NAME, LIMIT
 from exchanges.coinex import exchange, getLatestTimestamp, putLatestOHLCV, cleanupHistorical
 from exchanges.ergowatch import getSigErgo
+from exchanges.ergodex import getErgodexToken
 
 
 # NOTES
@@ -106,6 +107,13 @@ if (__name__ == '__main__'):
                 logging.info(
                     f'ergo.sigUSD/sigRSV polling for timeframe: {timeframe}')
                 getSigErgo()
+
+            # ergodex
+            if i % polling['5m'] == 0:
+                logging.info(
+                    f'ergodex.ERG/token polling for timeframe: {timeframe}'
+                )
+                getErgodexToken()
 
             # polling interval
             logging.info(f'sleep for {POWERNAP}s...\n')
