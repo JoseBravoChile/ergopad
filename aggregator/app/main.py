@@ -4,8 +4,8 @@ from time import sleep
 from core.config import POWERNAP, TIMEFRAMES, SYMBOLS
 from core.parser import EXCHANGE_NAME, LIMIT
 from exchanges.coinex import exchange, getLatestTimestamp, putLatestOHLCV, cleanupHistorical
-from exchanges.ergowatch import getSigErgo
-from exchanges.ergodex import getErgodexToken
+from exchanges.ergowatch import cleanupHistoricalErgoWatch, getSigErgo
+from exchanges.ergodex import cleanupHistoricalErgodex, getErgodexToken
 
 
 # NOTES
@@ -97,23 +97,29 @@ if (__name__ == '__main__'):
                         logging.debug(f'put {since}...')
                         putLatestOHLCV(ohlcv, tbl, since)
 
-            # cleanup daily
-            if i % polling['1d'] == 0:
-                logging.debug(f'cleanup...')
-                cleanupHistorical(EXCHANGE_NAME, symbol, TIMEFRAMES)
+                    # cleanup daily
+                    if i % polling['1d'] == 0:
+                        logging.debug(f'cleanup...')
+                        cleanupHistorical(EXCHANGE_NAME, symbol, TIMEFRAMES)
 
             # sigUSD/sigRSV
             if i % polling['5m'] == 0:
                 logging.info(
-                    f'ergo.sigUSD/sigRSV polling for timeframe: {timeframe}')
+                    f'ergo.sigUSD/sigRSV polling for timeframe: 5m')
                 getSigErgo()
 
             # ergodex
             if i % polling['5m'] == 0:
                 logging.info(
-                    f'ergodex.ERG/token polling for timeframe: {timeframe}'
+                    f'ergodex.ERG/token polling for timeframe: 5m'
                 )
                 getErgodexToken()
+
+            # cleanup daily
+            if i % polling['1d'] == 0:
+                logging.debug(f'cleanup... ergodex and ergowatch')
+                cleanupHistoricalErgoWatch()
+                cleanupHistoricalErgodex()
 
             # polling interval
             logging.info(f'sleep for {POWERNAP}s...\n')

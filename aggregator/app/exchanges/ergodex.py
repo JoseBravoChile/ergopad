@@ -153,14 +153,33 @@ def getErgodexToken():
         boxes = list(map(explorerToErgoBox, res.json()["items"]))
         pools = parseValidPools(boxes)
         prices = [pool.getCalculatedPrice() for pool in pools]
-        df = pd.DataFrame({'timestamp_utc': [int(time())],
+        df = pd.DataFrame({'timestamp_utc': [int(time() * 1000)],
                            'sigusd': [getTokenPrice("sigUSD", prices)],
                            'sigrsv': [getTokenPrice("sigRSV", prices)],
                            'erdoge': [getTokenPrice("Erdoge", prices)],
                            'lunadog': [getTokenPrice("LunaDog", prices)],
                            'ergopad': [getTokenPrice("Ergopad", prices)],
-                           }).set_index('timestamp_utc')
+                           }).astype({'timestamp_utc': 'datetime64[ms]'}).set_index('timestamp_utc')
         df.to_sql('ergodex_ERG/ergodexToken_continuous_5m', con=db,
                   if_exists='append', index_label='timestamp_utc')
     except:
         logging.error(f'did not receive valid data from: {API}')
+
+
+def cleanupHistoricalErgodex():
+    """
+    Delete rows older than than 5 years
+    """
+    try:
+        tbl = 'ergodex_ERG/ergodexToken_continuous_5m'
+        logging.info(f'cleaned table, {tbl}')
+        sqlCleanup = f"""delete from "{tbl}" where timestamp_utc < CURRENT_DATE - INTERVAL '5 years'"""
+        res = db.execute(sqlCleanup, con=db)
+        if res.rowcount > 0:
+            logging.info(
+                f'cleaned up {res.rowcount} rows in table, {tbl}')
+
+    except Exception as e:  # consider narrowing exception handing from generic, "Exception"
+        logging.error(
+            f'{e}\n{res or ""}\ntable, {tbl} may not exist, sql may be incorrect ({sqlCleanup or ""}), or connection to SQL may be invalid.')
+        pass

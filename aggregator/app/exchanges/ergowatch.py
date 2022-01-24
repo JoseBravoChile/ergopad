@@ -41,9 +41,30 @@ def getSigErgo():
         else:
             sigRsvPrice = equity/res['circ_sigrsv']/nerg2erg  # SigRSV
 
-        df = pd.DataFrame({'timestamp_utc': [int(time())], 'sigUSD': [
-                          sigUsdPrice], 'sigRSV': [sigRsvPrice]}).set_index('timestamp_utc')
+        df = pd.DataFrame({'timestamp_utc': [int(time() * 1000)],
+                           'sigUSD': [sigUsdPrice],
+                           'sigRSV': [sigRsvPrice]
+                           }).astype({'timestamp_utc': 'datetime64[ms]'}).set_index('timestamp_utc')
         df.to_sql('ergowatch_ERG/sigUSD/sigRSV_continuous_5m', con=db,
                   if_exists='append', index_label='timestamp_utc')
     else:
         logging.error(f'did not receive valid data from: {ergo_watch_api}')
+
+
+def cleanupHistoricalErgoWatch():
+    """
+    Delete rows older than than 5 years
+    """
+    try:
+        tbl = 'ergowatch_ERG/sigUSD/sigRSV_continuous_5m'
+        logging.info(f'cleaned table, {tbl}')
+        sqlCleanup = f"""delete from "{tbl}" where timestamp_utc < CURRENT_DATE - INTERVAL '5 years'"""
+        res = db.execute(sqlCleanup, con=db)
+        if res.rowcount > 0:
+            logging.info(
+                f'cleaned up {res.rowcount} rows in table, {tbl}')
+
+    except Exception as e:  # consider narrowing exception handing from generic, "Exception"
+        logging.error(
+            f'{e}\n{res or ""}\ntable, {tbl} may not exist, sql may be incorrect ({sqlCleanup or ""}), or connection to SQL may be invalid.')
+        pass
