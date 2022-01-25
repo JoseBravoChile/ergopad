@@ -189,8 +189,16 @@ async def get_asset_current_price(coin: str = None) -> None:
         # check local database storage for price
         if price == None:
             logging.warning('find price from aggregator...')
-            try:            
-                sqlFindLatestPrice = f'select close from "{exchange}_{coin}_1m" order by timestamp_utc desc limit 1'
+            try:
+                pairMapper = {
+                    "ergo": "ERG/USDT",
+                    "erg": "ERG/USDT",
+                    "bitcoin": "BTC/USDT",
+                    "btc": "BTC/USDT",
+                    "ethereum": "ETH/USDT",
+                    "eth": "ETH/USDT",
+                } 
+                sqlFindLatestPrice = f'select close from "{exchange}_{pairMapper[coin]}_1m" order by timestamp_utc desc limit 1'
                 res = con.execute(sqlFindLatestPrice, con=con)
                 price = res.fetchone()[0]
             except:
