@@ -8,8 +8,9 @@
     // 1: Staked Token (ErgoPad): The tokens staked by the user
     
     val stakeStateNFT = fromBase64("{stakeStateNFT}")
-    val emissionNFT = fromBase64("{emissionNFT")
-    val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT && blake2b256(INPUTS(0).propositionBytes) == {{stakeStateContractHash}}
+    val emissionNFT = fromBase64("{emissionNFT}")
+    val stakeStateContract = fromBase64("{stakeStateContractHash}")
+    val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT && blake2b256(INPUTS(0).propositionBytes) == stakeStateContract
 
     if (INPUTS(1).tokens(0)._1 == emissionNFT) {{ // Compound transaction
         // Stake State, Emission, Stake*N (SELF) => Stake State, Emission, Stake * N

@@ -164,6 +164,19 @@ def followInfo(followId):
         logging.error(f'ERR:{myself()}: invalid assembly follow ({e})')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'invalid assembly follow')
 
+def getNFTBox(tokenId: str):
+    try:
+        res = requests.get(f'{CFG.explorer}/boxes/unspent/byTokenId/{tokenId}')
+        if res.ok:
+            items = res.json()["items"]
+            if len(items) == 1:
+                return items[0]
+            else:
+                logging.error(f'ERR:{myself()}: multiple nft box ({e})')
+    except Exception as e:
+        logging.error(f'ERR:{myself()}: unable to find nft box ({e})')
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to find nft box')
+
 # find unspent boxes with tokens
 @r.get("/unspentTokens", name="blockchain:unspentTokens")
 def getBoxesWithUnspentTokens(nErgAmount=-1, tokenId=CFG.ergopadTokenId, tokenAmount=-1, allowMempool=True):
@@ -221,7 +234,7 @@ def getErgoscript(name, params={}):
                 val x = 1
                 val y = 1
 
-                sigmaProp( x == y )
+                sigmaProp( x == y  && HEIGHT < {params['timestamp']})
             }}"""
 
         if name == 'neverTrue':

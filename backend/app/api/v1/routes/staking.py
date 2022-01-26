@@ -12,10 +12,10 @@ from datetime import date, datetime, timezone
 from api.v1.routes.asset import get_asset_current_price
 from base64 import b64encode, encode
 from ergo.updateAllowance import handleAllowance
-from ergo.util import encodeLong, encodeString
+from ergo.util import encodeLong, encodeString, hexstringToB64
 import uuid
 from hashlib import blake2b
-from api.v1.routes.blockchain import getTokenInfo, getErgoscript, getBoxesWithUnspentTokens
+from api.v1.routes.blockchain import getNFTBox, getTokenInfo, getErgoscript, getBoxesWithUnspentTokens
 from hashlib import blake2b
 
 staking_router = r = APIRouter()
@@ -23,6 +23,12 @@ staking_router = r = APIRouter()
 CFG = Config[Network]
 DEBUG = True # CFG.DEBUG
 DATABASE = CFG.connectionString
+
+CFG["stakeStateNFT"] = "174f8bc88320897763f79e5da5e088043ca2db95df63eb68cf0edd9eeb3b3d74"
+CFG["stakePoolNFT"] = "17da70ae8ecc814f6bf04262a0f247b8efc2bf765d016e36072ea9b200ddcf17"
+CFG["emissionNFT"] = "18f2d72eaf1821142c0b5f2f7a8e95775dfbc34a2ae9af0be6ad7d630d2db6e2"
+CFG["stakeTokenID"] =  "19a1cba03bb9b5416a42a5c5e95d4db0bc9790ebde480c2538cf7c2bc8949f0f"
+CFG["stakedTokenID"] = "129804369cc01c02f9046b8f0e37f8fc924e71b64652a0a331e6cd3c16c1f028"
 
 nergsPerErg        = 1000000000
 headers            = {'Content-Type': 'application/json'}
@@ -42,6 +48,136 @@ logging.basicConfig(format='{asctime}:{name:>8s}:{levelname:<8s}::{message}', st
 import inspect
 myself = lambda: inspect.stack()[1][3]
 #endregion LOGGING
+
+class StakeRequest(BaseModel):
+    wallet: str
+    amount: float
+
+@r.post("/stake/", name="staking:stake")
+async def stake(req: StakeRequest):
+
+    params = {}
+    params["stakedTokenID"] = hexstringToB64(CFG.stakedTokenID)
+    params["stakePoolNFT"] = hexstringToB64(CFG.stakePoolNFT)
+    params["emissionNFT"] = hexstringToB64(CFG.emissionNFT)
+    params["stakeStateNFT"] = hexstringToB64(CFG.stakeStateNFT)
+    params["stakeTokenID"] = hexstringToB64(CFG.stakeTokenID)
+
+    stakedTokenInfo = getTokenInfo(CFG.stakedTokenID)
+
+    stakeStateAddress = getErgoscript("stakeState",params=params)
+
+    logging.info(stakeStateAddress)
+
+    stakeStateWallet = Wallet(stakeStateAddress)
+    stakeStateErgoTreeBytes = bytes.fromhex(stakeStateWallet.ergoTree()[2:])
+
+    logging.info(stakeStateWallet.ergoTree()[2:])
+
+    stakeStateHash = b64encode(blake2b(stakeStateErgoTreeBytes, digest_size=32).digest()).decode('utf-8')
+    params["stakeStateContractHash"] = stakeStateHash
+
+    stakeAddress = getErgoscript("stake", params=params)
+
+    stakeWallet = Wallet(stakeAddress)
+    stakeErgoTreeBytes = bytes.fromhex(stakeWallet.ergoTree()[2:])
+
+    logging.info(stakeErgoTreeBytes)
+
+    stakeHash = b64encode(blake2b(stakeErgoTreeBytes, digest_size=32).digest()).decode('utf-8')
+    params["stakeContractHash"] = stakeHash
+    params["buyerWallet"] = req.wallet
+    params["timestamp"] = int(time())
+
+    #preStakeAddress = getErgoscript("preStake", params=params)
+    preStakeAddress = getErgoscript("alwaysTrue", params=params)
+
+    stakeStateBox = getNFTBox(CFG.stakeStateNFT)
+
+    tokenAmount = int(req.amount*10**stakedTokenInfo["decimals"])
+
+    stakeStateOutput = {
+        'address': stakeStateAddress,
+        'value': stakeStateBox["value"],
+        'registers': {
+            'R4': encodeLong(int(stakeStateBox["additionalRegisters"]["R4"]["renderedValue"])+tokenAmount),
+            'R5': stakeStateBox["additionalRegisters"]["R5"]["serializedValue"],
+            'R6': encodeLong(int(stakeStateBox["additionalRegisters"]["R6"]["renderedValue"])+1),
+            'R7': stakeStateBox["additionalRegisters"]["R7"]["serializedValue"],
+            'R8': stakeStateBox["additionalRegisters"]["R8"]["serializedValue"],
+        },
+        'assets': [
+            {
+                'tokenId': stakeStateBox["assets"][0]["tokenId"],
+                'amount': stakeStateBox["assets"][0]["amount"]
+            },
+            {
+                'tokenId': stakeStateBox["assets"][1]["tokenId"],
+                'amount': stakeStateBox["assets"][1]["amount"]-1
+            }
+        ]
+    }
+
+    stakeOutput = {
+        'address': stakeAddress,
+        'value': int(0.001*nergsPerErg),
+        'registers': {
+            'R4': stakeStateBox["additionalRegisters"]["R5"]["serializedValue"],
+            'R5': encodeString(stakeStateBox["boxId"]),
+            'R6': encodeLong(int(time()*1000))
+        },
+        'assets': [
+            {
+                'tokenId': stakeStateBox["assets"][1]["tokenId"],
+                'amount': 1
+            },
+            {
+                'tokenId': CFG.stakedTokenID,
+                'amount': tokenAmount
+            }
+        ]
+    }
+
+    userOutput = {
+        'address': req.wallet,
+        'ergValue': int(0.008*nergsPerErg),
+        'amount': 1,
+        'name': f'{stakedTokenInfo["name"]} Stake Key {datetime.now()}',
+        'description': f'Stake key to be used for unstaking {stakedTokenInfo["name"]}',
+        'decimals': "0"
+    }
+
+    request = {
+        'address': preStakeAddress,
+        'returnTo': req.wallet,
+        'startWhen': {
+            'erg': int(0.01*nergsPerErg),
+            CFG.stakedTokenID: int(req.amount*10**stakedTokenInfo["decimals"])
+        },
+        'txSpec': {
+            'requests': [stakeStateOutput,stakeOutput,userOutput],
+            'fee': int(0.001*nergsPerErg),
+            'inputs': [stakeStateBox["boxId"],'$userIns'],
+            'dataInputs': []
+        }
+    }
+
+    # don't bonk if can't jsonify request
+    try: logging.info(f'request: {json.dumps(request)}')
+    except: pass
+
+    # logging.info(f'build request: {request}')
+    # logging.info(f'\n::REQUEST::::::::::::::::::\n{json.dumps(request)}\n::REQUEST::::::::::::::::::\n')
+
+    # make async request to assembler
+    res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)    
+    logging.debug(res.content)
+    assemblerId = res.json()['id']
+    fin = requests.get(f'{CFG.assembler}/result/{assemblerId}')
+    logging.info({'status': 'success', 'fin': fin.json(), 'followId': assemblerId})
+
+    
+
 
 class BootstrapRequest(BaseModel):
     stakeStateNFT: str
@@ -88,20 +224,21 @@ async def bootstrapStaking(req: BootstrapRequest):
         return({"success": False, "Error": f"There should only be at least a billion {stakeTokenID['name']}"})
 
     params = {}
-    params["stakedTokenID"] = req.stakedTokenID
-    params["stakePoolNFT"] = req.stakePoolNFT
-    params["emissionNFT"] = req.emissionNFT
-    params["stakeStateNFT"] = req.stakeStateNFT
-    params["stakeTokenID"] = req.stakeTokenID
+    params["stakedTokenID"] = hexstringToB64(req.stakedTokenID)
+    params["stakePoolNFT"] = hexstringToB64(req.stakePoolNFT)
+    params["emissionNFT"] = hexstringToB64(req.emissionNFT)
+    params["stakeStateNFT"] = hexstringToB64(req.stakeStateNFT)
+    params["stakeTokenID"] = hexstringToB64(req.stakeTokenID)
+    params["timestamp"] = int(time())
 
     stakeStateAddress = getErgoscript("stakeState",params=params)
 
     logging.info(stakeStateAddress)
 
     stakeStateWallet = Wallet(stakeStateAddress)
-    stakeStateErgoTreeBytes = stakeStateWallet.addrBytes[:len(stakeStateWallet.addrBytes) - 4]
+    stakeStateErgoTreeBytes = bytes.fromhex(stakeStateWallet.ergoTree()[2:])
 
-    logging.info(stakeStateErgoTreeBytes)
+    logging.info(stakeStateWallet.ergoTree()[2:])
 
     stakeStateHash = b64encode(blake2b(stakeStateErgoTreeBytes, digest_size=32).digest()).decode('utf-8')
     params["stakeStateContractHash"] = stakeStateHash
@@ -181,7 +318,7 @@ async def bootstrapStaking(req: BootstrapRequest):
         inputs.add(boxId)
 
     request = {
-            'address': getErgoscript('alwaysTrue'),
+            'address': getErgoscript('alwaysTrue',params=params),
             'returnTo': CFG.ergopadWallet,
             'startWhen': {
                 'erg': 0, 

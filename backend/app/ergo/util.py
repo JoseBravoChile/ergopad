@@ -1,3 +1,5 @@
+from base64 import b64encode
+
 def zigzag(i: int):
   return (i >> 63) ^ (i << 1)
 
@@ -19,3 +21,6 @@ def encodeLong(n: int):
 
 def encodeString(n: str):
   return '0e'+hex(len(bytes.fromhex(n)))[2:]+n
+
+def hexstringToB64(string: str):
+  return b64encode(bytes.fromhex(string)).decode('utf-8')
