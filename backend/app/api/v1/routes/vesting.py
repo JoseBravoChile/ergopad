@@ -358,8 +358,6 @@ def redeemToken(address:str):
         for box in rJson['items']:
             if len(outBoxes) > 500:
                 break
-            nodeRes = requests.get(f"{CFG.ergopadNode}/utils/ergoTreeToAddress/{box['additionalRegisters']['R4']['renderedValue']}").json()
-            buyerAddress = nodeRes['address']
             redeemPeriod = int(box['additionalRegisters']['R5']['renderedValue'])
             redeemAmount = int(box['additionalRegisters']['R6']['renderedValue'])
             vestingStart = int(box['additionalRegisters']['R7']['renderedValue'])
@@ -370,6 +368,8 @@ def redeemToken(address:str):
             totalRedeemable = periods * redeemAmount
             redeemableTokens = totalVested - redeemed if (totalVested-totalRedeemable) < redeemAmount else totalRedeemable - redeemed
             if redeemableTokens > 0:
+                nodeRes = requests.get(f"{CFG.ergopadNode}/utils/ergoTreeToAddress/{box['additionalRegisters']['R4']['renderedValue']}").json()
+                buyerAddress = nodeRes['address']
                 if (totalVested-(redeemableTokens+redeemed))>0:
                     outBox = {
                         'address': box['address'],
@@ -406,14 +406,14 @@ def redeemToken(address:str):
 
         if len(res.json()['items']) == 500 and len(outBoxes) < 500:
             offset += 500
-            res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset={0}&limit=500', headers=dict(headers), timeout=2)
+            res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset={offset}&limit=500', headers=dict(headers), timeout=2)
         else:
             break
 
     # redeem
     if len(outBoxes) > 0:
-        
-        ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId="", nErgAmount=txBoxTotal_nerg, tokenAmount=0)
+        txFee = max(txFee_nerg,(len(outBoxes)+len(inBoxes))*100000)
+        ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId="", nErgAmount=txBoxTotal_nerg+txFee, tokenAmount=0)
         request = {
             'address': scPurchase,
             'returnTo': CFG.nodeWallet,
@@ -422,7 +422,7 @@ def redeemToken(address:str):
             },
             'txSpec': {
                 'requests': outBoxes,
-                'fee': txFee_nerg,          
+                'fee': txFee,          
                 'inputs': inBoxes+list(ergopadTokenBoxes.keys()),
                 'dataInputs': [],
             },
