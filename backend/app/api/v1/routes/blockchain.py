@@ -11,7 +11,7 @@ from time import time, ctime
 from api.v1.routes.asset import get_asset_current_price
 from base64 import b64encode
 from ergo.updateAllowance import handleAllowance
-from ergo.util import encodeLong, encodeString
+from ergo.util import encodeLong, encodeString, encodeRegister
 from config import Config, Network # api specific config
 CFG = Config[Network]
 
@@ -164,12 +164,97 @@ def followInfo(followId):
         logging.error(f'ERR:{myself()}: invalid assembly follow ({e})')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'invalid assembly follow')
 
+@r.get("/buildTokenBox/{tokenId}/{allowance}", name="blockchain:buildTokenBox")
+def buildTokenBox(tokenId:str=CFG.ergopadTokenId, allowance:int=-1, event:Optional[str]='presale-ergopad-202201', wallet:Optional[str]='3WzKopFYhfRGPaUvC7v49DWgeY1efaCD3YpNQ6FZGr2t5mBhWjmw'):
+    # send payment with: tokens, return fees, r4=wallet, r5=ergopad event, r6=allowance
+    if allowance < 0:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'invalid allowance')
+    try:
+        reg = {
+            "R4": encodeString(uuid.uuid4().hex), # encodeRegister(event),
+            "R5": encodeLong(allowance),
+            "R6": encodeString(uuid.uuid4().hex), # encodeRegister(event),
+        }
+        req = [
+            {
+                "address": '3WwjaerfwDqYvFwvPRVJBJx2iUvCjD2jVpsL82Zho1aaV5R95jsG', # nodeWallet.address,
+                "value": 20000000, # nergs; enough to cover fees
+                "assets": [
+                    {
+                        "tokenId": tokenId,
+                        "amount": allowance+1
+                    }
+                ],
+                "registers": reg
+            }
+        ,
+            {
+                "address": '3WwjaerfwDqYvFwvPRVJBJx2iUvCjD2jVpsL82Zho1aaV5R95jsG', # nodeWallet.address,
+                "value": 20000000, # nergs; enough to cover fees
+                "assets": [
+                    {
+                        "tokenId": tokenId,
+                        "amount": allowance
+                    }
+                ],
+                "registers": reg
+            }
+        ,
+            {
+                "address": '3WwjaerfwDqYvFwvPRVJBJx2iUvCjD2jVpsL82Zho1aaV5R95jsG', # nodeWallet.address,
+                "value": 20000000, # nergs; enough to cover fees
+                "assets": [
+                    {
+                        "tokenId": tokenId,
+                        "amount": allowance-1
+                    }
+                ],
+                "registers": reg
+            }
+        ]
+        logging.info(req)
+        res = requests.post(f'{CFG.node}/wallet/payment/send', headers=dict(headers, **{'api_key': CFG.ergopadApiKey}), json=req)
+        if res.ok:
+            return {'boxId': res.text.strip('"')}
+        else:
+            return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'payment not sent: {res.content}')
+
+    except Exception as e:
+        logging.error(f'ERR:{myself()}: build box send payment ({e})')
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'build box send payment')
+
+    # once payment is sent
+    # try:
+    #     res = requests.get(f'{CFG.node}/wallet/boxes/unspent?minInclusionHeight=150000&minConfirmations=-1', headers=dict(headers, **{'api_key': CFG.ergopadApiKey}))
+    #     if res.ok:
+    #         boxes = res.json()
+    #         # logging.debug(boxes)
+    #         for box in boxes:
+    #             try:
+    #                 # using assert to avoid key errors
+    #                 assert box['box']['assets']['tokenId'] == tokenId
+    #                 assert int(box['box']['assets']['amount']) == allowance
+    #                 assert box['box']['additionalRegisters']['R4'] == reg['R4']
+    #                 assert box['box']['additionalRegisters']['R5'] == reg['R5']
+    #                 assert box['box']['additionalRegisters']['R6'] == reg['R6']
+    # 
+    #                 # currently follow format of getBoxesWithUnspentTokens to be used as replacement
+    #                 return {box['box']['boxId']: box['box']['assets']}
+    #             
+    #             # if there is an assertion error, ignore and move on to next box
+    #             except:
+    #                 pass
+    # 
+    # except Exception as e:
+    #     logging.error(f'ERR:{myself()}: build box, get box ({e})')
+    #     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'build token box, get box')
+
 # find unspent boxes with tokens
 @r.get("/unspentTokens", name="blockchain:unspentTokens")
-def getBoxesWithUnspentTokens(nErgAmount=-1, tokenId=CFG.ergopadTokenId, tokenAmount=-1, allowMempool=True):
+def getBoxesWithUnspentTokens(nErgAmount:int=-1, tokenId=CFG.ergopadTokenId, tokenAmount:int=-1, allowMempool:bool=True):
     try:
-        foundTokenAmount = 0
-        foundNErgAmount = 0
+        foundTokenAmount:int = 0
+        foundNErgAmount:int = 0
         ergopadTokenBoxes = {}
 
         res = requests.get(f'{CFG.node}/wallet/boxes/unspent?minInclusionHeight=0&minConfirmations={(0, -1)[allowMempool]}', headers=dict(headers, **{'api_key': CFG.ergopadApiKey}))
@@ -179,29 +264,29 @@ def getBoxesWithUnspentTokens(nErgAmount=-1, tokenId=CFG.ergopadTokenId, tokenAm
                 if 'box' in ast:
 
                     # find enough boxes to handle nergs requested
-                    if foundNErgAmount < nErgAmount or nErgAmount == -1:
-                        foundNErgAmount += ast['box']['value']
+                    if foundNErgAmount < nErgAmount or (nErgAmount == -1):
+                        foundNErgAmount += int(ast['box']['value'])
                         ergopadTokenBoxes[ast['box']['boxId']] = []
 
                     # find enough boxes with tokens to handle request
-                    if ast['box']['assets'] != [] and (foundTokenAmount < tokenAmount or tokenAmount == -1):
+                    if ast['box']['assets'] != [] and (foundTokenAmount < tokenAmount or (tokenAmount == -1)):
                         for tkn in ast['box']['assets']:
                             if 'tokenId' in tkn and 'amount' in tkn:
                                  #logging.info(tokenId)
                                 if tkn['tokenId'] == tokenId:
-                                    foundTokenAmount += tkn['amount']
+                                    foundTokenAmount += int(tkn['amount'])
                                     if ast['box']['boxId'] in ergopadTokenBoxes:
                                         ergopadTokenBoxes[ast['box']['boxId']].append(tkn)
                                     else:
                                         ergopadTokenBoxes[ast['box']['boxId']] = [tkn]
-                                        foundNErgAmount += ast['box']['value']
+                                        foundNErgAmount += int(ast['box']['value'])
                                     # logging.debug(tkn)
 
             logging.info(f'found {foundTokenAmount} ergopad tokens and {foundNErgAmount} nErg in wallet')
 
         # invalid wallet, no unspent boxes, etc..
         else:
-            logging.error('unable to find unspent boxes')
+            logging.error('nope')
 
         # return CFG.node
         # return f'{CFG.node}/wallet/boxes/unspent?minInclusionHeight=0&minConfirmations={(0, -1)[allowMempool]}, apikey={CFG.ergopadApiKey}'

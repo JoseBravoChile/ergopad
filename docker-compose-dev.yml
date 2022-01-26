@@ -120,10 +120,24 @@ services:
       context: .
       dockerfile: Dockerfile.celery
     environment:
-      - CELERY_QUEUE
+      - CELERY_LOGLEVEL=DEBUG
+      - CELERY_QUEUE=default
     volumes: 
       - ./celery/app:/app # !! update for main docker-compose file
-    # command: celery --app main.celery worker --loglevel=${CELERY_LOGLEVEL} -Q ${CELERY_QUEUE} -c 1
+    # command: celery worker --app main.celery --loglevel=${CELERY_LOGLEVEL} -Q ${CELERY_QUEUE} -c 1
+    command: tail /dev/null -f
+
+  celerybeat:
+    container_name: celerybeat
+    env_file: .env.development.local
+    build:
+      context: .
+      dockerfile: Dockerfile.celery
+    environment:
+      - CELERY_LOGLEVEL=DEBUG
+    volumes: 
+      - ./celery/app:/app # !! update for main docker-compose file
+    # command: celery beat --app main.celery --loglevel=${CELERY_LOGLEVEL} -Q ${CELERY_QUEUE} -c 1
     command: tail /dev/null -f
 
   flower:  

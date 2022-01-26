@@ -19,3 +19,9 @@ def encodeLong(n: int):
 
 def encodeString(n: str):
   return '0e'+hex(len(bytes.fromhex(n)))[2:]+n
+
+def encodeRegister(val: str):
+    if type(val).__name__ == 'str':
+        hexVal = val.encode('utf-8').hex()
+        lenVal = len(bytes.fromhex(hexVal))
+        return f'0e{lenVal}{str(hexVal)}'

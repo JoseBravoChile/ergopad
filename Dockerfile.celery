@@ -1,5 +1,5 @@
 # FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
-FROM python:3
+FROM python:3-slim
 
 COPY ./celery/app /app
 WORKDIR /app
@@ -9,7 +9,8 @@ ENV PYTHONUNBUFFERED 1
 
 # install system dependencies
 RUN apt-get update \
-  && apt-get -y install netcat gcc postgresql nano \
+  # && apt-get -y install netcat gcc postgresql nano \
+  && apt-get -y install nano \
   && apt-get clean
 
 # install python dependencies

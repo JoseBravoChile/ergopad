@@ -159,6 +159,7 @@ async def vestToken(vestment: Vestment):
         presale['remaining_sigusd'] = res['allowance_sigusd'] - res['spent_sigusd']
         presale['walletId'] = res['walletId']
         presale['eventId'] = res['eventId']
+        presale['whitelistId'] = res['whitelistId']
 
         # missing legit response from whitelist
         if res == None or len(res) == 0:
@@ -303,12 +304,12 @@ async def vestToken(vestment: Vestment):
             insert into purchases ("walletAddress", "eventName", "toAddress", "tokenId", "tokenAmount", "currency", "currencyAmount", "feeAmount", "assemblerId")
             values (
                 {buyerWallet.address!r}
-                , {vestment.vestingScenario!r}
+                , 'presale-ergopad-202201wl'
                 , {scPurchase!r}
                 , {CFG.validCurrencies[vs.vestedToken]!r}
                 , {tokenAmount!r}
                 , {vs.currency!r}
-                , {vestment.vestingAmount!r}
+                , {(sendAmount_nerg/nergsPerErg, currencyAmount)[isToken]!r}
                 , {txFee_nerg!r}
                 , {assemblerId!r}
             )
@@ -508,3 +509,33 @@ def findVestingTokens(wallet:str):
   except Exception as e:
     logging.error(f'ERR:{myself()}: unable to build vesting request ({e})')
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to build vesting request')
+
+@r.get('/unspent', name="vesting:unspent")
+def getUnspentExchange(tokenId=CFG.ergopadTokenId, allowMempool=True):
+    logging.debug(f'TOKEN::{tokenId}')
+    ergopadTokenBoxes = {}
+    try:
+        res = requests.get(f'http://52.12.102.149:9053/wallet/boxes/unspent?minInclusionHeight=0&minConfirmations={(0, -1)[allowMempool]}', headers=dict(headers, **{'api_key': 'ergopadexchanagebluecurtains'}))
+        if res.ok:
+            for box in res.json():
+                try: 
+                    for asset in box['box']['assets']:
+                        try:
+                            assert asset['tokenId'] == tokenId
+                            assert asset['amount'] > 0
+
+                            boxId = box['box']['boxId']
+                            if boxId in ergopadTokenBoxes:
+                                ergopadTokenBoxes[boxId].append(asset)
+                            else: 
+                                ergopadTokenBoxes[boxId] = [asset]
+                    
+                        except: pass # tokens
+
+                except: pass # assets
+
+    except Exception as e:
+        logging.error(f'ERR:{myself()}: unable to find tokens for exchange ({e})')
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to find tokens for exchange')
+
+    return ergopadTokenBoxes
