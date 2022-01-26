@@ -356,7 +356,7 @@ def redeemToken(address:str):
         rJson = res.json()
         logging.info(rJson['total'])
         for box in rJson['items']:
-            if len(outBoxes) > 500:
+            if len(inBoxes) > 95:
                 break
             redeemPeriod = int(box['additionalRegisters']['R5']['renderedValue'])
             redeemAmount = int(box['additionalRegisters']['R6']['renderedValue'])
@@ -404,7 +404,7 @@ def redeemToken(address:str):
                 txBoxTotal_nerg += txFee_nerg
                 inBoxes.append(box['boxId'])
 
-        if len(res.json()['items']) == 500 and len(outBoxes) < 500:
+        if len(res.json()['items']) == 500 and len(inBoxes) < 95:
             offset += 500
             res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset={offset}&limit=500', headers=dict(headers), timeout=2)
         else:
@@ -415,32 +415,29 @@ def redeemToken(address:str):
         txFee = max(txFee_nerg,(len(outBoxes)+len(inBoxes))*100000)
         ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId="", nErgAmount=txBoxTotal_nerg+txFee, tokenAmount=0)
         request = {
+            'address': scPurchase,
+            'returnTo': CFG.nodeWallet,
+            'startWhen': {
+                'erg': 0, 
+            },
+            'txSpec': {
                 'requests': outBoxes,
                 'fee': txFee,          
-                'inputsRaw': inBoxes+list(ergopadTokenBoxes.keys()),
-                'dataInputsRaw': [],
-            }
+                'inputs': inBoxes+list(ergopadTokenBoxes.keys()),
+                'dataInputs': [],
+            },
+        }
 
         # make async request to assembler
         # logging.info(request); exit(); # !! testing
         logging.debug(request)
-        res = requests.post(f'{CFG.ergopadNode}/wallet/transaction/send', headers=dict(headers, **{'api_key': CFG.ergopadApiKey}), json=request)   
+        res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)   
         logging.debug(res)
-
-        try:
-            return({
-                'status': 'success', 
-                'result': res.content,
-            })
-    
-        except Exception as e:
-            logging.error(f'ERR:{myself()}: unable to redeem ({e})')
-            return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to redeem')
 
     try:
         return({
             'status': 'success', 
-            'result': res.content,
+            #'details': f'send {txFee_nerg} to {scPurchase}',
         })
     
     except Exception as e:
