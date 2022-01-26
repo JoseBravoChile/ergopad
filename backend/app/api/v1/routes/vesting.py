@@ -415,29 +415,32 @@ def redeemToken(address:str):
         txFee = max(txFee_nerg,(len(outBoxes)+len(inBoxes))*100000)
         ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId="", nErgAmount=txBoxTotal_nerg+txFee, tokenAmount=0)
         request = {
-            'address': scPurchase,
-            'returnTo': CFG.nodeWallet,
-            'startWhen': {
-                'erg': 0, 
-            },
-            'txSpec': {
                 'requests': outBoxes,
                 'fee': txFee,          
-                'inputs': inBoxes+list(ergopadTokenBoxes.keys()),
-                'dataInputs': [],
-            },
-        }
+                'inputsRaw': inBoxes+list(ergopadTokenBoxes.keys()),
+                'dataInputsRaw': [],
+            }
 
         # make async request to assembler
         # logging.info(request); exit(); # !! testing
         logging.debug(request)
-        res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)   
+        res = requests.post(f'{CFG.ergopadNode}/wallet/transaction/send', headers=dict(headers, **{'api_key': CFG.ergopadApiKey}), json=request)   
         logging.debug(res)
+
+        try:
+            return({
+                'status': 'success', 
+                'result': res.content,
+            })
+    
+        except Exception as e:
+            logging.error(f'ERR:{myself()}: unable to redeem ({e})')
+            return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to redeem')
 
     try:
         return({
             'status': 'success', 
-            #'details': f'send {txFee_nerg} to {scPurchase}',
+            'result': res.content,
         })
     
     except Exception as e:
