@@ -76,9 +76,9 @@ if (__name__ == '__main__'):
     while True:
         try:
             # cctx
-            for timeframe in TIMEFRAMES:
+            for symbol in SYMBOLS:
                 # OHLCV for these coins
-                for symbol in SYMBOLS:
+                for timeframe in TIMEFRAMES:
                     if i % polling[timeframe] == 0:
                         logging.info(
                             f'{EXCHANGE_NAME}.{symbol} polling for timeframe: {timeframe}')
@@ -97,10 +97,10 @@ if (__name__ == '__main__'):
                         logging.debug(f'put {since}...')
                         putLatestOHLCV(ohlcv, tbl, since)
 
-                    # cleanup daily
-                    if i % polling['1d'] == 0:
-                        logging.debug(f'cleanup...')
-                        cleanupHistorical(EXCHANGE_NAME, symbol, TIMEFRAMES)
+                # cleanup daily
+                if i % polling['1d'] == 0:
+                    logging.debug(f'cleanup...')
+                    cleanupHistorical(EXCHANGE_NAME, symbol, TIMEFRAMES)
 
             # sigUSD/sigRSV
             if i % polling['5m'] == 0:
