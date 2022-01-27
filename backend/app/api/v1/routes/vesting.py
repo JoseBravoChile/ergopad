@@ -292,7 +292,7 @@ async def vestToken(vestment: Vestment):
 
         # make async request to assembler
         res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)    
-        logging.debug(res)
+        logging.debug(res.content)
         assemblerId = res.json()['id']
         fin = requests.get(f'{CFG.assembler}/result/{assemblerId}')
         logging.info({'status': 'success', 'fin': fin.json(), 'followId': assemblerId})
@@ -346,7 +346,6 @@ def redeemToken(address:str):
 
     txFee_nerg = CFG.txFee
     txBoxTotal_nerg = 0
-    scPurchase = getErgoscript('alwaysTrue', {})
     outBoxes = []
     inBoxes = []
     currentTime = requests.get(f'{CFG.ergopadNode}/blocks/lastHeaders/1', headers=dict(headers),timeout=2).json()[0]['timestamp']
@@ -356,7 +355,7 @@ def redeemToken(address:str):
         rJson = res.json()
         logging.info(rJson['total'])
         for box in rJson['items']:
-            if len(inBoxes) > 95:
+            if len(inBoxes) >= 200:
                 break
             redeemPeriod = int(box['additionalRegisters']['R5']['renderedValue'])
             redeemAmount = int(box['additionalRegisters']['R6']['renderedValue'])
@@ -404,40 +403,40 @@ def redeemToken(address:str):
                 txBoxTotal_nerg += txFee_nerg
                 inBoxes.append(box['boxId'])
 
-        if len(res.json()['items']) == 500 and len(inBoxes) < 95:
+        if len(res.json()['items']) == 500 and len(inBoxes) < 200:
             offset += 500
             res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset={offset}&limit=500', headers=dict(headers), timeout=2)
         else:
             break
 
     # redeem
+    result = ""
     if len(outBoxes) > 0:
+        inBoxesRaw = []
         txFee = max(txFee_nerg,(len(outBoxes)+len(inBoxes))*100000)
         ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId="", nErgAmount=txBoxTotal_nerg+txFee, tokenAmount=0)
+        for box in inBoxes+list(ergopadTokenBoxes.keys()):
+            res = requests.get(f'{CFG.ergopadNode}/utxo/withPool/byIdBinary/{box}', headers=dict(headers), timeout=2)
+            if res.ok:
+                inBoxesRaw.append(res.json()['bytes'])
         request = {
-            'address': scPurchase,
-            'returnTo': CFG.nodeWallet,
-            'startWhen': {
-                'erg': 0, 
-            },
-            'txSpec': {
                 'requests': outBoxes,
                 'fee': txFee,          
-                'inputs': inBoxes+list(ergopadTokenBoxes.keys()),
-                'dataInputs': [],
-            },
-        }
+                'inputsRaw': inBoxesRaw
+            }
 
         # make async request to assembler
         # logging.info(request); exit(); # !! testing
         logging.debug(request)
-        res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)   
+        res = requests.post(f'{CFG.ergopadNode}/wallet/transaction/send', headers=dict(headers, **{'api_key': CFG.ergopadApiKey}), json=request)   
         logging.debug(res)
-
+        result = res.content
     try:
         return({
-            'status': 'success', 
-            #'details': f'send {txFee_nerg} to {scPurchase}',
+            'status': 'success',
+            'inboxes': len(inBoxes),
+            'outboxes': len(outBoxes),
+            'result': result,
         })
     
     except Exception as e:
