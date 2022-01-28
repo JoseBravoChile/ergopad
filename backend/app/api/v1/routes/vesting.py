@@ -179,11 +179,15 @@ async def vestToken(vestment: Vestment):
             logging.debug(tokenDecimals)
             if 'decimals' in tokenDecimals:
                 currencyDecimals = int(tokenDecimals['decimals'])
+            else:
+                return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Could not retrieve token decimals')
         else:
             currencyDecimals = 9
         tokenDecimals = getTokenInfo(CFG.validCurrencies[vs.vestedToken])
         if 'decimals' in tokenDecimals:
             vestedTokenDecimals = int(tokenDecimals['decimals'])
+        else:
+            return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Could not retrieve token decimals')
     except Exception as e:
         logging.error(f'{myself()}: {e}')
         logging.error('invalid decimals found for sigusd')
