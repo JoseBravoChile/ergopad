@@ -2,7 +2,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import APIRouter, Depends, HTTPException, status
 from datetime import timedelta
 
-from db.crud import blacklist_token
+from db.crud.users import blacklist_token
 from db.session import get_db
 
 from core import security
