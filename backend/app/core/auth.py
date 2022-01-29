@@ -5,6 +5,7 @@ from jwt import PyJWTError
 from db.session import get_db
 from db.models import users as models
 from db.schemas import users as schemas
+from db.schemas.token import TokenData
 from db.crud.users import get_blacklisted_token, get_user_by_email, create_user
 from core import security
 
@@ -25,7 +26,7 @@ async def get_current_user(
         if email is None:
             raise credentials_exception
         permissions: str = payload.get("permissions")
-        token_data = schemas.TokenData(email=email, permissions=permissions)
+        token_data = TokenData(email=email, permissions=permissions)
     except PyJWTError:
         raise credentials_exception
     blacklisted = get_blacklisted_token(db, token)
