@@ -2,13 +2,15 @@ import jwt
 from fastapi import Depends, HTTPException, status
 from jwt import PyJWTError
 
-from db import models, schemas, session
-from db.crud import get_blacklisted_token, get_user_by_email, create_user
+from db.session import get_db
+from db.models import users as models
+from db.schemas import users as schemas
+from db.crud.users import get_blacklisted_token, get_user_by_email, create_user
 from core import security
 
 
 async def get_current_user(
-    db=Depends(session.get_db), token: str = Depends(security.oauth2_scheme)
+    db=Depends(get_db), token: str = Depends(security.oauth2_scheme)
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
