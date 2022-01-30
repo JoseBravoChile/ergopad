@@ -1,13 +1,17 @@
 import requests 
-import pandas as pd
+# import pandas as pd
+import typing as t
 
 from sqlalchemy import create_engine
-from fastapi import APIRouter
+from starlette.responses import JSONResponse
+from fastapi import APIRouter, status
 from fastapi import Path
 from fastapi import Request
+from pydantic import BaseModel
 from sqlalchemy.sql.schema import BLANK_SCHEMA
-# from fastapi import Depends
 from time import time
+from datetime import datetime
+from ergodex.price import getErgodexTokenPrice
 from config import Config, Network # api specific config
 CFG = Config[Network]
 
@@ -101,6 +105,15 @@ async def get_asset_balance_from_address(address: str = Path(..., min_length=40,
         if token['tokenId'] == '003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0':
             price = (await get_asset_current_price('SigRSV'))['price']
             token['price'] = price
+        # Ergodex tokens
+        # Lunadog    
+        if token['tokenId'] == '5a34d53ca483924b9a6aa0c771f11888881b516a8d1a9cdc535d063fe26d065e':
+            price = (await get_asset_current_price('LunaDog'))['price']
+            token['price'] = price
+        # Erdoge
+        if token['tokenId'] == '36aba4b4a97b65be491cf9f5ca57b5408b0da8d0194f30ec8330d1e8946161c1':
+            price = (await get_asset_current_price('Erdoge'))['price']
+            token['price'] = price
         tokens.append(token)
 
     # normalize result
@@ -164,34 +177,42 @@ async def get_asset_current_price(coin: str = None) -> None:
                 else:
                     price = (equity / res['circ_sigrsv']) / \
                         peg_rate_nano  # SigRSV/USD
-
     # ...all other prices
     else:
         price = None
 
-        # first, check local database storage for price
-        logging.warning('find price from aggregator...')
-        try:            
-            sqlFindLatestPrice = f'select close from "{exchange}_{coin}_1m" order by timestamp_utc desc limit 1'
-            res = con.execute(sqlFindLatestPrice, con=con)
-            price = res.fetchone()[0]
-        except:
-            pass
+        # first check ergodex
+        logging.warning('find price from ergodex')
+        ret = getErgodexTokenPrice(coin)
+        if (ret["status"] == "success"):
+            price = ret["price"]
+
+        # check local database storage for price
+        if price == None:
+            logging.warning('find price from aggregator...')
+            try:
+                pairMapper = {
+                    "ergo": "ERG/USDT",
+                    "erg": "ERG/USDT",
+                    "bitcoin": "BTC/USDT",
+                    "btc": "BTC/USDT",
+                    "ethereum": "ETH/USDT",
+                    "eth": "ETH/USDT",
+                } 
+                sqlFindLatestPrice = f'select close from "{exchange}_{pairMapper[coin]}_1m" order by timestamp_utc desc limit 1'
+                res = con.execute(sqlFindLatestPrice, con=con)
+                price = res.fetchone()[0]
+            except:
+                pass
 
         # if not in local database, ask for online value
         if price == None:
             logging.warning('fallback to price from exchange')
             res = requests.get(f'{coingecko_url}/simple/price?vs_currencies={currency}&ids={coin}')
-
-            # handle invalid address or other error
-            if res.status_code != 200:
-                # raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Something went wrong.")
-                price = {}
-            else:
-                try:
-                    price = res.json()[coin][currency] 
-                except:
-                    pass
+            try:
+                price = res.json()[coin][currency] 
+            except:
+                pass
 
 
     return {
@@ -199,42 +220,99 @@ async def get_asset_current_price(coin: str = None) -> None:
     }
 
 
+# Coin history response schema
+class CoinHistoryDataPoint(BaseModel):
+    timestamp: datetime
+    price: float
+
+
+class CoinHistory(BaseModel):
+    token: str
+    resolution: int
+    history: t.List[CoinHistoryDataPoint]
+
 #
-# Find price by coin
+# Find price by coin (historical)
 # - Allow SigUSD/RSV ergo tokens to be listed as coins (TODO: change from ergo.watch api)
 # - Allow multiple coins per blockchain (TODO: change from CoinGecko api)
 #
-@r.get("/price/history/{coin}/{lastNmonths}", name="coin:coin-price-historical")
-async def get_asset_historical_price(coin: str = None, lastNmonths: int = None, ) -> None:
-
-    price = 0.0 # init/default
+# - Currently Supports
+# - all, Ergo, sigUSD, sigRSV, ergopad, Erdoge, Lunadog
+# - minimum resolution is 5 mins
+@r.get("/price/history/{coin}", response_model=t.List[CoinHistory], name="coin:coin-price-historical")
+async def get_asset_historical_price(coin: str = "all", stepSize: int = 1, stepUnit: str = "w", limit: int = 100):
     coin = coin.lower()
-
-    # SigUSD/SigRSV
-    if coin in ('sigusd', 'sigrsv'):
-        price = {}
-
-    # ...all other prices
-    else:
-        con = create_engine('postgresql://hello:world@postgres:5432/hello')
-        sql = f'''
-            select datetime, "openPriceUsd", "closePriceUsd", "highPriceUsd", "lowPriceUsd", volume, marketcap 
-            from public.ergo_historical_ohlcv_daily
-            where datetime > CURRENT_DATE - INTERVAL '{lastNmonths} months'
-        '''
-        df = pd.read_sql_query(sql, con=con)
-        price = df.to_dict('records')
-
-    return {
-        "price": price
+    # aggregator stores at 5 min resolution
+    timeMap = {
+        "m": 1,
+        "h": 10,
+        "d": 288,
+        "w": 2016,
     }
+    try:
+        # return every nth row
+        resolution = int(stepSize * timeMap[stepUnit])
+        logging.info(f'Fecthing history for resolution: {resolution}')
+        table = "ergodex_ERG/ergodexToken_continuous_5m"
+        # sql
+        sql = f"""
+        SELECT timestamp_utc, sigusd, sigrsv, erdoge, lunadog, ergopad FROM 
+        (SELECT timestamp_utc, sigusd, sigrsv, erdoge, lunadog, ergopad, ROW_NUMBER() OVER (ORDER BY timestamp_utc DESC) AS rownum FROM "{table}") as t
+        WHERE (t.rownum - 1) %% {resolution} = 0
+        ORDER BY t.timestamp_utc DESC
+        LIMIT {limit}
+        """
+        logging.debug(f'exec sql: {sql}')
+        res = con.execute(sql, con=con).fetchall()
+        result = []
+        # filter tokens
+        tokens = ("sigusd", "sigrsv", "erdoge", "lunadog", "ergopad")
+        for index, token in enumerate(tokens):
+            if (token != coin and coin != "all"):
+                continue
+
+            tokenData = {
+                "token": token,
+                "resolution": resolution,
+                "history": [],
+            }
+            for row in res:
+                ergoPrice = row[1]
+                tokenPrice = row[index + 1]
+                tokenUSD = 0
+                if (tokenPrice != 0):
+                    tokenUSD = ergoPrice / tokenPrice
+                tokenData["history"].append({
+                    "timestamp": row[0],
+                    "price": tokenUSD,
+                })
+            result.append(tokenData)
+
+        # ergo
+        if coin in ("ergo", "all"):
+            tokenData = {
+                "token": "ergo",
+                "resolution": resolution,
+                "history": [],
+            }
+            for row in res:
+                tokenData["history"].append({
+                    "timestamp": row[0],
+                    "price": row[1],
+                })
+            result.append(tokenData)
+
+        return result
+    except Exception as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Error: {str(e)}')
+
+
 #endregion ROUTES
 
 #
 # All coin balances and tokens for wallet addresses
 # . calls /balance/address
 #
-from pydantic import BaseModel
 class Wallets(BaseModel):
     type: str
 

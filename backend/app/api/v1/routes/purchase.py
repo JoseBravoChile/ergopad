@@ -61,8 +61,8 @@ myself = lambda: inspect.stack()[1][3]
 @r.post("/", name="blockchain:purchaseToken")
 async def purchaseToken(tokenPurchase: TokenPurchase):
     # close route for now
-    if int(time()) < 1642698000:
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'not now')
+    # if int(time()) < 1642698000:
+    #     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'not now')
     
     NOW = int(time())
 
@@ -336,7 +336,7 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
                 where id = {whitelist[buyerWallet.address]['id']!r}
             """
             logging.debug(sql)
-            res = con.execute(sql)
+            # res = con.execute(sql)
 
         except:
             with open(BONKFILE, 'a') as f:
@@ -374,14 +374,23 @@ async def allowance(wallet:str, eventName:Optional[str]='presale-ergopad-202201w
                 where name = {eventName!r}
             )
             , wal as (
-                select id
+                select id, address
                 from wallets
                 where address = {wallet!r}
             )
-            select sum(coalesce(allowance_sigusd-spent_sigusd, 0.0)) as remaining_sigusd
+            , pur as (
+                select "walletAddress", sum(coalesce("sigusdAmount", 0.0)) as "sigusdAmount"
+                from purchases
+                where "walletAddress" = {wallet!r}
+                    and "assemblerStatus" = 'success'
+                group by "walletAddress"
+            )
+            select coalesce(sum(coalesce(allowance_sigusd-spent_sigusd, 0.0)), 0.0) as remaining_sigusd
+                , coalesce(max(pur."sigusdAmount"), 0.0) as success_sigusd
             from whitelist wht
                 join evt on evt.id = wht."eventId"
                 join wal on wal.id = wht."walletId"      
+                left outer join pur on pur."walletAddress" = wal.address
             where wht."isWhitelist" = 1    
         """
         logging.debug(sql)
@@ -394,8 +403,9 @@ async def allowance(wallet:str, eventName:Optional[str]='presale-ergopad-202201w
         else:
             return {
                 'wallet': wallet, 
+                'remaining (sigusd)': res['remaining_sigusd'], 
+                'successes (sigusd)': res['success_sigusd'], 
                 'sigusd': res['remaining_sigusd'], 
-                'message': 'remaining sigusd'
             }
 
     except Exception as e:

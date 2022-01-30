@@ -77,7 +77,7 @@ class Whitelist(BaseModel):
 #region ROUTES
 @r.post("/signup")
 async def email(whitelist: Whitelist, response: Response):
-    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'not now')
+    # return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'not now')
     NOW = int(time())
     try:
         eventName = whitelist.event
@@ -108,7 +108,7 @@ async def email(whitelist: Whitelist, response: Response):
             where evt.name = {eventName!r}
                 and evt."isWhitelist" = 1
         """
-        # logging.debug(sql)
+        logging.debug(sql)
         res = con.execute(sql).fetchone()
         # logging.debug(f'res: {res}')
 
@@ -123,9 +123,9 @@ async def email(whitelist: Whitelist, response: Response):
             return {'status': 'error', 'message': f"whitelist signup between {res['start_dtz']} and {res['end_dtz']}."}
 
         # is funding complete?
-        if res['allowance_sigusd'] >= (res['total_sigusd'] + res['buffer_sigusd']):
-            response.status_code = status.HTTP_400_BAD_REQUEST
-            return {'status': 'error', 'message': f'whitelist funds complete.'}
+        #if res['allowance_sigusd'] >= (res['total_sigusd'] + res['buffer_sigusd']):
+        #    response.status_code = status.HTTP_400_BAD_REQUEST
+        #    return {'status': 'error', 'message': f'whitelist funds complete.'}
 
         logging.debug(f"Current funding: {100*res['allowance_sigusd']/(res['total_sigusd']+res['buffer_sigusd']):.2f}% ({res['allowance_sigusd']} of {res['total_sigusd']+res['buffer_sigusd']})")
         eventId = res['id']
@@ -162,8 +162,11 @@ async def email(whitelist: Whitelist, response: Response):
             dfWhitelist = df[['sigValue']]
             dfWhitelist['walletId'] = walletId
             dfWhitelist['eventId'] = eventId
+            dfWhitelist['isWhitelist'] = 1
             dfWhitelist['created_dtz'] = dt.fromtimestamp(NOW).strftime(DATEFORMAT)
             dfWhitelist = dfWhitelist.rename(columns={'sigValue': 'allowance_sigusd'})
+            dfWhitelist['lastAssemblerStatus'] = dfWhitelist['allowance_sigusd']
+            dfWhitelist['allowance_sigusd'] = 20000
             dfWhitelist.to_sql('whitelist', con=con, if_exists='append', index=False)
 
             # whitelist success
@@ -212,7 +215,7 @@ async def whitelist(eventName):
             'now': NOW,
             'isBeforeSignup': NOW < int(res['start_dtz'].timestamp()),
             'isAfterSignup': NOW > int(res['end_dtz'].timestamp()),
-            'isFundingComplete': res['allowance_sigusd'] >= (res['total_sigusd'] + res['buffer_sigusd']),
+            'isFundingComplete': False, # res['allowance_sigusd'] >= (res['total_sigusd'] + res['buffer_sigusd']),
             'name': res['name'], 
             'description': res['description'], 
             'total_sigusd': res['total_sigusd'], 

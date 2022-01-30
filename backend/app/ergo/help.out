@@ -1,0 +1,771 @@
+
+2022-01-21 22:59:04,331:    root:DEBUG   ::TOTAL VESTED: 3688669498.0
+2022-01-21 22:59:04,332:    root:INFO    ::sleeping...
+^[[A^CTraceback (most recent call last):
+  File "/app/ergo/updateTxSpent.py", line 57, in <module>
+    sleep(POWERNAP)
+KeyboardInterrupt
+
+root@586a0f614120:/app/ergo# nano help.out
+root@586a0f614120:/app/ergo# python updateTxSpent.py
+2022-01-21 22:59:45,893:    root:DEBUG   ::
+            select "assemblerId", "assemblerStatus", "walletAddress"
+            from purchases
+            where id > 0
+                and "assemblerStatus" in ('success')
+
+2022-01-21 22:59:45,916:    root:DEBUG   ::checking 9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS
+2022-01-21 22:59:45,923:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:46,939:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS HTTP/1.1" 200 783
+2022-01-21 22:59:46,941:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 2247.0, 'outstanding': [{'date': '2022-01-26', 'amount': 565.49}, {'date': '2022-02-26', 'amount': 565.49}, {'date': '2022-03-28', 'amount': 565.49}, {'date': '2022-04-28', 'amount': 183.49}, {'date': '2022-05-28', 'amount': 183.49}, {'date': '2022-06-27', 'amount': 183.54999999999998}]}, {'tokenId': 'cc3c5dc01bb4b2a05475b2d9a5b4202ed235f7182b46677ed8f40358333b92bb', 'name': 'xerg10M', 'totalVested': 1150.0, 'outstanding': [{'date': '2022-01-26', 'amount': 382.48999999999995}, {'date': '2022-02-26', 'amount': 382.48999999999995}, {'date': '2022-03-28', 'amount': 382.51}, {'date': '2022-04-28', 'amount': 0.83}, {'date': '2022-05-28', 'amount': 0.83}, {'date': '2022-06-27', 'amount': 0.85}]}]}
+2022-01-21 22:59:46,941:    root:DEBUG   ::update wallet: 9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS, spent: 67.41
+2022-01-21 22:59:46,941:    root:DEBUG   ::update whitelist set spent_sigusd = 67.41 where "walletAddress" = '9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS'
+2022-01-21 22:59:46,942:    root:DEBUG   ::checking 9iKyyfKCa2wL4462Rdjth1QHDvyxkrwLW5Hw4qoAWhroFGbx7cK
+2022-01-21 22:59:46,944:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:47,494:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9iKyyfKCa2wL4462Rdjth1QHDvyxkrwLW5Hw4qoAWhroFGbx7cK HTTP/1.1" 200 282
+2022-01-21 22:59:47,494:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 16666.0, 'outstanding': [{'date': '2022-01-26', 'amount': 5555.33}, {'date': '2022-02-26', 'amount': 5555.33}, {'date': '2022-03-28', 'amount': 5555.34}]}]}
+2022-01-21 22:59:47,495:    root:DEBUG   ::update wallet: 9iKyyfKCa2wL4462Rdjth1QHDvyxkrwLW5Hw4qoAWhroFGbx7cK, spent: 499.97999999999996
+2022-01-21 22:59:47,495:    root:DEBUG   ::update whitelist set spent_sigusd = 499.97999999999996 where "walletAddress" = '9iKyyfKCa2wL4462Rdjth1QHDvyxkrwLW5Hw4qoAWhroFGbx7cK'
+2022-01-21 22:59:47,496:    root:DEBUG   ::checking 9fbzAZAQauntRwsnCNFPb7DzT7854qWp4uxeWrhgiscW43aFGfN
+2022-01-21 22:59:47,498:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:48,474:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fbzAZAQauntRwsnCNFPb7DzT7854qWp4uxeWrhgiscW43aFGfN HTTP/1.1" 200 961
+2022-01-21 22:59:48,475:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 100.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11.11}, {'date': '2022-02-26', 'amount': 11.11}, {'date': '2022-03-28', 'amount': 11.11}, {'date': '2022-04-28', 'amount': 11.11}, {'date': '2022-05-28', 'amount': 11.11}, {'date': '2022-06-27', 'amount': 11.11}, {'date': '2022-07-28', 'amount': 11.11}, {'date': '2022-08-27', 'amount': 11.11}, {'date': '2022-09-27', 'amount': 11.12}]}, {'tokenId': 'cc3c5dc01bb4b2a05475b2d9a5b4202ed235f7182b46677ed8f40358333b92bb', 'name': 'xerg10M', 'totalVested': 100.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11.11}, {'date': '2022-02-26', 'amount': 11.11}, {'date': '2022-03-28', 'amount': 11.11}, {'date': '2022-04-28', 'amount': 11.11}, {'date': '2022-05-28', 'amount': 11.11}, {'date': '2022-06-27', 'amount': 11.11}, {'date': '2022-07-28', 'amount': 11.11}, {'date': '2022-08-27', 'amount': 11.11}, {'date': '2022-09-27', 'amount': 11.12}]}]}
+2022-01-21 22:59:48,475:    root:DEBUG   ::update wallet: 9fbzAZAQauntRwsnCNFPb7DzT7854qWp4uxeWrhgiscW43aFGfN, spent: 3.0
+2022-01-21 22:59:48,475:    root:DEBUG   ::update whitelist set spent_sigusd = 3.0 where "walletAddress" = '9fbzAZAQauntRwsnCNFPb7DzT7854qWp4uxeWrhgiscW43aFGfN'
+2022-01-21 22:59:48,480:    root:DEBUG   ::checking 9ecimsGPAUcqvEK4ZYMyVCfsQryLiPk9y8yiff9D2FAHPRfPorH
+2022-01-21 22:59:48,491:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:49,507:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9ecimsGPAUcqvEK4ZYMyVCfsQryLiPk9y8yiff9D2FAHPRfPorH HTTP/1.1" 200 305
+2022-01-21 22:59:49,507:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 99990.0, 'outstanding': [{'date': '2022-01-26', 'amount': 33329.990000000005}, {'date': '2022-02-26', 'amount': 33329.990000000005}, {'date': '2022-03-28', 'amount': 33330.02}]}]}
+2022-01-21 22:59:49,508:    root:DEBUG   ::update wallet: 9ecimsGPAUcqvEK4ZYMyVCfsQryLiPk9y8yiff9D2FAHPRfPorH, spent: 2999.7
+2022-01-21 22:59:49,508:    root:DEBUG   ::update whitelist set spent_sigusd = 2999.7 where "walletAddress" = '9ecimsGPAUcqvEK4ZYMyVCfsQryLiPk9y8yiff9D2FAHPRfPorH'
+2022-01-21 22:59:49,509:    root:DEBUG   ::checking 9fZp4pXSHnsqoKKnNg1Kby8C6x2v2BJEK7U71rK9fJ2Gv7ARw5G
+2022-01-21 22:59:49,513:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:50,031:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fZp4pXSHnsqoKKnNg1Kby8C6x2v2BJEK7U71rK9fJ2Gv7ARw5G HTTP/1.1" 200 279
+2022-01-21 22:59:50,032:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 21555.0, 'outstanding': [{'date': '2022-01-26', 'amount': 7185.0}, {'date': '2022-02-26', 'amount': 7185.0}, {'date': '2022-03-28', 'amount': 7185.0}]}]}
+2022-01-21 22:59:50,032:    root:DEBUG   ::update wallet: 9fZp4pXSHnsqoKKnNg1Kby8C6x2v2BJEK7U71rK9fJ2Gv7ARw5G, spent: 646.65
+2022-01-21 22:59:50,032:    root:DEBUG   ::update whitelist set spent_sigusd = 646.65 where "walletAddress" = '9fZp4pXSHnsqoKKnNg1Kby8C6x2v2BJEK7U71rK9fJ2Gv7ARw5G'
+2022-01-21 22:59:50,033:    root:DEBUG   ::checking 9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX
+2022-01-21 22:59:50,036:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:51,046:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX HTTP/1.1" 200 285
+2022-01-21 22:59:51,046:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 68767.0, 'outstanding': [{'date': '2022-01-26', 'amount': 22922.32}, {'date': '2022-02-26', 'amount': 22922.32}, {'date': '2022-03-28', 'amount': 22922.36}]}]}
+2022-01-21 22:59:51,047:    root:DEBUG   ::update wallet: 9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX, spent: 2063.0099999999998
+2022-01-21 22:59:51,047:    root:DEBUG   ::update whitelist set spent_sigusd = 2063.0099999999998 where "walletAddress" = '9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX'
+2022-01-21 22:59:51,049:    root:DEBUG   ::checking 9iF2RCTswCaZt8XrYU1ncqiqtasTo1vvgeZaZovwLsfvcR8FidZ
+2022-01-21 22:59:51,051:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:51,594:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9iF2RCTswCaZt8XrYU1ncqiqtasTo1vvgeZaZovwLsfvcR8FidZ HTTP/1.1" 200 282
+2022-01-21 22:59:51,597:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 16598.0, 'outstanding': [{'date': '2022-01-26', 'amount': 5532.66}, {'date': '2022-02-26', 'amount': 5532.66}, {'date': '2022-03-28', 'amount': 5532.68}]}]}
+2022-01-21 22:59:51,598:    root:DEBUG   ::update wallet: 9iF2RCTswCaZt8XrYU1ncqiqtasTo1vvgeZaZovwLsfvcR8FidZ, spent: 497.94
+2022-01-21 22:59:51,598:    root:DEBUG   ::update whitelist set spent_sigusd = 497.94 where "walletAddress" = '9iF2RCTswCaZt8XrYU1ncqiqtasTo1vvgeZaZovwLsfvcR8FidZ'
+2022-01-21 22:59:51,601:    root:DEBUG   ::checking 9iErjS4wknkiYCsgktM3SNNy5Tnb7Tw44pyJdcUeBNyXyKBnSxa
+2022-01-21 22:59:51,608:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:52,686:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9iErjS4wknkiYCsgktM3SNNy5Tnb7Tw44pyJdcUeBNyXyKBnSxa HTTP/1.1" 200 282
+2022-01-21 22:59:52,687:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 23291.0, 'outstanding': [{'date': '2022-01-26', 'amount': 7763.66}, {'date': '2022-02-26', 'amount': 7763.66}, {'date': '2022-03-28', 'amount': 7763.68}]}]}
+2022-01-21 22:59:52,687:    root:DEBUG   ::update wallet: 9iErjS4wknkiYCsgktM3SNNy5Tnb7Tw44pyJdcUeBNyXyKBnSxa, spent: 698.73
+2022-01-21 22:59:52,688:    root:DEBUG   ::update whitelist set spent_sigusd = 698.73 where "walletAddress" = '9iErjS4wknkiYCsgktM3SNNy5Tnb7Tw44pyJdcUeBNyXyKBnSxa'
+2022-01-21 22:59:52,690:    root:DEBUG   ::checking 9h9gMAmnGTiZbHBg4s7LVtwZECqnRf1PX759s28Hk1ndnST6oGp
+2022-01-21 22:59:52,693:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:53,328:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9h9gMAmnGTiZbHBg4s7LVtwZECqnRf1PX759s28Hk1ndnST6oGp HTTP/1.1" 200 282
+2022-01-21 22:59:53,334:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 10000.0, 'outstanding': [{'date': '2022-01-26', 'amount': 3333.33}, {'date': '2022-02-26', 'amount': 3333.33}, {'date': '2022-03-28', 'amount': 3333.34}]}]}
+2022-01-21 22:59:53,336:    root:DEBUG   ::update wallet: 9h9gMAmnGTiZbHBg4s7LVtwZECqnRf1PX759s28Hk1ndnST6oGp, spent: 300.0
+2022-01-21 22:59:53,338:    root:DEBUG   ::update whitelist set spent_sigusd = 300.0 where "walletAddress" = '9h9gMAmnGTiZbHBg4s7LVtwZECqnRf1PX759s28Hk1ndnST6oGp'
+2022-01-21 22:59:53,344:    root:DEBUG   ::checking 9ew6Esi2QeEv1V1FzQ6h1QwxFG1FaTXnEv8zMobH7HmXMyQRkwR
+2022-01-21 22:59:53,353:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:54,396:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9ew6Esi2QeEv1V1FzQ6h1QwxFG1FaTXnEv8zMobH7HmXMyQRkwR HTTP/1.1" 200 281
+2022-01-21 22:59:54,397:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 3197.0, 'outstanding': [{'date': '2022-01-26', 'amount': 1065.66}, {'date': '2022-02-26', 'amount': 1065.66}, {'date': '2022-03-28', 'amount': 1065.68}]}]}
+2022-01-21 22:59:54,397:    root:DEBUG   ::update wallet: 9ew6Esi2QeEv1V1FzQ6h1QwxFG1FaTXnEv8zMobH7HmXMyQRkwR, spent: 95.91
+2022-01-21 22:59:54,398:    root:DEBUG   ::update whitelist set spent_sigusd = 95.91 where "walletAddress" = '9ew6Esi2QeEv1V1FzQ6h1QwxFG1FaTXnEv8zMobH7HmXMyQRkwR'
+2022-01-21 22:59:54,399:    root:DEBUG   ::checking 9gwcbQCbV5LnAmsFJddw6WXoJGmum7oNf9pa2xBsG5d6mBNU66C
+2022-01-21 22:59:54,404:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:54,895:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gwcbQCbV5LnAmsFJddw6WXoJGmum7oNf9pa2xBsG5d6mBNU66C HTTP/1.1" 200 282
+2022-01-21 22:59:54,899:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 16568.0, 'outstanding': [{'date': '2022-01-26', 'amount': 5522.66}, {'date': '2022-02-26', 'amount': 5522.66}, {'date': '2022-03-28', 'amount': 5522.68}]}]}
+2022-01-21 22:59:54,900:    root:DEBUG   ::update wallet: 9gwcbQCbV5LnAmsFJddw6WXoJGmum7oNf9pa2xBsG5d6mBNU66C, spent: 497.03999999999996
+2022-01-21 22:59:54,903:    root:DEBUG   ::update whitelist set spent_sigusd = 497.03999999999996 where "walletAddress" = '9gwcbQCbV5LnAmsFJddw6WXoJGmum7oNf9pa2xBsG5d6mBNU66C'
+2022-01-21 22:59:54,904:    root:DEBUG   ::checking 9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX
+2022-01-21 22:59:54,909:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:55,982:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX HTTP/1.1" 200 285
+2022-01-21 22:59:55,983:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 68767.0, 'outstanding': [{'date': '2022-01-26', 'amount': 22922.32}, {'date': '2022-02-26', 'amount': 22922.32}, {'date': '2022-03-28', 'amount': 22922.36}]}]}
+2022-01-21 22:59:55,984:    root:DEBUG   ::update wallet: 9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX, spent: 2063.0099999999998
+2022-01-21 22:59:55,984:    root:DEBUG   ::update whitelist set spent_sigusd = 2063.0099999999998 where "walletAddress" = '9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX'
+2022-01-21 22:59:55,985:    root:DEBUG   ::checking 9ecimsGPAUcqvEK4ZYMyVCfsQryLiPk9y8yiff9D2FAHPRfPorH
+2022-01-21 22:59:55,987:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:56,506:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9ecimsGPAUcqvEK4ZYMyVCfsQryLiPk9y8yiff9D2FAHPRfPorH HTTP/1.1" 200 305
+2022-01-21 22:59:56,507:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 99990.0, 'outstanding': [{'date': '2022-01-26', 'amount': 33329.990000000005}, {'date': '2022-02-26', 'amount': 33329.990000000005}, {'date': '2022-03-28', 'amount': 33330.02}]}]}
+2022-01-21 22:59:56,507:    root:DEBUG   ::update wallet: 9ecimsGPAUcqvEK4ZYMyVCfsQryLiPk9y8yiff9D2FAHPRfPorH, spent: 2999.7
+2022-01-21 22:59:56,507:    root:DEBUG   ::update whitelist set spent_sigusd = 2999.7 where "walletAddress" = '9ecimsGPAUcqvEK4ZYMyVCfsQryLiPk9y8yiff9D2FAHPRfPorH'
+2022-01-21 22:59:56,508:    root:DEBUG   ::checking 9gpmt4jTWmmVCY1YFXkrkhgq4B7HqvxnN5ToYxmiBcPnAoHSZNS
+2022-01-21 22:59:56,510:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:57,068:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gpmt4jTWmmVCY1YFXkrkhgq4B7HqvxnN5ToYxmiBcPnAoHSZNS HTTP/1.1" 200 281
+2022-01-21 22:59:57,069:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 4918.0, 'outstanding': [{'date': '2022-01-26', 'amount': 1639.33}, {'date': '2022-02-26', 'amount': 1639.33}, {'date': '2022-03-28', 'amount': 1639.34}]}]}
+2022-01-21 22:59:57,069:    root:DEBUG   ::update wallet: 9gpmt4jTWmmVCY1YFXkrkhgq4B7HqvxnN5ToYxmiBcPnAoHSZNS, spent: 147.54
+2022-01-21 22:59:57,070:    root:DEBUG   ::update whitelist set spent_sigusd = 147.54 where "walletAddress" = '9gpmt4jTWmmVCY1YFXkrkhgq4B7HqvxnN5ToYxmiBcPnAoHSZNS'
+2022-01-21 22:59:57,071:    root:DEBUG   ::checking 9edAry5yWBdZ54ZTRdQr2d2LyfjRnEnkewUKLw7dCtHotxSGyGd
+2022-01-21 22:59:57,073:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:57,584:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9edAry5yWBdZ54ZTRdQr2d2LyfjRnEnkewUKLw7dCtHotxSGyGd HTTP/1.1" 200 282
+2022-01-21 22:59:57,585:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 16636.0, 'outstanding': [{'date': '2022-01-26', 'amount': 5545.33}, {'date': '2022-02-26', 'amount': 5545.33}, {'date': '2022-03-28', 'amount': 5545.34}]}]}
+2022-01-21 22:59:57,585:    root:DEBUG   ::update wallet: 9edAry5yWBdZ54ZTRdQr2d2LyfjRnEnkewUKLw7dCtHotxSGyGd, spent: 499.08
+2022-01-21 22:59:57,585:    root:DEBUG   ::update whitelist set spent_sigusd = 499.08 where "walletAddress" = '9edAry5yWBdZ54ZTRdQr2d2LyfjRnEnkewUKLw7dCtHotxSGyGd'
+2022-01-21 22:59:57,586:    root:DEBUG   ::checking 9fmasgJCngGoHZLeunund7kkzT5fhQq7wmuiYAuJ2ogCCR7qQWX
+2022-01-21 22:59:57,589:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:58,072:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fmasgJCngGoHZLeunund7kkzT5fhQq7wmuiYAuJ2ogCCR7qQWX HTTP/1.1" 200 281
+2022-01-21 22:59:58,073:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 6562.0, 'outstanding': [{'date': '2022-01-26', 'amount': 2187.33}, {'date': '2022-02-26', 'amount': 2187.33}, {'date': '2022-03-28', 'amount': 2187.34}]}]}
+2022-01-21 22:59:58,074:    root:DEBUG   ::update wallet: 9fmasgJCngGoHZLeunund7kkzT5fhQq7wmuiYAuJ2ogCCR7qQWX, spent: 196.85999999999999
+2022-01-21 22:59:58,074:    root:DEBUG   ::update whitelist set spent_sigusd = 196.85999999999999 where "walletAddress" = '9fmasgJCngGoHZLeunund7kkzT5fhQq7wmuiYAuJ2ogCCR7qQWX'
+2022-01-21 22:59:58,075:    root:DEBUG   ::checking 9gf3FvjVadtzXtKvfnu7Aw4ut9x2LkEDVaAszKvQm1jmJsCUorQ
+2022-01-21 22:59:58,077:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:58,580:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gf3FvjVadtzXtKvfnu7Aw4ut9x2LkEDVaAszKvQm1jmJsCUorQ HTTP/1.1" 200 282
+2022-01-21 22:59:58,585:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 39927.0, 'outstanding': [{'date': '2022-01-26', 'amount': 13309.0}, {'date': '2022-02-26', 'amount': 13309.0}, {'date': '2022-03-28', 'amount': 13309.0}]}]}
+2022-01-21 22:59:58,585:    root:DEBUG   ::update wallet: 9gf3FvjVadtzXtKvfnu7Aw4ut9x2LkEDVaAszKvQm1jmJsCUorQ, spent: 1197.81
+2022-01-21 22:59:58,585:    root:DEBUG   ::update whitelist set spent_sigusd = 1197.81 where "walletAddress" = '9gf3FvjVadtzXtKvfnu7Aw4ut9x2LkEDVaAszKvQm1jmJsCUorQ'
+2022-01-21 22:59:58,586:    root:DEBUG   ::checking 9goadvB4vozk1UZaMxdJMyEfB5twVjPrp9AGHtd6gJpXP7Na3BV
+2022-01-21 22:59:58,589:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:59,097:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9goadvB4vozk1UZaMxdJMyEfB5twVjPrp9AGHtd6gJpXP7Na3BV HTTP/1.1" 200 281
+2022-01-21 22:59:59,099:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 8246.0, 'outstanding': [{'date': '2022-01-26', 'amount': 2748.66}, {'date': '2022-02-26', 'amount': 2748.66}, {'date': '2022-03-28', 'amount': 2748.68}]}]}
+2022-01-21 22:59:59,099:    root:DEBUG   ::update wallet: 9goadvB4vozk1UZaMxdJMyEfB5twVjPrp9AGHtd6gJpXP7Na3BV, spent: 247.38
+2022-01-21 22:59:59,099:    root:DEBUG   ::update whitelist set spent_sigusd = 247.38 where "walletAddress" = '9goadvB4vozk1UZaMxdJMyEfB5twVjPrp9AGHtd6gJpXP7Na3BV'
+2022-01-21 22:59:59,100:    root:DEBUG   ::checking 9gdAPSnuza7Na3ustKbQgQcCiJZRFTQtdb5qusFzLcPcXvDxiNF
+2022-01-21 22:59:59,104:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 22:59:59,646:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gdAPSnuza7Na3ustKbQgQcCiJZRFTQtdb5qusFzLcPcXvDxiNF HTTP/1.1" 200 282
+2022-01-21 22:59:59,647:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 33273.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11091.0}, {'date': '2022-02-26', 'amount': 11091.0}, {'date': '2022-03-28', 'amount': 11091.0}]}]}
+2022-01-21 22:59:59,647:    root:DEBUG   ::update wallet: 9gdAPSnuza7Na3ustKbQgQcCiJZRFTQtdb5qusFzLcPcXvDxiNF, spent: 998.1899999999999
+2022-01-21 22:59:59,647:    root:DEBUG   ::update whitelist set spent_sigusd = 998.1899999999999 where "walletAddress" = '9gdAPSnuza7Na3ustKbQgQcCiJZRFTQtdb5qusFzLcPcXvDxiNF'
+2022-01-21 22:59:59,648:    root:DEBUG   ::checking 9g9LnkM2DnHtw9V8pJNWYNdTBpXNM5pDTgdUTqWYSZ8eakXjf5i
+2022-01-21 22:59:59,651:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:00,169:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9g9LnkM2DnHtw9V8pJNWYNdTBpXNM5pDTgdUTqWYSZ8eakXjf5i HTTP/1.1" 200 281
+2022-01-21 23:00:00,170:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 4918.0, 'outstanding': [{'date': '2022-01-26', 'amount': 1639.33}, {'date': '2022-02-26', 'amount': 1639.33}, {'date': '2022-03-28', 'amount': 1639.34}]}]}
+2022-01-21 23:00:00,170:    root:DEBUG   ::update wallet: 9g9LnkM2DnHtw9V8pJNWYNdTBpXNM5pDTgdUTqWYSZ8eakXjf5i, spent: 147.54
+2022-01-21 23:00:00,170:    root:DEBUG   ::update whitelist set spent_sigusd = 147.54 where "walletAddress" = '9g9LnkM2DnHtw9V8pJNWYNdTBpXNM5pDTgdUTqWYSZ8eakXjf5i'
+2022-01-21 23:00:00,171:    root:DEBUG   ::checking 9hcpNYM75PmjjP2e4ynWhBqgrmPYVgpvCb8PnPcBGqfnAiPXBF1
+2022-01-21 23:00:00,174:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:00,742:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hcpNYM75PmjjP2e4ynWhBqgrmPYVgpvCb8PnPcBGqfnAiPXBF1 HTTP/1.1" 200 285
+2022-01-21 23:00:00,743:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 33281.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11093.66}, {'date': '2022-02-26', 'amount': 11093.66}, {'date': '2022-03-28', 'amount': 11093.68}]}]}
+2022-01-21 23:00:00,744:    root:DEBUG   ::update wallet: 9hcpNYM75PmjjP2e4ynWhBqgrmPYVgpvCb8PnPcBGqfnAiPXBF1, spent: 998.43
+2022-01-21 23:00:00,744:    root:DEBUG   ::update whitelist set spent_sigusd = 998.43 where "walletAddress" = '9hcpNYM75PmjjP2e4ynWhBqgrmPYVgpvCb8PnPcBGqfnAiPXBF1'
+2022-01-21 23:00:00,746:    root:DEBUG   ::checking 9gMQaFu2CxEo8yQYG9wLo6UniCxQd6f4H9Lm3aGTsEwW6ULPumJ
+2022-01-21 23:00:00,750:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:01,331:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gMQaFu2CxEo8yQYG9wLo6UniCxQd6f4H9Lm3aGTsEwW6ULPumJ HTTP/1.1" 200 282
+2022-01-21 23:00:01,332:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 14900.0, 'outstanding': [{'date': '2022-01-26', 'amount': 4966.66}, {'date': '2022-02-26', 'amount': 4966.66}, {'date': '2022-03-28', 'amount': 4966.68}]}]}
+2022-01-21 23:00:01,332:    root:DEBUG   ::update wallet: 9gMQaFu2CxEo8yQYG9wLo6UniCxQd6f4H9Lm3aGTsEwW6ULPumJ, spent: 447.0
+2022-01-21 23:00:01,332:    root:DEBUG   ::update whitelist set spent_sigusd = 447.0 where "walletAddress" = '9gMQaFu2CxEo8yQYG9wLo6UniCxQd6f4H9Lm3aGTsEwW6ULPumJ'
+2022-01-21 23:00:01,333:    root:DEBUG   ::checking 9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX
+2022-01-21 23:00:01,336:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:01,939:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX HTTP/1.1" 200 285
+2022-01-21 23:00:01,940:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 68767.0, 'outstanding': [{'date': '2022-01-26', 'amount': 22922.32}, {'date': '2022-02-26', 'amount': 22922.32}, {'date': '2022-03-28', 'amount': 22922.36}]}]}
+2022-01-21 23:00:01,945:    root:DEBUG   ::update wallet: 9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX, spent: 2063.0099999999998
+2022-01-21 23:00:01,946:    root:DEBUG   ::update whitelist set spent_sigusd = 2063.0099999999998 where "walletAddress" = '9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX'
+2022-01-21 23:00:01,947:    root:DEBUG   ::checking 9hysfwxr5TYTdCJzrMyrRq1QH8FkANbovHyjSWTwgiSnQaXuTUx
+2022-01-21 23:00:01,952:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:02,601:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hysfwxr5TYTdCJzrMyrRq1QH8FkANbovHyjSWTwgiSnQaXuTUx HTTP/1.1" 200 286
+2022-01-21 23:00:02,603:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 275500.0, 'outstanding': [{'date': '2022-01-26', 'amount': 91833.33}, {'date': '2022-02-26', 'amount': 91833.33}, {'date': '2022-03-28', 'amount': 91833.34}]}]}
+2022-01-21 23:00:02,604:    root:DEBUG   ::update wallet: 9hysfwxr5TYTdCJzrMyrRq1QH8FkANbovHyjSWTwgiSnQaXuTUx, spent: 8265.0
+2022-01-21 23:00:02,604:    root:DEBUG   ::update whitelist set spent_sigusd = 8265.0 where "walletAddress" = '9hysfwxr5TYTdCJzrMyrRq1QH8FkANbovHyjSWTwgiSnQaXuTUx'
+2022-01-21 23:00:02,605:    root:DEBUG   ::checking 9epJ5mfyNpkkjLHo1iZuB1tm6NTuaFXatoicUsWbQ1Pf4r6eA9y
+2022-01-21 23:00:02,608:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:03,115:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9epJ5mfyNpkkjLHo1iZuB1tm6NTuaFXatoicUsWbQ1Pf4r6eA9y HTTP/1.1" 200 282
+2022-01-21 23:00:03,117:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 16637.0, 'outstanding': [{'date': '2022-01-26', 'amount': 5545.66}, {'date': '2022-02-26', 'amount': 5545.66}, {'date': '2022-03-28', 'amount': 5545.68}]}]}
+2022-01-21 23:00:03,117:    root:DEBUG   ::update wallet: 9epJ5mfyNpkkjLHo1iZuB1tm6NTuaFXatoicUsWbQ1Pf4r6eA9y, spent: 499.10999999999996
+2022-01-21 23:00:03,117:    root:DEBUG   ::update whitelist set spent_sigusd = 499.10999999999996 where "walletAddress" = '9epJ5mfyNpkkjLHo1iZuB1tm6NTuaFXatoicUsWbQ1Pf4r6eA9y'
+2022-01-21 23:00:03,118:    root:DEBUG   ::checking 9hK4mfWG7EgFCr6p1mPhXBSWQAzZm57Es2a8NWtpQeXbTvALjx7
+2022-01-21 23:00:03,120:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:03,682:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hK4mfWG7EgFCr6p1mPhXBSWQAzZm57Es2a8NWtpQeXbTvALjx7 HTTP/1.1" 200 285
+2022-01-21 23:00:03,684:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 99964.0, 'outstanding': [{'date': '2022-01-26', 'amount': 33321.33}, {'date': '2022-02-26', 'amount': 33321.33}, {'date': '2022-03-28', 'amount': 33321.34}]}]}
+2022-01-21 23:00:03,684:    root:DEBUG   ::update wallet: 9hK4mfWG7EgFCr6p1mPhXBSWQAzZm57Es2a8NWtpQeXbTvALjx7, spent: 2998.92
+2022-01-21 23:00:03,684:    root:DEBUG   ::update whitelist set spent_sigusd = 2998.92 where "walletAddress" = '9hK4mfWG7EgFCr6p1mPhXBSWQAzZm57Es2a8NWtpQeXbTvALjx7'
+2022-01-21 23:00:03,686:    root:DEBUG   ::checking 9gUoSFYMMZqxdzyuaG7SbTVb76h7dzwRRzDZJ1wpLgALquoQMQv
+2022-01-21 23:00:03,688:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:04,235:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gUoSFYMMZqxdzyuaG7SbTVb76h7dzwRRzDZJ1wpLgALquoQMQv HTTP/1.1" 200 281
+2022-01-21 23:00:04,235:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 6524.0, 'outstanding': [{'date': '2022-01-26', 'amount': 2174.66}, {'date': '2022-02-26', 'amount': 2174.66}, {'date': '2022-03-28', 'amount': 2174.68}]}]}
+2022-01-21 23:00:04,236:    root:DEBUG   ::update wallet: 9gUoSFYMMZqxdzyuaG7SbTVb76h7dzwRRzDZJ1wpLgALquoQMQv, spent: 195.72
+2022-01-21 23:00:04,236:    root:DEBUG   ::update whitelist set spent_sigusd = 195.72 where "walletAddress" = '9gUoSFYMMZqxdzyuaG7SbTVb76h7dzwRRzDZJ1wpLgALquoQMQv'
+2022-01-21 23:00:04,237:    root:DEBUG   ::checking 9gf3FvjVadtzXtKvfnu7Aw4ut9x2LkEDVaAszKvQm1jmJsCUorQ
+2022-01-21 23:00:04,240:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:05,347:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gf3FvjVadtzXtKvfnu7Aw4ut9x2LkEDVaAszKvQm1jmJsCUorQ HTTP/1.1" 200 282
+2022-01-21 23:00:05,348:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 39927.0, 'outstanding': [{'date': '2022-01-26', 'amount': 13309.0}, {'date': '2022-02-26', 'amount': 13309.0}, {'date': '2022-03-28', 'amount': 13309.0}]}]}
+2022-01-21 23:00:05,348:    root:DEBUG   ::update wallet: 9gf3FvjVadtzXtKvfnu7Aw4ut9x2LkEDVaAszKvQm1jmJsCUorQ, spent: 1197.81
+2022-01-21 23:00:05,348:    root:DEBUG   ::update whitelist set spent_sigusd = 1197.81 where "walletAddress" = '9gf3FvjVadtzXtKvfnu7Aw4ut9x2LkEDVaAszKvQm1jmJsCUorQ'
+2022-01-21 23:00:05,350:    root:DEBUG   ::checking 9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS
+2022-01-21 23:00:05,354:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:05,935:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS HTTP/1.1" 200 783
+2022-01-21 23:00:05,936:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 2247.0, 'outstanding': [{'date': '2022-01-26', 'amount': 565.49}, {'date': '2022-02-26', 'amount': 565.49}, {'date': '2022-03-28', 'amount': 565.49}, {'date': '2022-04-28', 'amount': 183.49}, {'date': '2022-05-28', 'amount': 183.49}, {'date': '2022-06-27', 'amount': 183.54999999999998}]}, {'tokenId': 'cc3c5dc01bb4b2a05475b2d9a5b4202ed235f7182b46677ed8f40358333b92bb', 'name': 'xerg10M', 'totalVested': 1150.0, 'outstanding': [{'date': '2022-01-26', 'amount': 382.48999999999995}, {'date': '2022-02-26', 'amount': 382.48999999999995}, {'date': '2022-03-28', 'amount': 382.51}, {'date': '2022-04-28', 'amount': 0.83}, {'date': '2022-05-28', 'amount': 0.83}, {'date': '2022-06-27', 'amount': 0.85}]}]}
+2022-01-21 23:00:05,936:    root:DEBUG   ::update wallet: 9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS, spent: 67.41
+2022-01-21 23:00:05,936:    root:DEBUG   ::update whitelist set spent_sigusd = 67.41 where "walletAddress" = '9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS'
+2022-01-21 23:00:05,937:    root:DEBUG   ::checking 9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS
+2022-01-21 23:00:05,940:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:06,473:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS HTTP/1.1" 200 783
+2022-01-21 23:00:06,474:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 2247.0, 'outstanding': [{'date': '2022-01-26', 'amount': 565.49}, {'date': '2022-02-26', 'amount': 565.49}, {'date': '2022-03-28', 'amount': 565.49}, {'date': '2022-04-28', 'amount': 183.49}, {'date': '2022-05-28', 'amount': 183.49}, {'date': '2022-06-27', 'amount': 183.54999999999998}]}, {'tokenId': 'cc3c5dc01bb4b2a05475b2d9a5b4202ed235f7182b46677ed8f40358333b92bb', 'name': 'xerg10M', 'totalVested': 1150.0, 'outstanding': [{'date': '2022-01-26', 'amount': 382.48999999999995}, {'date': '2022-02-26', 'amount': 382.48999999999995}, {'date': '2022-03-28', 'amount': 382.51}, {'date': '2022-04-28', 'amount': 0.83}, {'date': '2022-05-28', 'amount': 0.83}, {'date': '2022-06-27', 'amount': 0.85}]}]}
+2022-01-21 23:00:06,475:    root:DEBUG   ::update wallet: 9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS, spent: 67.41
+2022-01-21 23:00:06,475:    root:DEBUG   ::update whitelist set spent_sigusd = 67.41 where "walletAddress" = '9iD7JfYYemJgVz7nTGg9gaHuWg7hBbHo2kxrrJawyz4BD1r9fLS'
+2022-01-21 23:00:06,476:    root:DEBUG   ::checking 9hNE2zRZKbit1Dk7EAuYbvmzpoxK6EumpWqCpSBdzdQ9mhyqhW1
+2022-01-21 23:00:06,478:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:07,038:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hNE2zRZKbit1Dk7EAuYbvmzpoxK6EumpWqCpSBdzdQ9mhyqhW1 HTTP/1.1" 200 278
+2022-01-21 23:00:07,039:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 1591.0, 'outstanding': [{'date': '2022-01-26', 'amount': 530.33}, {'date': '2022-02-26', 'amount': 530.33}, {'date': '2022-03-28', 'amount': 530.34}]}]}
+2022-01-21 23:00:07,039:    root:DEBUG   ::update wallet: 9hNE2zRZKbit1Dk7EAuYbvmzpoxK6EumpWqCpSBdzdQ9mhyqhW1, spent: 47.73
+2022-01-21 23:00:07,039:    root:DEBUG   ::update whitelist set spent_sigusd = 47.73 where "walletAddress" = '9hNE2zRZKbit1Dk7EAuYbvmzpoxK6EumpWqCpSBdzdQ9mhyqhW1'
+2022-01-21 23:00:07,041:    root:DEBUG   ::checking 9eayp5KZiudis7a81HWZWJe29fvCBsKxeca24v9vZaKb8W8E3hx
+2022-01-21 23:00:07,043:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:07,592:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9eayp5KZiudis7a81HWZWJe29fvCBsKxeca24v9vZaKb8W8E3hx HTTP/1.1" 200 536
+2022-01-21 23:00:07,593:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 33273.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11091.0}, {'date': '2022-02-26', 'amount': 11091.0}, {'date': '2022-03-28', 'amount': 11091.0}]}, {'tokenId': 'cc3c5dc01bb4b2a05475b2d9a5b4202ed235f7182b46677ed8f40358333b92bb', 'name': 'xerg10M', 'totalVested': 33196.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11065.33}, {'date': '2022-02-26', 'amount': 11065.33}, {'date': '2022-03-28', 'amount': 11065.34}]}]}
+2022-01-21 23:00:07,593:    root:DEBUG   ::update wallet: 9eayp5KZiudis7a81HWZWJe29fvCBsKxeca24v9vZaKb8W8E3hx, spent: 998.1899999999999
+2022-01-21 23:00:07,594:    root:DEBUG   ::update whitelist set spent_sigusd = 998.1899999999999 where "walletAddress" = '9eayp5KZiudis7a81HWZWJe29fvCBsKxeca24v9vZaKb8W8E3hx'
+2022-01-21 23:00:07,595:    root:DEBUG   ::checking 9eYUQP7tZFSa34NzXYP6VzDC6kHWBZRwEw4pXEHC2MWGs75vCAS
+2022-01-21 23:00:07,598:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:08,210:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9eYUQP7tZFSa34NzXYP6VzDC6kHWBZRwEw4pXEHC2MWGs75vCAS HTTP/1.1" 200 286
+2022-01-21 23:00:08,212:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 333267.0, 'outstanding': [{'date': '2022-01-26', 'amount': 111089.0}, {'date': '2022-02-26', 'amount': 111089.0}, {'date': '2022-03-28', 'amount': 111089.0}]}]}
+2022-01-21 23:00:08,212:    root:DEBUG   ::update wallet: 9eYUQP7tZFSa34NzXYP6VzDC6kHWBZRwEw4pXEHC2MWGs75vCAS, spent: 9998.01
+2022-01-21 23:00:08,213:    root:DEBUG   ::update whitelist set spent_sigusd = 9998.01 where "walletAddress" = '9eYUQP7tZFSa34NzXYP6VzDC6kHWBZRwEw4pXEHC2MWGs75vCAS'
+2022-01-21 23:00:08,215:    root:DEBUG   ::checking 9hjDpaFvevxD4NC3iqvzmB1LMxeMGKFifDb6Rq79V7NJuMemxHz
+2022-01-21 23:00:08,218:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:09,284:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hjDpaFvevxD4NC3iqvzmB1LMxeMGKFifDb6Rq79V7NJuMemxHz HTTP/1.1" 200 285
+2022-01-21 23:00:09,285:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 66548.0, 'outstanding': [{'date': '2022-01-26', 'amount': 22182.66}, {'date': '2022-02-26', 'amount': 22182.66}, {'date': '2022-03-28', 'amount': 22182.68}]}]}
+2022-01-21 23:00:09,285:    root:DEBUG   ::update wallet: 9hjDpaFvevxD4NC3iqvzmB1LMxeMGKFifDb6Rq79V7NJuMemxHz, spent: 1996.4399999999998
+2022-01-21 23:00:09,285:    root:DEBUG   ::update whitelist set spent_sigusd = 1996.4399999999998 where "walletAddress" = '9hjDpaFvevxD4NC3iqvzmB1LMxeMGKFifDb6Rq79V7NJuMemxHz'
+2022-01-21 23:00:09,286:    root:DEBUG   ::checking 9f2NQ9LiKG85HWbYiQzuTWJgKcAkdS9orfa2GY3nTXR9ugu4ERg
+2022-01-21 23:00:09,288:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:09,813:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9f2NQ9LiKG85HWbYiQzuTWJgKcAkdS9orfa2GY3nTXR9ugu4ERg HTTP/1.1" 200 279
+2022-01-21 23:00:09,814:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 25800.0, 'outstanding': [{'date': '2022-01-26', 'amount': 8600.0}, {'date': '2022-02-26', 'amount': 8600.0}, {'date': '2022-03-28', 'amount': 8600.0}]}]}
+2022-01-21 23:00:09,814:    root:DEBUG   ::update wallet: 9f2NQ9LiKG85HWbYiQzuTWJgKcAkdS9orfa2GY3nTXR9ugu4ERg, spent: 774.0
+2022-01-21 23:00:09,815:    root:DEBUG   ::update whitelist set spent_sigusd = 774.0 where "walletAddress" = '9f2NQ9LiKG85HWbYiQzuTWJgKcAkdS9orfa2GY3nTXR9ugu4ERg'
+2022-01-21 23:00:09,816:    root:DEBUG   ::checking 9h9G2MFMkD7CtE1GnmYcHwSGQvFoLpSGsKVeYyGLGUvpNGLVdSH
+2022-01-21 23:00:09,818:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:10,347:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9h9G2MFMkD7CtE1GnmYcHwSGQvFoLpSGsKVeYyGLGUvpNGLVdSH HTTP/1.1" 200 278
+2022-01-21 23:00:10,348:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 1333.0, 'outstanding': [{'date': '2022-01-26', 'amount': 444.33}, {'date': '2022-02-26', 'amount': 444.33}, {'date': '2022-03-28', 'amount': 444.34}]}]}
+2022-01-21 23:00:10,349:    root:DEBUG   ::update wallet: 9h9G2MFMkD7CtE1GnmYcHwSGQvFoLpSGsKVeYyGLGUvpNGLVdSH, spent: 39.99
+2022-01-21 23:00:10,349:    root:DEBUG   ::update whitelist set spent_sigusd = 39.99 where "walletAddress" = '9h9G2MFMkD7CtE1GnmYcHwSGQvFoLpSGsKVeYyGLGUvpNGLVdSH'
+2022-01-21 23:00:10,351:    root:DEBUG   ::checking 9hjDpaFvevxD4NC3iqvzmB1LMxeMGKFifDb6Rq79V7NJuMemxHz
+2022-01-21 23:00:10,354:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:10,864:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hjDpaFvevxD4NC3iqvzmB1LMxeMGKFifDb6Rq79V7NJuMemxHz HTTP/1.1" 200 285
+2022-01-21 23:00:10,865:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 66548.0, 'outstanding': [{'date': '2022-01-26', 'amount': 22182.66}, {'date': '2022-02-26', 'amount': 22182.66}, {'date': '2022-03-28', 'amount': 22182.68}]}]}
+2022-01-21 23:00:10,866:    root:DEBUG   ::update wallet: 9hjDpaFvevxD4NC3iqvzmB1LMxeMGKFifDb6Rq79V7NJuMemxHz, spent: 1996.4399999999998
+2022-01-21 23:00:10,866:    root:DEBUG   ::update whitelist set spent_sigusd = 1996.4399999999998 where "walletAddress" = '9hjDpaFvevxD4NC3iqvzmB1LMxeMGKFifDb6Rq79V7NJuMemxHz'
+2022-01-21 23:00:10,867:    root:DEBUG   ::checking 9f4XUgCZyRgqoS7f7EyYRkvEceCN6yPivVH6dYG22LZYLDuXh2c
+2022-01-21 23:00:10,870:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:11,550:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9f4XUgCZyRgqoS7f7EyYRkvEceCN6yPivVH6dYG22LZYLDuXh2c HTTP/1.1" 200 285
+2022-01-21 23:00:11,551:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 49996.0, 'outstanding': [{'date': '2022-01-26', 'amount': 16665.33}, {'date': '2022-02-26', 'amount': 16665.33}, {'date': '2022-03-28', 'amount': 16665.34}]}]}
+2022-01-21 23:00:11,551:    root:DEBUG   ::update wallet: 9f4XUgCZyRgqoS7f7EyYRkvEceCN6yPivVH6dYG22LZYLDuXh2c, spent: 1499.8799999999999
+2022-01-21 23:00:11,552:    root:DEBUG   ::update whitelist set spent_sigusd = 1499.8799999999999 where "walletAddress" = '9f4XUgCZyRgqoS7f7EyYRkvEceCN6yPivVH6dYG22LZYLDuXh2c'
+2022-01-21 23:00:11,554:    root:DEBUG   ::checking 9eayp5KZiudis7a81HWZWJe29fvCBsKxeca24v9vZaKb8W8E3hx
+2022-01-21 23:00:11,556:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:12,146:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9eayp5KZiudis7a81HWZWJe29fvCBsKxeca24v9vZaKb8W8E3hx HTTP/1.1" 200 536
+2022-01-21 23:00:12,148:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 33273.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11091.0}, {'date': '2022-02-26', 'amount': 11091.0}, {'date': '2022-03-28', 'amount': 11091.0}]}, {'tokenId': 'cc3c5dc01bb4b2a05475b2d9a5b4202ed235f7182b46677ed8f40358333b92bb', 'name': 'xerg10M', 'totalVested': 33196.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11065.33}, {'date': '2022-02-26', 'amount': 11065.33}, {'date': '2022-03-28', 'amount': 11065.34}]}]}
+2022-01-21 23:00:12,148:    root:DEBUG   ::update wallet: 9eayp5KZiudis7a81HWZWJe29fvCBsKxeca24v9vZaKb8W8E3hx, spent: 998.1899999999999
+2022-01-21 23:00:12,148:    root:DEBUG   ::update whitelist set spent_sigusd = 998.1899999999999 where "walletAddress" = '9eayp5KZiudis7a81HWZWJe29fvCBsKxeca24v9vZaKb8W8E3hx'
+2022-01-21 23:00:12,150:    root:DEBUG   ::checking 9fzDw7iRRgs1ow4AdD1n6jmEV4Ki47FZXN4fzciw2SRp4numMxz
+2022-01-21 23:00:12,153:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:12,702:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fzDw7iRRgs1ow4AdD1n6jmEV4Ki47FZXN4fzciw2SRp4numMxz HTTP/1.1" 200 282
+2022-01-21 23:00:12,703:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 32736.0, 'outstanding': [{'date': '2022-01-26', 'amount': 10912.0}, {'date': '2022-02-26', 'amount': 10912.0}, {'date': '2022-03-28', 'amount': 10912.0}]}]}
+2022-01-21 23:00:12,703:    root:DEBUG   ::update wallet: 9fzDw7iRRgs1ow4AdD1n6jmEV4Ki47FZXN4fzciw2SRp4numMxz, spent: 982.0799999999999
+2022-01-21 23:00:12,703:    root:DEBUG   ::update whitelist set spent_sigusd = 982.0799999999999 where "walletAddress" = '9fzDw7iRRgs1ow4AdD1n6jmEV4Ki47FZXN4fzciw2SRp4numMxz'
+2022-01-21 23:00:12,705:    root:DEBUG   ::checking 9ghkfVicGCCG23CcxPPZbKe4eBnb9VmNf47abLqCJJYn6sxojj4
+2022-01-21 23:00:12,706:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:13,238:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9ghkfVicGCCG23CcxPPZbKe4eBnb9VmNf47abLqCJJYn6sxojj4 HTTP/1.1" 200 274
+2022-01-21 23:00:13,239:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 221.0, 'outstanding': [{'date': '2022-01-26', 'amount': 73.66}, {'date': '2022-02-26', 'amount': 73.66}, {'date': '2022-03-28', 'amount': 73.68}]}]}
+2022-01-21 23:00:13,239:    root:DEBUG   ::update wallet: 9ghkfVicGCCG23CcxPPZbKe4eBnb9VmNf47abLqCJJYn6sxojj4, spent: 6.63
+2022-01-21 23:00:13,239:    root:DEBUG   ::update whitelist set spent_sigusd = 6.63 where "walletAddress" = '9ghkfVicGCCG23CcxPPZbKe4eBnb9VmNf47abLqCJJYn6sxojj4'
+2022-01-21 23:00:13,240:    root:DEBUG   ::checking 9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX
+2022-01-21 23:00:13,242:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:13,734:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX HTTP/1.1" 200 285
+2022-01-21 23:00:13,736:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 68767.0, 'outstanding': [{'date': '2022-01-26', 'amount': 22922.32}, {'date': '2022-02-26', 'amount': 22922.32}, {'date': '2022-03-28', 'amount': 22922.36}]}]}
+2022-01-21 23:00:13,736:    root:DEBUG   ::update wallet: 9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX, spent: 2063.0099999999998
+2022-01-21 23:00:13,737:    root:DEBUG   ::update whitelist set spent_sigusd = 2063.0099999999998 where "walletAddress" = '9edMzXZVzL1z2CdZomdtoVBUSWEunVBHuY2UhguLyM1B1uECwXX'
+2022-01-21 23:00:13,738:    root:DEBUG   ::checking 9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE
+2022-01-21 23:00:13,740:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:14,111:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE HTTP/1.1" 200 282
+2022-01-21 23:00:14,112:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 33228.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11076.0}, {'date': '2022-02-26', 'amount': 11076.0}, {'date': '2022-03-28', 'amount': 11076.0}]}]}
+2022-01-21 23:00:14,113:    root:DEBUG   ::update wallet: 9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE, spent: 996.8399999999999
+2022-01-21 23:00:14,113:    root:DEBUG   ::update whitelist set spent_sigusd = 996.8399999999999 where "walletAddress" = '9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE'
+2022-01-21 23:00:14,115:    root:DEBUG   ::checking 9f2NQ9LiKG85HWbYiQzuTWJgKcAkdS9orfa2GY3nTXR9ugu4ERg
+2022-01-21 23:00:14,120:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:15,134:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9f2NQ9LiKG85HWbYiQzuTWJgKcAkdS9orfa2GY3nTXR9ugu4ERg HTTP/1.1" 200 279
+2022-01-21 23:00:15,135:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 25800.0, 'outstanding': [{'date': '2022-01-26', 'amount': 8600.0}, {'date': '2022-02-26', 'amount': 8600.0}, {'date': '2022-03-28', 'amount': 8600.0}]}]}
+2022-01-21 23:00:15,136:    root:DEBUG   ::update wallet: 9f2NQ9LiKG85HWbYiQzuTWJgKcAkdS9orfa2GY3nTXR9ugu4ERg, spent: 774.0
+2022-01-21 23:00:15,136:    root:DEBUG   ::update whitelist set spent_sigusd = 774.0 where "walletAddress" = '9f2NQ9LiKG85HWbYiQzuTWJgKcAkdS9orfa2GY3nTXR9ugu4ERg'
+2022-01-21 23:00:15,137:    root:DEBUG   ::checking 9f4XUgCZyRgqoS7f7EyYRkvEceCN6yPivVH6dYG22LZYLDuXh2c
+2022-01-21 23:00:15,139:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:15,650:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9f4XUgCZyRgqoS7f7EyYRkvEceCN6yPivVH6dYG22LZYLDuXh2c HTTP/1.1" 200 285
+2022-01-21 23:00:15,652:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 49996.0, 'outstanding': [{'date': '2022-01-26', 'amount': 16665.33}, {'date': '2022-02-26', 'amount': 16665.33}, {'date': '2022-03-28', 'amount': 16665.34}]}]}
+2022-01-21 23:00:15,652:    root:DEBUG   ::update wallet: 9f4XUgCZyRgqoS7f7EyYRkvEceCN6yPivVH6dYG22LZYLDuXh2c, spent: 1499.8799999999999
+2022-01-21 23:00:15,653:    root:DEBUG   ::update whitelist set spent_sigusd = 1499.8799999999999 where "walletAddress" = '9f4XUgCZyRgqoS7f7EyYRkvEceCN6yPivVH6dYG22LZYLDuXh2c'
+2022-01-21 23:00:15,654:    root:DEBUG   ::checking 9fDKy4FDzexJMCNx6wxeXmTfRw1jSfz1qP8woCnhfRk8LpJxMh7
+2022-01-21 23:00:15,657:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:16,184:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fDKy4FDzexJMCNx6wxeXmTfRw1jSfz1qP8woCnhfRk8LpJxMh7 HTTP/1.1" 200 281
+2022-01-21 23:00:16,185:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 6400.0, 'outstanding': [{'date': '2022-01-26', 'amount': 2133.33}, {'date': '2022-02-26', 'amount': 2133.33}, {'date': '2022-03-28', 'amount': 2133.34}]}]}
+2022-01-21 23:00:16,185:    root:DEBUG   ::update wallet: 9fDKy4FDzexJMCNx6wxeXmTfRw1jSfz1qP8woCnhfRk8LpJxMh7, spent: 192.0
+2022-01-21 23:00:16,185:    root:DEBUG   ::update whitelist set spent_sigusd = 192.0 where "walletAddress" = '9fDKy4FDzexJMCNx6wxeXmTfRw1jSfz1qP8woCnhfRk8LpJxMh7'
+2022-01-21 23:00:16,186:    root:DEBUG   ::checking 9fzDw7iRRgs1ow4AdD1n6jmEV4Ki47FZXN4fzciw2SRp4numMxz
+2022-01-21 23:00:16,190:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:16,720:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fzDw7iRRgs1ow4AdD1n6jmEV4Ki47FZXN4fzciw2SRp4numMxz HTTP/1.1" 200 282
+2022-01-21 23:00:16,720:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 32736.0, 'outstanding': [{'date': '2022-01-26', 'amount': 10912.0}, {'date': '2022-02-26', 'amount': 10912.0}, {'date': '2022-03-28', 'amount': 10912.0}]}]}
+2022-01-21 23:00:16,721:    root:DEBUG   ::update wallet: 9fzDw7iRRgs1ow4AdD1n6jmEV4Ki47FZXN4fzciw2SRp4numMxz, spent: 982.0799999999999
+2022-01-21 23:00:16,721:    root:DEBUG   ::update whitelist set spent_sigusd = 982.0799999999999 where "walletAddress" = '9fzDw7iRRgs1ow4AdD1n6jmEV4Ki47FZXN4fzciw2SRp4numMxz'
+2022-01-21 23:00:16,722:    root:DEBUG   ::checking 9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE
+2022-01-21 23:00:16,724:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:17,229:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE HTTP/1.1" 200 282
+2022-01-21 23:00:17,230:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 33228.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11076.0}, {'date': '2022-02-26', 'amount': 11076.0}, {'date': '2022-03-28', 'amount': 11076.0}]}]}
+2022-01-21 23:00:17,230:    root:DEBUG   ::update wallet: 9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE, spent: 996.8399999999999
+2022-01-21 23:00:17,231:    root:DEBUG   ::update whitelist set spent_sigusd = 996.8399999999999 where "walletAddress" = '9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE'
+2022-01-21 23:00:17,232:    root:DEBUG   ::checking 9hmJctVejUhPcJ8PjkYAZAbLkAqYbHqRdPufKiFVbEtCvXRcShT
+2022-01-21 23:00:17,237:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:17,793:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hmJctVejUhPcJ8PjkYAZAbLkAqYbHqRdPufKiFVbEtCvXRcShT HTTP/1.1" 200 32
+2022-01-21 23:00:17,794:    root:DEBUG   ::{'status': 'success', 'vested': []}
+2022-01-21 23:00:17,795:    root:DEBUG   ::checking 9fbNPJQGi5hXAPbJ1LMNL4r4H2qPmaRdj2hFCx9cYmnQHyHHHrN
+2022-01-21 23:00:17,798:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:18,323:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fbNPJQGi5hXAPbJ1LMNL4r4H2qPmaRdj2hFCx9cYmnQHyHHHrN HTTP/1.1" 200 32
+2022-01-21 23:00:18,324:    root:DEBUG   ::{'status': 'success', 'vested': []}
+2022-01-21 23:00:18,325:    root:DEBUG   ::checking 9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE
+2022-01-21 23:00:18,329:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:18,845:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE HTTP/1.1" 200 282
+2022-01-21 23:00:18,846:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 33228.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11076.0}, {'date': '2022-02-26', 'amount': 11076.0}, {'date': '2022-03-28', 'amount': 11076.0}]}]}
+2022-01-21 23:00:18,846:    root:DEBUG   ::update wallet: 9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE, spent: 996.8399999999999
+2022-01-21 23:00:18,846:    root:DEBUG   ::update whitelist set spent_sigusd = 996.8399999999999 where "walletAddress" = '9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE'
+2022-01-21 23:00:18,847:    root:DEBUG   ::checking 9fow2A1d6mWWExMU5sQ6MuHaHAEQpqDsBHNcWjArqpkSu7Ds6wP
+2022-01-21 23:00:18,850:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:19,356:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fow2A1d6mWWExMU5sQ6MuHaHAEQpqDsBHNcWjArqpkSu7Ds6wP HTTP/1.1" 200 279
+2022-01-21 23:00:19,357:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 16530.0, 'outstanding': [{'date': '2022-01-26', 'amount': 5510.0}, {'date': '2022-02-26', 'amount': 5510.0}, {'date': '2022-03-28', 'amount': 5510.0}]}]}
+2022-01-21 23:00:19,358:    root:DEBUG   ::update wallet: 9fow2A1d6mWWExMU5sQ6MuHaHAEQpqDsBHNcWjArqpkSu7Ds6wP, spent: 495.9
+2022-01-21 23:00:19,358:    root:DEBUG   ::update whitelist set spent_sigusd = 495.9 where "walletAddress" = '9fow2A1d6mWWExMU5sQ6MuHaHAEQpqDsBHNcWjArqpkSu7Ds6wP'
+2022-01-21 23:00:19,360:    root:DEBUG   ::checking 9fHLQyMLiDz9v7nWuRQJUJo9RoKWRYJZ37sjPRZ8hvp5BQWkzRh
+2022-01-21 23:00:19,362:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:20,354:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fHLQyMLiDz9v7nWuRQJUJo9RoKWRYJZ37sjPRZ8hvp5BQWkzRh HTTP/1.1" 200 285
+2022-01-21 23:00:20,356:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 49958.0, 'outstanding': [{'date': '2022-01-26', 'amount': 16652.66}, {'date': '2022-02-26', 'amount': 16652.66}, {'date': '2022-03-28', 'amount': 16652.68}]}]}
+2022-01-21 23:00:20,357:    root:DEBUG   ::update wallet: 9fHLQyMLiDz9v7nWuRQJUJo9RoKWRYJZ37sjPRZ8hvp5BQWkzRh, spent: 1498.74
+2022-01-21 23:00:20,357:    root:DEBUG   ::update whitelist set spent_sigusd = 1498.74 where "walletAddress" = '9fHLQyMLiDz9v7nWuRQJUJo9RoKWRYJZ37sjPRZ8hvp5BQWkzRh'
+2022-01-21 23:00:20,359:    root:DEBUG   ::checking 9gNChnwDZhtATbYbdhrzhr1YH829J8dBWmiVPbuqATbcvq9jBfA
+2022-01-21 23:00:20,362:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:20,852:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gNChnwDZhtATbYbdhrzhr1YH829J8dBWmiVPbuqATbcvq9jBfA HTTP/1.1" 200 282
+2022-01-21 23:00:20,853:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 33333.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11111.0}, {'date': '2022-02-26', 'amount': 11111.0}, {'date': '2022-03-28', 'amount': 11111.0}]}]}
+2022-01-21 23:00:20,853:    root:DEBUG   ::update wallet: 9gNChnwDZhtATbYbdhrzhr1YH829J8dBWmiVPbuqATbcvq9jBfA, spent: 999.99
+2022-01-21 23:00:20,854:    root:DEBUG   ::update whitelist set spent_sigusd = 999.99 where "walletAddress" = '9gNChnwDZhtATbYbdhrzhr1YH829J8dBWmiVPbuqATbcvq9jBfA'
+2022-01-21 23:00:20,855:    root:DEBUG   ::checking 9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE
+2022-01-21 23:00:20,856:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:21,885:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE HTTP/1.1" 200 282
+2022-01-21 23:00:21,886:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 33228.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11076.0}, {'date': '2022-02-26', 'amount': 11076.0}, {'date': '2022-03-28', 'amount': 11076.0}]}]}
+2022-01-21 23:00:21,886:    root:DEBUG   ::update wallet: 9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE, spent: 996.8399999999999
+2022-01-21 23:00:21,886:    root:DEBUG   ::update whitelist set spent_sigusd = 996.8399999999999 where "walletAddress" = '9i8zJHn39vuDm88EGxCBgQhngRMb68zAHgv8VPu4CJ2orrZDEUE'
+2022-01-21 23:00:21,888:    root:DEBUG   ::checking 9fzDw7iRRgs1ow4AdD1n6jmEV4Ki47FZXN4fzciw2SRp4numMxz
+2022-01-21 23:00:21,890:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:22,275:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fzDw7iRRgs1ow4AdD1n6jmEV4Ki47FZXN4fzciw2SRp4numMxz HTTP/1.1" 200 282
+2022-01-21 23:00:22,276:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 32736.0, 'outstanding': [{'date': '2022-01-26', 'amount': 10912.0}, {'date': '2022-02-26', 'amount': 10912.0}, {'date': '2022-03-28', 'amount': 10912.0}]}]}
+2022-01-21 23:00:22,276:    root:DEBUG   ::update wallet: 9fzDw7iRRgs1ow4AdD1n6jmEV4Ki47FZXN4fzciw2SRp4numMxz, spent: 982.0799999999999
+2022-01-21 23:00:22,276:    root:DEBUG   ::update whitelist set spent_sigusd = 982.0799999999999 where "walletAddress" = '9fzDw7iRRgs1ow4AdD1n6jmEV4Ki47FZXN4fzciw2SRp4numMxz'
+2022-01-21 23:00:22,277:    root:DEBUG   ::checking 9ev1n5nPG3VJpS1nMUFgxmmdGYQLVpPLXT3FH21iUp8zDsefMrt
+2022-01-21 23:00:22,279:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:23,306:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9ev1n5nPG3VJpS1nMUFgxmmdGYQLVpPLXT3FH21iUp8zDsefMrt HTTP/1.1" 200 278
+2022-01-21 23:00:23,307:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 3273.0, 'outstanding': [{'date': '2022-01-26', 'amount': 1091.0}, {'date': '2022-02-26', 'amount': 1091.0}, {'date': '2022-03-28', 'amount': 1091.0}]}]}
+2022-01-21 23:00:23,307:    root:DEBUG   ::update wallet: 9ev1n5nPG3VJpS1nMUFgxmmdGYQLVpPLXT3FH21iUp8zDsefMrt, spent: 98.19
+2022-01-21 23:00:23,308:    root:DEBUG   ::update whitelist set spent_sigusd = 98.19 where "walletAddress" = '9ev1n5nPG3VJpS1nMUFgxmmdGYQLVpPLXT3FH21iUp8zDsefMrt'
+2022-01-21 23:00:23,309:    root:DEBUG   ::checking 9geyRjVLq24itjrEHgQDsVUgdGfXyCBuGy3UrmsdM5mNkjnFLKb
+2022-01-21 23:00:23,310:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:23,811:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9geyRjVLq24itjrEHgQDsVUgdGfXyCBuGy3UrmsdM5mNkjnFLKb HTTP/1.1" 200 285
+2022-01-21 23:00:23,812:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 49984.0, 'outstanding': [{'date': '2022-01-26', 'amount': 16661.33}, {'date': '2022-02-26', 'amount': 16661.33}, {'date': '2022-03-28', 'amount': 16661.34}]}]}
+2022-01-21 23:00:23,813:    root:DEBUG   ::update wallet: 9geyRjVLq24itjrEHgQDsVUgdGfXyCBuGy3UrmsdM5mNkjnFLKb, spent: 1499.52
+2022-01-21 23:00:23,814:    root:DEBUG   ::update whitelist set spent_sigusd = 1499.52 where "walletAddress" = '9geyRjVLq24itjrEHgQDsVUgdGfXyCBuGy3UrmsdM5mNkjnFLKb'
+2022-01-21 23:00:23,815:    root:DEBUG   ::checking 9gNChnwDZhtATbYbdhrzhr1YH829J8dBWmiVPbuqATbcvq9jBfA
+2022-01-21 23:00:23,820:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:24,323:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gNChnwDZhtATbYbdhrzhr1YH829J8dBWmiVPbuqATbcvq9jBfA HTTP/1.1" 200 282
+2022-01-21 23:00:24,323:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 33333.0, 'outstanding': [{'date': '2022-01-26', 'amount': 11111.0}, {'date': '2022-02-26', 'amount': 11111.0}, {'date': '2022-03-28', 'amount': 11111.0}]}]}
+2022-01-21 23:00:24,323:    root:DEBUG   ::update wallet: 9gNChnwDZhtATbYbdhrzhr1YH829J8dBWmiVPbuqATbcvq9jBfA, spent: 999.99
+2022-01-21 23:00:24,324:    root:DEBUG   ::update whitelist set spent_sigusd = 999.99 where "walletAddress" = '9gNChnwDZhtATbYbdhrzhr1YH829J8dBWmiVPbuqATbcvq9jBfA'
+2022-01-21 23:00:24,325:    root:DEBUG   ::checking 9fmasgJCngGoHZLeunund7kkzT5fhQq7wmuiYAuJ2ogCCR7qQWX
+2022-01-21 23:00:24,328:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:24,849:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fmasgJCngGoHZLeunund7kkzT5fhQq7wmuiYAuJ2ogCCR7qQWX HTTP/1.1" 200 281
+2022-01-21 23:00:24,851:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 6562.0, 'outstanding': [{'date': '2022-01-26', 'amount': 2187.33}, {'date': '2022-02-26', 'amount': 2187.33}, {'date': '2022-03-28', 'amount': 2187.34}]}]}
+2022-01-21 23:00:24,851:    root:DEBUG   ::update wallet: 9fmasgJCngGoHZLeunund7kkzT5fhQq7wmuiYAuJ2ogCCR7qQWX, spent: 196.85999999999999
+2022-01-21 23:00:24,851:    root:DEBUG   ::update whitelist set spent_sigusd = 196.85999999999999 where "walletAddress" = '9fmasgJCngGoHZLeunund7kkzT5fhQq7wmuiYAuJ2ogCCR7qQWX'
+2022-01-21 23:00:24,853:    root:DEBUG   ::checking 9gVxkaHChug3wPZAwCR2XeKkNpDbGSZtm2KfviGYvobS7fF4a4C
+2022-01-21 23:00:24,855:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:25,426:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gVxkaHChug3wPZAwCR2XeKkNpDbGSZtm2KfviGYvobS7fF4a4C HTTP/1.1" 200 282
+2022-01-21 23:00:25,427:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 63750.0, 'outstanding': [{'date': '2022-01-26', 'amount': 21250.0}, {'date': '2022-02-26', 'amount': 21250.0}, {'date': '2022-03-28', 'amount': 21250.0}]}]}
+2022-01-21 23:00:25,428:    root:DEBUG   ::update wallet: 9gVxkaHChug3wPZAwCR2XeKkNpDbGSZtm2KfviGYvobS7fF4a4C, spent: 1912.5
+2022-01-21 23:00:25,428:    root:DEBUG   ::update whitelist set spent_sigusd = 1912.5 where "walletAddress" = '9gVxkaHChug3wPZAwCR2XeKkNpDbGSZtm2KfviGYvobS7fF4a4C'
+2022-01-21 23:00:25,429:    root:DEBUG   ::checking 9fZgWmWE5SQcyCTqPxMT6fTLM9qUD5KUgYRgAVp3SB3WLyyk7KW
+2022-01-21 23:00:25,432:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:25,965:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fZgWmWE5SQcyCTqPxMT6fTLM9qUD5KUgYRgAVp3SB3WLyyk7KW HTTP/1.1" 200 282
+2022-01-21 23:00:25,966:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 13300.0, 'outstanding': [{'date': '2022-01-26', 'amount': 4433.33}, {'date': '2022-02-26', 'amount': 4433.33}, {'date': '2022-03-28', 'amount': 4433.34}]}]}
+2022-01-21 23:00:25,966:    root:DEBUG   ::update wallet: 9fZgWmWE5SQcyCTqPxMT6fTLM9qUD5KUgYRgAVp3SB3WLyyk7KW, spent: 399.0
+2022-01-21 23:00:25,966:    root:DEBUG   ::update whitelist set spent_sigusd = 399.0 where "walletAddress" = '9fZgWmWE5SQcyCTqPxMT6fTLM9qUD5KUgYRgAVp3SB3WLyyk7KW'
+2022-01-21 23:00:25,967:    root:DEBUG   ::checking 9g9Cde2se5KeqDyigEAsDgT23uMBdAjtv5fdEatb1xMF4RB49cd
+2022-01-21 23:00:25,970:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:26,487:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9g9Cde2se5KeqDyigEAsDgT23uMBdAjtv5fdEatb1xMF4RB49cd HTTP/1.1" 200 285
+2022-01-21 23:00:26,488:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 58660.0, 'outstanding': [{'date': '2022-01-26', 'amount': 19553.33}, {'date': '2022-02-26', 'amount': 19553.33}, {'date': '2022-03-28', 'amount': 19553.34}]}]}
+2022-01-21 23:00:26,489:    root:DEBUG   ::update wallet: 9g9Cde2se5KeqDyigEAsDgT23uMBdAjtv5fdEatb1xMF4RB49cd, spent: 1759.8
+2022-01-21 23:00:26,489:    root:DEBUG   ::update whitelist set spent_sigusd = 1759.8 where "walletAddress" = '9g9Cde2se5KeqDyigEAsDgT23uMBdAjtv5fdEatb1xMF4RB49cd'
+2022-01-21 23:00:26,490:    root:DEBUG   ::checking 9fD4LseojrAMXeoW1a7XS6BZqjTA28T557mFstr2js391em6gJk
+2022-01-21 23:00:26,493:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:27,020:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fD4LseojrAMXeoW1a7XS6BZqjTA28T557mFstr2js391em6gJk HTTP/1.1" 200 281
+2022-01-21 23:00:27,021:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 3332.0, 'outstanding': [{'date': '2022-01-26', 'amount': 1110.66}, {'date': '2022-02-26', 'amount': 1110.66}, {'date': '2022-03-28', 'amount': 1110.68}]}]}
+2022-01-21 23:00:27,021:    root:DEBUG   ::update wallet: 9fD4LseojrAMXeoW1a7XS6BZqjTA28T557mFstr2js391em6gJk, spent: 99.96
+2022-01-21 23:00:27,021:    root:DEBUG   ::update whitelist set spent_sigusd = 99.96 where "walletAddress" = '9fD4LseojrAMXeoW1a7XS6BZqjTA28T557mFstr2js391em6gJk'
+2022-01-21 23:00:27,023:    root:DEBUG   ::checking 9hS8QjHoC7ZBbU8hpD81rM7DqKZBoMvJLDH78ZCWgwYvvtFfauF
+2022-01-21 23:00:27,025:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:27,568:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hS8QjHoC7ZBbU8hpD81rM7DqKZBoMvJLDH78ZCWgwYvvtFfauF HTTP/1.1" 200 281
+2022-01-21 23:00:27,569:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 9056.0, 'outstanding': [{'date': '2022-01-26', 'amount': 3018.66}, {'date': '2022-02-26', 'amount': 3018.66}, {'date': '2022-03-28', 'amount': 3018.68}]}]}
+2022-01-21 23:00:27,569:    root:DEBUG   ::update wallet: 9hS8QjHoC7ZBbU8hpD81rM7DqKZBoMvJLDH78ZCWgwYvvtFfauF, spent: 271.68
+2022-01-21 23:00:27,569:    root:DEBUG   ::update whitelist set spent_sigusd = 271.68 where "walletAddress" = '9hS8QjHoC7ZBbU8hpD81rM7DqKZBoMvJLDH78ZCWgwYvvtFfauF'
+2022-01-21 23:00:27,570:    root:DEBUG   ::checking 9hbUKG4EXpnas6sbzrJemog5zjiigCDymY9mMTGnS7FtdyAMwik
+2022-01-21 23:00:27,572:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:28,098:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hbUKG4EXpnas6sbzrJemog5zjiigCDymY9mMTGnS7FtdyAMwik HTTP/1.1" 200 283
+2022-01-21 23:00:28,100:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 166566.0, 'outstanding': [{'date': '2022-01-26', 'amount': 55522.0}, {'date': '2022-02-26', 'amount': 55522.0}, {'date': '2022-03-28', 'amount': 55522.0}]}]}
+2022-01-21 23:00:28,100:    root:DEBUG   ::update wallet: 9hbUKG4EXpnas6sbzrJemog5zjiigCDymY9mMTGnS7FtdyAMwik, spent: 4996.98
+2022-01-21 23:00:28,100:    root:DEBUG   ::update whitelist set spent_sigusd = 4996.98 where "walletAddress" = '9hbUKG4EXpnas6sbzrJemog5zjiigCDymY9mMTGnS7FtdyAMwik'
+2022-01-21 23:00:28,101:    root:DEBUG   ::checking 9f41wE4S2Q8vftZrkSZFRUVuM6n1Qjg75PWTrbrcEv4a69avL9t
+2022-01-21 23:00:28,103:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:28,646:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9f41wE4S2Q8vftZrkSZFRUVuM6n1Qjg75PWTrbrcEv4a69avL9t HTTP/1.1" 200 282
+2022-01-21 23:00:28,647:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 93333.0, 'outstanding': [{'date': '2022-01-26', 'amount': 31111.0}, {'date': '2022-02-26', 'amount': 31111.0}, {'date': '2022-03-28', 'amount': 31111.0}]}]}
+2022-01-21 23:00:28,647:    root:DEBUG   ::update wallet: 9f41wE4S2Q8vftZrkSZFRUVuM6n1Qjg75PWTrbrcEv4a69avL9t, spent: 2799.99
+2022-01-21 23:00:28,647:    root:DEBUG   ::update whitelist set spent_sigusd = 2799.99 where "walletAddress" = '9f41wE4S2Q8vftZrkSZFRUVuM6n1Qjg75PWTrbrcEv4a69avL9t'
+2022-01-21 23:00:28,648:    root:DEBUG   ::checking 9gmrfXkBromV7iSE2piR9Fm2HzKvm5kUpYibWPndbkxLbPUXph9
+2022-01-21 23:00:28,651:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:29,162:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gmrfXkBromV7iSE2piR9Fm2HzKvm5kUpYibWPndbkxLbPUXph9 HTTP/1.1" 200 285
+2022-01-21 23:00:29,162:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 99424.0, 'outstanding': [{'date': '2022-01-26', 'amount': 33141.33}, {'date': '2022-02-26', 'amount': 33141.33}, {'date': '2022-03-28', 'amount': 33141.34}]}]}
+2022-01-21 23:00:29,163:    root:DEBUG   ::update wallet: 9gmrfXkBromV7iSE2piR9Fm2HzKvm5kUpYibWPndbkxLbPUXph9, spent: 2982.72
+2022-01-21 23:00:29,163:    root:DEBUG   ::update whitelist set spent_sigusd = 2982.72 where "walletAddress" = '9gmrfXkBromV7iSE2piR9Fm2HzKvm5kUpYibWPndbkxLbPUXph9'
+2022-01-21 23:00:29,164:    root:DEBUG   ::checking 9iJ57iv5j7qW7JxRT7qnXhL1tbdC87kUfGjJRr3TCnEhbLgza8M
+2022-01-21 23:00:29,166:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:29,710:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9iJ57iv5j7qW7JxRT7qnXhL1tbdC87kUfGjJRr3TCnEhbLgza8M HTTP/1.1" 200 285
+2022-01-21 23:00:29,711:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 50000.0, 'outstanding': [{'date': '2022-01-26', 'amount': 16666.66}, {'date': '2022-02-26', 'amount': 16666.66}, {'date': '2022-03-28', 'amount': 16666.68}]}]}
+2022-01-21 23:00:29,712:    root:DEBUG   ::update wallet: 9iJ57iv5j7qW7JxRT7qnXhL1tbdC87kUfGjJRr3TCnEhbLgza8M, spent: 1500.0
+2022-01-21 23:00:29,712:    root:DEBUG   ::update whitelist set spent_sigusd = 1500.0 where "walletAddress" = '9iJ57iv5j7qW7JxRT7qnXhL1tbdC87kUfGjJRr3TCnEhbLgza8M'
+2022-01-21 23:00:29,712:    root:DEBUG   ::checking 9fmonodCrMrWwwLzQhsrqibzhDccT8AaixqLjN5NQ5viTL2qTUg
+2022-01-21 23:00:29,715:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:30,244:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fmonodCrMrWwwLzQhsrqibzhDccT8AaixqLjN5NQ5viTL2qTUg HTTP/1.1" 200 289
+2022-01-21 23:00:30,245:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 313093.0, 'outstanding': [{'date': '2022-01-26', 'amount': 104364.33}, {'date': '2022-02-26', 'amount': 104364.33}, {'date': '2022-03-28', 'amount': 104364.34}]}]}
+2022-01-21 23:00:30,245:    root:DEBUG   ::update wallet: 9fmonodCrMrWwwLzQhsrqibzhDccT8AaixqLjN5NQ5viTL2qTUg, spent: 9392.789999999999
+2022-01-21 23:00:30,245:    root:DEBUG   ::update whitelist set spent_sigusd = 9392.789999999999 where "walletAddress" = '9fmonodCrMrWwwLzQhsrqibzhDccT8AaixqLjN5NQ5viTL2qTUg'
+2022-01-21 23:00:30,246:    root:DEBUG   ::checking 9fqhsCJbDyukcHQWWjyy3PRZqYDGtAZntp3J78edAJgQNczwTjb
+2022-01-21 23:00:30,249:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:30,766:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fqhsCJbDyukcHQWWjyy3PRZqYDGtAZntp3J78edAJgQNczwTjb HTTP/1.1" 200 283
+2022-01-21 23:00:30,768:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 101640.0, 'outstanding': [{'date': '2022-01-26', 'amount': 33880.0}, {'date': '2022-02-26', 'amount': 33880.0}, {'date': '2022-03-28', 'amount': 33880.0}]}]}
+2022-01-21 23:00:30,768:    root:DEBUG   ::update wallet: 9fqhsCJbDyukcHQWWjyy3PRZqYDGtAZntp3J78edAJgQNczwTjb, spent: 3049.2
+2022-01-21 23:00:30,768:    root:DEBUG   ::update whitelist set spent_sigusd = 3049.2 where "walletAddress" = '9fqhsCJbDyukcHQWWjyy3PRZqYDGtAZntp3J78edAJgQNczwTjb'
+2022-01-21 23:00:30,769:    root:DEBUG   ::checking 9fPv8sfEujyfnmvXUuS9H2LJQQAwyr5joDjqPLCRU3z6CzsdL2z
+2022-01-21 23:00:30,771:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:31,344:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fPv8sfEujyfnmvXUuS9H2LJQQAwyr5joDjqPLCRU3z6CzsdL2z HTTP/1.1" 200 286
+2022-01-21 23:00:31,344:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 142756.0, 'outstanding': [{'date': '2022-01-26', 'amount': 47585.33}, {'date': '2022-02-26', 'amount': 47585.33}, {'date': '2022-03-28', 'amount': 47585.34}]}]}
+2022-01-21 23:00:31,345:    root:DEBUG   ::update wallet: 9fPv8sfEujyfnmvXUuS9H2LJQQAwyr5joDjqPLCRU3z6CzsdL2z, spent: 4282.68
+2022-01-21 23:00:31,345:    root:DEBUG   ::update whitelist set spent_sigusd = 4282.68 where "walletAddress" = '9fPv8sfEujyfnmvXUuS9H2LJQQAwyr5joDjqPLCRU3z6CzsdL2z'
+2022-01-21 23:00:31,346:    root:DEBUG   ::checking 9fG9pNzpqCXe1i3okHaCJCQNMausSWi9NMTsQvpKGoLwK6TivUN
+2022-01-21 23:00:31,349:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:31,893:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fG9pNzpqCXe1i3okHaCJCQNMausSWi9NMTsQvpKGoLwK6TivUN HTTP/1.1" 200 279
+2022-01-21 23:00:31,894:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 12777.0, 'outstanding': [{'date': '2022-01-26', 'amount': 4259.0}, {'date': '2022-02-26', 'amount': 4259.0}, {'date': '2022-03-28', 'amount': 4259.0}]}]}
+2022-01-21 23:00:31,894:    root:DEBUG   ::update wallet: 9fG9pNzpqCXe1i3okHaCJCQNMausSWi9NMTsQvpKGoLwK6TivUN, spent: 383.31
+2022-01-21 23:00:31,894:    root:DEBUG   ::update whitelist set spent_sigusd = 383.31 where "walletAddress" = '9fG9pNzpqCXe1i3okHaCJCQNMausSWi9NMTsQvpKGoLwK6TivUN'
+2022-01-21 23:00:31,895:    root:DEBUG   ::checking 9fPv8sfEujyfnmvXUuS9H2LJQQAwyr5joDjqPLCRU3z6CzsdL2z
+2022-01-21 23:00:31,898:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:32,412:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fPv8sfEujyfnmvXUuS9H2LJQQAwyr5joDjqPLCRU3z6CzsdL2z HTTP/1.1" 200 286
+2022-01-21 23:00:32,414:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 142756.0, 'outstanding': [{'date': '2022-01-26', 'amount': 47585.33}, {'date': '2022-02-26', 'amount': 47585.33}, {'date': '2022-03-28', 'amount': 47585.34}]}]}
+2022-01-21 23:00:32,414:    root:DEBUG   ::update wallet: 9fPv8sfEujyfnmvXUuS9H2LJQQAwyr5joDjqPLCRU3z6CzsdL2z, spent: 4282.68
+2022-01-21 23:00:32,415:    root:DEBUG   ::update whitelist set spent_sigusd = 4282.68 where "walletAddress" = '9fPv8sfEujyfnmvXUuS9H2LJQQAwyr5joDjqPLCRU3z6CzsdL2z'
+2022-01-21 23:00:32,416:    root:DEBUG   ::checking 9eb8p9AB2Coem6fxLVt7D4c8zS17J1ZwK4msBAgNTSyBZemz5fp
+2022-01-21 23:00:32,419:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:32,937:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9eb8p9AB2Coem6fxLVt7D4c8zS17J1ZwK4msBAgNTSyBZemz5fp HTTP/1.1" 200 314
+2022-01-21 23:00:32,938:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 8830.0, 'outstanding': [{'date': '2022-01-26', 'amount': 2943.3199999999997}, {'date': '2022-02-26', 'amount': 2943.3199999999997}, {'date': '2022-03-28', 'amount': 2943.3599999999997}]}]}
+2022-01-21 23:00:32,939:    root:DEBUG   ::update wallet: 9eb8p9AB2Coem6fxLVt7D4c8zS17J1ZwK4msBAgNTSyBZemz5fp, spent: 264.9
+2022-01-21 23:00:32,939:    root:DEBUG   ::update whitelist set spent_sigusd = 264.9 where "walletAddress" = '9eb8p9AB2Coem6fxLVt7D4c8zS17J1ZwK4msBAgNTSyBZemz5fp'
+2022-01-21 23:00:32,940:    root:DEBUG   ::checking 9fBPQLJdaWrmWLKPBqWCQdemYMJ6E5HsYeEnLtSZB9QuL3iYzAz
+2022-01-21 23:00:32,943:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:33,464:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fBPQLJdaWrmWLKPBqWCQdemYMJ6E5HsYeEnLtSZB9QuL3iYzAz HTTP/1.1" 200 285
+2022-01-21 23:00:33,465:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 75430.0, 'outstanding': [{'date': '2022-01-26', 'amount': 25143.33}, {'date': '2022-02-26', 'amount': 25143.33}, {'date': '2022-03-28', 'amount': 25143.34}]}]}
+2022-01-21 23:00:33,465:    root:DEBUG   ::update wallet: 9fBPQLJdaWrmWLKPBqWCQdemYMJ6E5HsYeEnLtSZB9QuL3iYzAz, spent: 2262.9
+2022-01-21 23:00:33,465:    root:DEBUG   ::update whitelist set spent_sigusd = 2262.9 where "walletAddress" = '9fBPQLJdaWrmWLKPBqWCQdemYMJ6E5HsYeEnLtSZB9QuL3iYzAz'
+2022-01-21 23:00:33,466:    root:DEBUG   ::checking 9hfJ8XPyrmnXAJZmALBXDFW8q7Eh6pcf6b1CY1yG7w3LBnDs4fW
+2022-01-21 23:00:33,469:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:33,991:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hfJ8XPyrmnXAJZmALBXDFW8q7Eh6pcf6b1CY1yG7w3LBnDs4fW HTTP/1.1" 200 286
+2022-01-21 23:00:33,992:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 333324.0, 'outstanding': [{'date': '2022-01-26', 'amount': 111108.0}, {'date': '2022-02-26', 'amount': 111108.0}, {'date': '2022-03-28', 'amount': 111108.0}]}]}
+2022-01-21 23:00:33,992:    root:DEBUG   ::update wallet: 9hfJ8XPyrmnXAJZmALBXDFW8q7Eh6pcf6b1CY1yG7w3LBnDs4fW, spent: 9999.72
+2022-01-21 23:00:33,993:    root:DEBUG   ::update whitelist set spent_sigusd = 9999.72 where "walletAddress" = '9hfJ8XPyrmnXAJZmALBXDFW8q7Eh6pcf6b1CY1yG7w3LBnDs4fW'
+2022-01-21 23:00:33,994:    root:DEBUG   ::checking 9fBPQLJdaWrmWLKPBqWCQdemYMJ6E5HsYeEnLtSZB9QuL3iYzAz
+2022-01-21 23:00:33,996:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:34,517:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fBPQLJdaWrmWLKPBqWCQdemYMJ6E5HsYeEnLtSZB9QuL3iYzAz HTTP/1.1" 200 285
+2022-01-21 23:00:34,518:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 75430.0, 'outstanding': [{'date': '2022-01-26', 'amount': 25143.33}, {'date': '2022-02-26', 'amount': 25143.33}, {'date': '2022-03-28', 'amount': 25143.34}]}]}
+2022-01-21 23:00:34,518:    root:DEBUG   ::update wallet: 9fBPQLJdaWrmWLKPBqWCQdemYMJ6E5HsYeEnLtSZB9QuL3iYzAz, spent: 2262.9
+2022-01-21 23:00:34,518:    root:DEBUG   ::update whitelist set spent_sigusd = 2262.9 where "walletAddress" = '9fBPQLJdaWrmWLKPBqWCQdemYMJ6E5HsYeEnLtSZB9QuL3iYzAz'
+2022-01-21 23:00:34,519:    root:DEBUG   ::checking 9epJ5mfyNpkkjLHo1iZuB1tm6NTuaFXatoicUsWbQ1Pf4r6eA9y
+2022-01-21 23:00:34,522:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:34,872:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9epJ5mfyNpkkjLHo1iZuB1tm6NTuaFXatoicUsWbQ1Pf4r6eA9y HTTP/1.1" 200 282
+2022-01-21 23:00:34,873:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 16637.0, 'outstanding': [{'date': '2022-01-26', 'amount': 5545.66}, {'date': '2022-02-26', 'amount': 5545.66}, {'date': '2022-03-28', 'amount': 5545.68}]}]}
+2022-01-21 23:00:34,873:    root:DEBUG   ::update wallet: 9epJ5mfyNpkkjLHo1iZuB1tm6NTuaFXatoicUsWbQ1Pf4r6eA9y, spent: 499.10999999999996
+2022-01-21 23:00:34,873:    root:DEBUG   ::update whitelist set spent_sigusd = 499.10999999999996 where "walletAddress" = '9epJ5mfyNpkkjLHo1iZuB1tm6NTuaFXatoicUsWbQ1Pf4r6eA9y'
+2022-01-21 23:00:34,875:    root:DEBUG   ::checking 9goeZVbgUNLaB445mM8AET2i1HymHAZhz5LSgVPzjKzGkfhDgG6
+2022-01-21 23:00:34,877:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:35,481:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9goeZVbgUNLaB445mM8AET2i1HymHAZhz5LSgVPzjKzGkfhDgG6 HTTP/1.1" 200 285
+2022-01-21 23:00:35,483:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 74648.0, 'outstanding': [{'date': '2022-01-26', 'amount': 24882.66}, {'date': '2022-02-26', 'amount': 24882.66}, {'date': '2022-03-28', 'amount': 24882.68}]}]}
+2022-01-21 23:00:35,483:    root:DEBUG   ::update wallet: 9goeZVbgUNLaB445mM8AET2i1HymHAZhz5LSgVPzjKzGkfhDgG6, spent: 2239.44
+2022-01-21 23:00:35,483:    root:DEBUG   ::update whitelist set spent_sigusd = 2239.44 where "walletAddress" = '9goeZVbgUNLaB445mM8AET2i1HymHAZhz5LSgVPzjKzGkfhDgG6'
+2022-01-21 23:00:35,485:    root:DEBUG   ::checking 9eb8p9AB2Coem6fxLVt7D4c8zS17J1ZwK4msBAgNTSyBZemz5fp
+2022-01-21 23:00:35,487:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:36,025:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9eb8p9AB2Coem6fxLVt7D4c8zS17J1ZwK4msBAgNTSyBZemz5fp HTTP/1.1" 200 314
+2022-01-21 23:00:36,027:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 8830.0, 'outstanding': [{'date': '2022-01-26', 'amount': 2943.3199999999997}, {'date': '2022-02-26', 'amount': 2943.3199999999997}, {'date': '2022-03-28', 'amount': 2943.3599999999997}]}]}
+2022-01-21 23:00:36,027:    root:DEBUG   ::update wallet: 9eb8p9AB2Coem6fxLVt7D4c8zS17J1ZwK4msBAgNTSyBZemz5fp, spent: 264.9
+2022-01-21 23:00:36,027:    root:DEBUG   ::update whitelist set spent_sigusd = 264.9 where "walletAddress" = '9eb8p9AB2Coem6fxLVt7D4c8zS17J1ZwK4msBAgNTSyBZemz5fp'
+2022-01-21 23:00:36,029:    root:DEBUG   ::checking 9fjqNQKfCpa4x6d3gLTHk8irxDknrafvKhAV86znSzHTLvc8aK6
+2022-01-21 23:00:36,032:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:36,568:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fjqNQKfCpa4x6d3gLTHk8irxDknrafvKhAV86znSzHTLvc8aK6 HTTP/1.1" 200 281
+2022-01-21 23:00:36,569:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 3241.0, 'outstanding': [{'date': '2022-01-26', 'amount': 1080.33}, {'date': '2022-02-26', 'amount': 1080.33}, {'date': '2022-03-28', 'amount': 1080.34}]}]}
+2022-01-21 23:00:36,570:    root:DEBUG   ::update wallet: 9fjqNQKfCpa4x6d3gLTHk8irxDknrafvKhAV86znSzHTLvc8aK6, spent: 97.22999999999999
+2022-01-21 23:00:36,570:    root:DEBUG   ::update whitelist set spent_sigusd = 97.22999999999999 where "walletAddress" = '9fjqNQKfCpa4x6d3gLTHk8irxDknrafvKhAV86znSzHTLvc8aK6'
+2022-01-21 23:00:36,572:    root:DEBUG   ::checking 9hN5z9tnWvM4SjQFo9MQxc5vymBa13ALXeFL8UssU1Poj8hyxPV
+2022-01-21 23:00:36,575:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:37,105:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hN5z9tnWvM4SjQFo9MQxc5vymBa13ALXeFL8UssU1Poj8hyxPV HTTP/1.1" 200 289
+2022-01-21 23:00:37,110:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 666640.0, 'outstanding': [{'date': '2022-01-26', 'amount': 222213.33}, {'date': '2022-02-26', 'amount': 222213.33}, {'date': '2022-03-28', 'amount': 222213.34}]}]}
+2022-01-21 23:00:37,111:    root:DEBUG   ::update wallet: 9hN5z9tnWvM4SjQFo9MQxc5vymBa13ALXeFL8UssU1Poj8hyxPV, spent: 19999.2
+2022-01-21 23:00:37,111:    root:DEBUG   ::update whitelist set spent_sigusd = 19999.2 where "walletAddress" = '9hN5z9tnWvM4SjQFo9MQxc5vymBa13ALXeFL8UssU1Poj8hyxPV'
+2022-01-21 23:00:37,114:    root:DEBUG   ::checking 9gsWGV9yA2mEgbDJFdquQe3sL3sNYRTiLD16gLL9E387vZc7AgL
+2022-01-21 23:00:37,122:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:37,767:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gsWGV9yA2mEgbDJFdquQe3sL3sNYRTiLD16gLL9E387vZc7AgL HTTP/1.1" 200 285
+2022-01-21 23:00:37,767:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 66560.0, 'outstanding': [{'date': '2022-01-26', 'amount': 22186.66}, {'date': '2022-02-26', 'amount': 22186.66}, {'date': '2022-03-28', 'amount': 22186.68}]}]}
+2022-01-21 23:00:37,768:    root:DEBUG   ::update wallet: 9gsWGV9yA2mEgbDJFdquQe3sL3sNYRTiLD16gLL9E387vZc7AgL, spent: 1996.8
+2022-01-21 23:00:37,768:    root:DEBUG   ::update whitelist set spent_sigusd = 1996.8 where "walletAddress" = '9gsWGV9yA2mEgbDJFdquQe3sL3sNYRTiLD16gLL9E387vZc7AgL'
+2022-01-21 23:00:37,769:    root:DEBUG   ::checking 9hN5z9tnWvM4SjQFo9MQxc5vymBa13ALXeFL8UssU1Poj8hyxPV
+2022-01-21 23:00:37,771:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:38,246:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hN5z9tnWvM4SjQFo9MQxc5vymBa13ALXeFL8UssU1Poj8hyxPV HTTP/1.1" 200 289
+2022-01-21 23:00:38,248:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 666640.0, 'outstanding': [{'date': '2022-01-26', 'amount': 222213.33}, {'date': '2022-02-26', 'amount': 222213.33}, {'date': '2022-03-28', 'amount': 222213.34}]}]}
+2022-01-21 23:00:38,248:    root:DEBUG   ::update wallet: 9hN5z9tnWvM4SjQFo9MQxc5vymBa13ALXeFL8UssU1Poj8hyxPV, spent: 19999.2
+2022-01-21 23:00:38,249:    root:DEBUG   ::update whitelist set spent_sigusd = 19999.2 where "walletAddress" = '9hN5z9tnWvM4SjQFo9MQxc5vymBa13ALXeFL8UssU1Poj8hyxPV'
+2022-01-21 23:00:38,250:    root:DEBUG   ::checking 9ff3GvyDcswQnV6dfZnvJ8XJwyg1dqYngJKqoL1fVK74v8pD9Vi
+2022-01-21 23:00:38,251:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:38,905:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9ff3GvyDcswQnV6dfZnvJ8XJwyg1dqYngJKqoL1fVK74v8pD9Vi HTTP/1.1" 200 277
+2022-01-21 23:00:38,906:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 391.0, 'outstanding': [{'date': '2022-01-26', 'amount': 130.33}, {'date': '2022-02-26', 'amount': 130.33}, {'date': '2022-03-28', 'amount': 130.34}]}]}
+2022-01-21 23:00:38,906:    root:DEBUG   ::update wallet: 9ff3GvyDcswQnV6dfZnvJ8XJwyg1dqYngJKqoL1fVK74v8pD9Vi, spent: 11.73
+2022-01-21 23:00:38,906:    root:DEBUG   ::update whitelist set spent_sigusd = 11.73 where "walletAddress" = '9ff3GvyDcswQnV6dfZnvJ8XJwyg1dqYngJKqoL1fVK74v8pD9Vi'
+2022-01-21 23:00:38,907:    root:DEBUG   ::checking 9ff3GvyDcswQnV6dfZnvJ8XJwyg1dqYngJKqoL1fVK74v8pD9Vi
+2022-01-21 23:00:38,910:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:39,406:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9ff3GvyDcswQnV6dfZnvJ8XJwyg1dqYngJKqoL1fVK74v8pD9Vi HTTP/1.1" 200 277
+2022-01-21 23:00:39,407:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 391.0, 'outstanding': [{'date': '2022-01-26', 'amount': 130.33}, {'date': '2022-02-26', 'amount': 130.33}, {'date': '2022-03-28', 'amount': 130.34}]}]}
+2022-01-21 23:00:39,407:    root:DEBUG   ::update wallet: 9ff3GvyDcswQnV6dfZnvJ8XJwyg1dqYngJKqoL1fVK74v8pD9Vi, spent: 11.73
+2022-01-21 23:00:39,408:    root:DEBUG   ::update whitelist set spent_sigusd = 11.73 where "walletAddress" = '9ff3GvyDcswQnV6dfZnvJ8XJwyg1dqYngJKqoL1fVK74v8pD9Vi'
+2022-01-21 23:00:39,409:    root:DEBUG   ::checking 9fMrD1iTyP7CaGQop3qUspv8GE7CWPnAFQRNyAnXT7b2twar5F9
+2022-01-21 23:00:39,411:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:39,989:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fMrD1iTyP7CaGQop3qUspv8GE7CWPnAFQRNyAnXT7b2twar5F9 HTTP/1.1" 200 279
+2022-01-21 23:00:39,990:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 21648.0, 'outstanding': [{'date': '2022-01-26', 'amount': 7216.0}, {'date': '2022-02-26', 'amount': 7216.0}, {'date': '2022-03-28', 'amount': 7216.0}]}]}
+2022-01-21 23:00:39,990:    root:DEBUG   ::update wallet: 9fMrD1iTyP7CaGQop3qUspv8GE7CWPnAFQRNyAnXT7b2twar5F9, spent: 649.4399999999999
+2022-01-21 23:00:39,991:    root:DEBUG   ::update whitelist set spent_sigusd = 649.4399999999999 where "walletAddress" = '9fMrD1iTyP7CaGQop3qUspv8GE7CWPnAFQRNyAnXT7b2twar5F9'
+2022-01-21 23:00:39,992:    root:DEBUG   ::checking 9eb8p9AB2Coem6fxLVt7D4c8zS17J1ZwK4msBAgNTSyBZemz5fp
+2022-01-21 23:00:39,995:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:40,529:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9eb8p9AB2Coem6fxLVt7D4c8zS17J1ZwK4msBAgNTSyBZemz5fp HTTP/1.1" 200 314
+2022-01-21 23:00:40,530:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 8830.0, 'outstanding': [{'date': '2022-01-26', 'amount': 2943.3199999999997}, {'date': '2022-02-26', 'amount': 2943.3199999999997}, {'date': '2022-03-28', 'amount': 2943.3599999999997}]}]}
+2022-01-21 23:00:40,531:    root:DEBUG   ::update wallet: 9eb8p9AB2Coem6fxLVt7D4c8zS17J1ZwK4msBAgNTSyBZemz5fp, spent: 264.9
+2022-01-21 23:00:40,531:    root:DEBUG   ::update whitelist set spent_sigusd = 264.9 where "walletAddress" = '9eb8p9AB2Coem6fxLVt7D4c8zS17J1ZwK4msBAgNTSyBZemz5fp'
+2022-01-21 23:00:40,532:    root:DEBUG   ::checking 9euGuwPBXpbyjPyGvtXRhYDvMe9HwiC52nj8rq4XUzbFfUgnHmP
+2022-01-21 23:00:40,535:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:41,074:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9euGuwPBXpbyjPyGvtXRhYDvMe9HwiC52nj8rq4XUzbFfUgnHmP HTTP/1.1" 200 285
+2022-01-21 23:00:41,075:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 32833.0, 'outstanding': [{'date': '2022-01-26', 'amount': 10944.33}, {'date': '2022-02-26', 'amount': 10944.33}, {'date': '2022-03-28', 'amount': 10944.34}]}]}
+2022-01-21 23:00:41,075:    root:DEBUG   ::update wallet: 9euGuwPBXpbyjPyGvtXRhYDvMe9HwiC52nj8rq4XUzbFfUgnHmP, spent: 984.99
+2022-01-21 23:00:41,075:    root:DEBUG   ::update whitelist set spent_sigusd = 984.99 where "walletAddress" = '9euGuwPBXpbyjPyGvtXRhYDvMe9HwiC52nj8rq4XUzbFfUgnHmP'
+2022-01-21 23:00:41,077:    root:DEBUG   ::checking 9hpX1PoLdTPHC9RKD5x9BcR9HhuJn1H44T9jRSB8qV29F6H4R8N
+2022-01-21 23:00:41,079:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:41,571:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hpX1PoLdTPHC9RKD5x9BcR9HhuJn1H44T9jRSB8qV29F6H4R8N HTTP/1.1" 200 278
+2022-01-21 23:00:41,572:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 4596.0, 'outstanding': [{'date': '2022-01-26', 'amount': 1532.0}, {'date': '2022-02-26', 'amount': 1532.0}, {'date': '2022-03-28', 'amount': 1532.0}]}]}
+2022-01-21 23:00:41,572:    root:DEBUG   ::update wallet: 9hpX1PoLdTPHC9RKD5x9BcR9HhuJn1H44T9jRSB8qV29F6H4R8N, spent: 137.88
+2022-01-21 23:00:41,572:    root:DEBUG   ::update whitelist set spent_sigusd = 137.88 where "walletAddress" = '9hpX1PoLdTPHC9RKD5x9BcR9HhuJn1H44T9jRSB8qV29F6H4R8N'
+2022-01-21 23:00:41,574:    root:DEBUG   ::checking 9eYFnDuJAPtwNnXbSGRKeTxSUTeVRp2sey1HMihtYDfzTzHC9yz
+2022-01-21 23:00:41,575:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:42,089:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9eYFnDuJAPtwNnXbSGRKeTxSUTeVRp2sey1HMihtYDfzTzHC9yz HTTP/1.1" 200 282
+2022-01-21 23:00:42,091:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 16594.0, 'outstanding': [{'date': '2022-01-26', 'amount': 5531.33}, {'date': '2022-02-26', 'amount': 5531.33}, {'date': '2022-03-28', 'amount': 5531.34}]}]}
+2022-01-21 23:00:42,092:    root:DEBUG   ::update wallet: 9eYFnDuJAPtwNnXbSGRKeTxSUTeVRp2sey1HMihtYDfzTzHC9yz, spent: 497.82
+2022-01-21 23:00:42,093:    root:DEBUG   ::update whitelist set spent_sigusd = 497.82 where "walletAddress" = '9eYFnDuJAPtwNnXbSGRKeTxSUTeVRp2sey1HMihtYDfzTzHC9yz'
+2022-01-21 23:00:42,094:    root:DEBUG   ::checking 9eaixkZpuUipmcLhXeB2DRpp6wyv2mRgNeJhG6JQ6VU4gMmtPCX
+2022-01-21 23:00:42,098:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:42,723:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9eaixkZpuUipmcLhXeB2DRpp6wyv2mRgNeJhG6JQ6VU4gMmtPCX HTTP/1.1" 200 282
+2022-01-21 23:00:42,724:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 30147.0, 'outstanding': [{'date': '2022-01-26', 'amount': 10049.0}, {'date': '2022-02-26', 'amount': 10049.0}, {'date': '2022-03-28', 'amount': 10049.0}]}]}
+2022-01-21 23:00:42,724:    root:DEBUG   ::update wallet: 9eaixkZpuUipmcLhXeB2DRpp6wyv2mRgNeJhG6JQ6VU4gMmtPCX, spent: 904.41
+2022-01-21 23:00:42,725:    root:DEBUG   ::update whitelist set spent_sigusd = 904.41 where "walletAddress" = '9eaixkZpuUipmcLhXeB2DRpp6wyv2mRgNeJhG6JQ6VU4gMmtPCX'
+2022-01-21 23:00:42,726:    root:DEBUG   ::checking 9hqBvFiHGCimMpwG5t1KbGhHXKkx5c41RNvFtjotSZ4Lh7pXLGM
+2022-01-21 23:00:42,729:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:43,705:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hqBvFiHGCimMpwG5t1KbGhHXKkx5c41RNvFtjotSZ4Lh7pXLGM HTTP/1.1" 200 286
+2022-01-21 23:00:43,706:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 266666.0, 'outstanding': [{'date': '2022-01-26', 'amount': 88888.66}, {'date': '2022-02-26', 'amount': 88888.66}, {'date': '2022-03-28', 'amount': 88888.68}]}]}
+2022-01-21 23:00:43,706:    root:DEBUG   ::update wallet: 9hqBvFiHGCimMpwG5t1KbGhHXKkx5c41RNvFtjotSZ4Lh7pXLGM, spent: 7999.98
+2022-01-21 23:00:43,706:    root:DEBUG   ::update whitelist set spent_sigusd = 7999.98 where "walletAddress" = '9hqBvFiHGCimMpwG5t1KbGhHXKkx5c41RNvFtjotSZ4Lh7pXLGM'
+2022-01-21 23:00:43,708:    root:DEBUG   ::checking 9i3U8u359Nom3bKiSBDY2vzDPn9RXtYC3ZmsQ1X1CjE2Ucrm4YZ
+2022-01-21 23:00:43,711:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:44,214:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9i3U8u359Nom3bKiSBDY2vzDPn9RXtYC3ZmsQ1X1CjE2Ucrm4YZ HTTP/1.1" 200 282
+2022-01-21 23:00:44,215:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 12833.0, 'outstanding': [{'date': '2022-01-26', 'amount': 4277.66}, {'date': '2022-02-26', 'amount': 4277.66}, {'date': '2022-03-28', 'amount': 4277.68}]}]}
+2022-01-21 23:00:44,215:    root:DEBUG   ::update wallet: 9i3U8u359Nom3bKiSBDY2vzDPn9RXtYC3ZmsQ1X1CjE2Ucrm4YZ, spent: 384.99
+2022-01-21 23:00:44,215:    root:DEBUG   ::update whitelist set spent_sigusd = 384.99 where "walletAddress" = '9i3U8u359Nom3bKiSBDY2vzDPn9RXtYC3ZmsQ1X1CjE2Ucrm4YZ'
+2022-01-21 23:00:44,216:    root:DEBUG   ::checking 9fzUTphUikbq15BFobkutCHyYjVQFYFiMcKqitZVErTAJmnxddx
+2022-01-21 23:00:44,219:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:44,721:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fzUTphUikbq15BFobkutCHyYjVQFYFiMcKqitZVErTAJmnxddx HTTP/1.1" 200 278
+2022-01-21 23:00:44,722:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 5700.0, 'outstanding': [{'date': '2022-01-26', 'amount': 1900.0}, {'date': '2022-02-26', 'amount': 1900.0}, {'date': '2022-03-28', 'amount': 1900.0}]}]}
+2022-01-21 23:00:44,722:    root:DEBUG   ::update wallet: 9fzUTphUikbq15BFobkutCHyYjVQFYFiMcKqitZVErTAJmnxddx, spent: 171.0
+2022-01-21 23:00:44,722:    root:DEBUG   ::update whitelist set spent_sigusd = 171.0 where "walletAddress" = '9fzUTphUikbq15BFobkutCHyYjVQFYFiMcKqitZVErTAJmnxddx'
+2022-01-21 23:00:44,723:    root:DEBUG   ::checking 9fDKy4FDzexJMCNx6wxeXmTfRw1jSfz1qP8woCnhfRk8LpJxMh7
+2022-01-21 23:00:44,725:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:45,257:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fDKy4FDzexJMCNx6wxeXmTfRw1jSfz1qP8woCnhfRk8LpJxMh7 HTTP/1.1" 200 281
+2022-01-21 23:00:45,258:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 6400.0, 'outstanding': [{'date': '2022-01-26', 'amount': 2133.33}, {'date': '2022-02-26', 'amount': 2133.33}, {'date': '2022-03-28', 'amount': 2133.34}]}]}
+2022-01-21 23:00:45,258:    root:DEBUG   ::update wallet: 9fDKy4FDzexJMCNx6wxeXmTfRw1jSfz1qP8woCnhfRk8LpJxMh7, spent: 192.0
+2022-01-21 23:00:45,258:    root:DEBUG   ::update whitelist set spent_sigusd = 192.0 where "walletAddress" = '9fDKy4FDzexJMCNx6wxeXmTfRw1jSfz1qP8woCnhfRk8LpJxMh7'
+2022-01-21 23:00:45,259:    root:DEBUG   ::checking 9eeAH9vPGRP78zZvKfPKXoVscYzEZbBXPdWHBFnfCdSch4AKEmn
+2022-01-21 23:00:45,261:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:46,258:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9eeAH9vPGRP78zZvKfPKXoVscYzEZbBXPdWHBFnfCdSch4AKEmn HTTP/1.1" 200 281
+2022-01-21 23:00:46,259:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 9901.0, 'outstanding': [{'date': '2022-01-26', 'amount': 3300.33}, {'date': '2022-02-26', 'amount': 3300.33}, {'date': '2022-03-28', 'amount': 3300.34}]}]}
+2022-01-21 23:00:46,259:    root:DEBUG   ::update wallet: 9eeAH9vPGRP78zZvKfPKXoVscYzEZbBXPdWHBFnfCdSch4AKEmn, spent: 297.03
+2022-01-21 23:00:46,259:    root:DEBUG   ::update whitelist set spent_sigusd = 297.03 where "walletAddress" = '9eeAH9vPGRP78zZvKfPKXoVscYzEZbBXPdWHBFnfCdSch4AKEmn'
+2022-01-21 23:00:46,260:    root:DEBUG   ::checking 9hf3xoKoWiXQDpBnM43ixFmTHetdepPcZsFFkKccVJoiR1S1mu8
+2022-01-21 23:00:46,262:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:47,270:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hf3xoKoWiXQDpBnM43ixFmTHetdepPcZsFFkKccVJoiR1S1mu8 HTTP/1.1" 200 278
+2022-01-21 23:00:47,271:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 2653.0, 'outstanding': [{'date': '2022-01-26', 'amount': 884.33}, {'date': '2022-02-26', 'amount': 884.33}, {'date': '2022-03-28', 'amount': 884.34}]}]}
+2022-01-21 23:00:47,271:    root:DEBUG   ::update wallet: 9hf3xoKoWiXQDpBnM43ixFmTHetdepPcZsFFkKccVJoiR1S1mu8, spent: 79.59
+2022-01-21 23:00:47,271:    root:DEBUG   ::update whitelist set spent_sigusd = 79.59 where "walletAddress" = '9hf3xoKoWiXQDpBnM43ixFmTHetdepPcZsFFkKccVJoiR1S1mu8'
+2022-01-21 23:00:47,273:    root:DEBUG   ::checking 9hBjMTXMLPgbvFS2rGCGSZkuEc4zn6KSCzPxshMcuzKhoXM2ms8
+2022-01-21 23:00:47,275:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:47,769:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hBjMTXMLPgbvFS2rGCGSZkuEc4zn6KSCzPxshMcuzKhoXM2ms8 HTTP/1.1" 200 275
+2022-01-21 23:00:47,770:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 1263.0, 'outstanding': [{'date': '2022-01-26', 'amount': 421.0}, {'date': '2022-02-26', 'amount': 421.0}, {'date': '2022-03-28', 'amount': 421.0}]}]}
+2022-01-21 23:00:47,771:    root:DEBUG   ::update wallet: 9hBjMTXMLPgbvFS2rGCGSZkuEc4zn6KSCzPxshMcuzKhoXM2ms8, spent: 37.89
+2022-01-21 23:00:47,772:    root:DEBUG   ::update whitelist set spent_sigusd = 37.89 where "walletAddress" = '9hBjMTXMLPgbvFS2rGCGSZkuEc4zn6KSCzPxshMcuzKhoXM2ms8'
+2022-01-21 23:00:47,773:    root:DEBUG   ::checking 9gJN9bgsggXpPRLtD2xmotNTsd6KNPRx1UySY9DLNndTjndAJve
+2022-01-21 23:00:47,778:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:48,306:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gJN9bgsggXpPRLtD2xmotNTsd6KNPRx1UySY9DLNndTjndAJve HTTP/1.1" 200 281
+2022-01-21 23:00:48,307:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 6607.0, 'outstanding': [{'date': '2022-01-26', 'amount': 2202.33}, {'date': '2022-02-26', 'amount': 2202.33}, {'date': '2022-03-28', 'amount': 2202.34}]}]}
+2022-01-21 23:00:48,307:    root:DEBUG   ::update wallet: 9gJN9bgsggXpPRLtD2xmotNTsd6KNPRx1UySY9DLNndTjndAJve, spent: 198.20999999999998
+2022-01-21 23:00:48,308:    root:DEBUG   ::update whitelist set spent_sigusd = 198.20999999999998 where "walletAddress" = '9gJN9bgsggXpPRLtD2xmotNTsd6KNPRx1UySY9DLNndTjndAJve'
+2022-01-21 23:00:48,309:    root:DEBUG   ::checking 9goeZVbgUNLaB445mM8AET2i1HymHAZhz5LSgVPzjKzGkfhDgG6
+2022-01-21 23:00:48,311:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:48,836:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9goeZVbgUNLaB445mM8AET2i1HymHAZhz5LSgVPzjKzGkfhDgG6 HTTP/1.1" 200 285
+2022-01-21 23:00:48,837:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 74648.0, 'outstanding': [{'date': '2022-01-26', 'amount': 24882.66}, {'date': '2022-02-26', 'amount': 24882.66}, {'date': '2022-03-28', 'amount': 24882.68}]}]}
+2022-01-21 23:00:48,838:    root:DEBUG   ::update wallet: 9goeZVbgUNLaB445mM8AET2i1HymHAZhz5LSgVPzjKzGkfhDgG6, spent: 2239.44
+2022-01-21 23:00:48,838:    root:DEBUG   ::update whitelist set spent_sigusd = 2239.44 where "walletAddress" = '9goeZVbgUNLaB445mM8AET2i1HymHAZhz5LSgVPzjKzGkfhDgG6'
+2022-01-21 23:00:48,839:    root:DEBUG   ::checking 9iPxH2bBCN7rMLizJUpJ5wpyhe8mKpE7tcGtmwfGS9qbh7sFj3K
+2022-01-21 23:00:48,841:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:49,357:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9iPxH2bBCN7rMLizJUpJ5wpyhe8mKpE7tcGtmwfGS9qbh7sFj3K HTTP/1.1" 200 278
+2022-01-21 23:00:49,357:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 1855.0, 'outstanding': [{'date': '2022-01-26', 'amount': 618.33}, {'date': '2022-02-26', 'amount': 618.33}, {'date': '2022-03-28', 'amount': 618.34}]}]}
+2022-01-21 23:00:49,358:    root:DEBUG   ::update wallet: 9iPxH2bBCN7rMLizJUpJ5wpyhe8mKpE7tcGtmwfGS9qbh7sFj3K, spent: 55.65
+2022-01-21 23:00:49,358:    root:DEBUG   ::update whitelist set spent_sigusd = 55.65 where "walletAddress" = '9iPxH2bBCN7rMLizJUpJ5wpyhe8mKpE7tcGtmwfGS9qbh7sFj3K'
+2022-01-21 23:00:49,359:    root:DEBUG   ::checking 9hK6WawpFqsydXtv6bKNHeZMr8A7iyjaseyWfVBgS2Sz5oEUHPX
+2022-01-21 23:00:49,360:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:49,897:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hK6WawpFqsydXtv6bKNHeZMr8A7iyjaseyWfVBgS2Sz5oEUHPX HTTP/1.1" 200 282
+2022-01-21 23:00:49,898:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 66588.0, 'outstanding': [{'date': '2022-01-26', 'amount': 22196.0}, {'date': '2022-02-26', 'amount': 22196.0}, {'date': '2022-03-28', 'amount': 22196.0}]}]}
+2022-01-21 23:00:49,898:    root:DEBUG   ::update wallet: 9hK6WawpFqsydXtv6bKNHeZMr8A7iyjaseyWfVBgS2Sz5oEUHPX, spent: 1997.6399999999999
+2022-01-21 23:00:49,899:    root:DEBUG   ::update whitelist set spent_sigusd = 1997.6399999999999 where "walletAddress" = '9hK6WawpFqsydXtv6bKNHeZMr8A7iyjaseyWfVBgS2Sz5oEUHPX'
+2022-01-21 23:00:49,900:    root:DEBUG   ::checking 9fr9DkdE8NR59hcQgMnZ7fBTitsgsu1w8pPH2qVvkYDybNB1ygt
+2022-01-21 23:00:49,901:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:50,430:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fr9DkdE8NR59hcQgMnZ7fBTitsgsu1w8pPH2qVvkYDybNB1ygt HTTP/1.1" 200 281
+2022-01-21 23:00:50,431:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 6283.0, 'outstanding': [{'date': '2022-01-26', 'amount': 2094.33}, {'date': '2022-02-26', 'amount': 2094.33}, {'date': '2022-03-28', 'amount': 2094.34}]}]}
+2022-01-21 23:00:50,431:    root:DEBUG   ::update wallet: 9fr9DkdE8NR59hcQgMnZ7fBTitsgsu1w8pPH2qVvkYDybNB1ygt, spent: 188.48999999999998
+2022-01-21 23:00:50,432:    root:DEBUG   ::update whitelist set spent_sigusd = 188.48999999999998 where "walletAddress" = '9fr9DkdE8NR59hcQgMnZ7fBTitsgsu1w8pPH2qVvkYDybNB1ygt'
+2022-01-21 23:00:50,433:    root:DEBUG   ::checking 9eYUQP7tZFSa34NzXYP6VzDC6kHWBZRwEw4pXEHC2MWGs75vCAS
+2022-01-21 23:00:50,435:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:50,951:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9eYUQP7tZFSa34NzXYP6VzDC6kHWBZRwEw4pXEHC2MWGs75vCAS HTTP/1.1" 200 286
+2022-01-21 23:00:50,952:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 333267.0, 'outstanding': [{'date': '2022-01-26', 'amount': 111089.0}, {'date': '2022-02-26', 'amount': 111089.0}, {'date': '2022-03-28', 'amount': 111089.0}]}]}
+2022-01-21 23:00:50,952:    root:DEBUG   ::update wallet: 9eYUQP7tZFSa34NzXYP6VzDC6kHWBZRwEw4pXEHC2MWGs75vCAS, spent: 9998.01
+2022-01-21 23:00:50,953:    root:DEBUG   ::update whitelist set spent_sigusd = 9998.01 where "walletAddress" = '9eYUQP7tZFSa34NzXYP6VzDC6kHWBZRwEw4pXEHC2MWGs75vCAS'
+2022-01-21 23:00:50,954:    root:DEBUG   ::checking 9h7tDdtoogPzVvFNdYEGUxaee2Wtz4JzMj5PQJ6vc4nXu9LqYPb
+2022-01-21 23:00:50,956:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:51,459:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9h7tDdtoogPzVvFNdYEGUxaee2Wtz4JzMj5PQJ6vc4nXu9LqYPb HTTP/1.1" 200 289
+2022-01-21 23:00:51,460:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 660400.0, 'outstanding': [{'date': '2022-01-26', 'amount': 220133.33}, {'date': '2022-02-26', 'amount': 220133.33}, {'date': '2022-03-28', 'amount': 220133.34}]}]}
+2022-01-21 23:00:51,461:    root:DEBUG   ::update wallet: 9h7tDdtoogPzVvFNdYEGUxaee2Wtz4JzMj5PQJ6vc4nXu9LqYPb, spent: 19812.0
+2022-01-21 23:00:51,461:    root:DEBUG   ::update whitelist set spent_sigusd = 19812.0 where "walletAddress" = '9h7tDdtoogPzVvFNdYEGUxaee2Wtz4JzMj5PQJ6vc4nXu9LqYPb'
+2022-01-21 23:00:51,463:    root:DEBUG   ::checking 9g8gpvDHMeetTFuoGNsEj53Cz1ke1mDzhQPUUh9EBud8rMoEN3D
+2022-01-21 23:00:51,466:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:52,015:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9g8gpvDHMeetTFuoGNsEj53Cz1ke1mDzhQPUUh9EBud8rMoEN3D HTTP/1.1" 200 282
+2022-01-21 23:00:52,016:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 49896.0, 'outstanding': [{'date': '2022-01-26', 'amount': 16632.0}, {'date': '2022-02-26', 'amount': 16632.0}, {'date': '2022-03-28', 'amount': 16632.0}]}]}
+2022-01-21 23:00:52,016:    root:DEBUG   ::update wallet: 9g8gpvDHMeetTFuoGNsEj53Cz1ke1mDzhQPUUh9EBud8rMoEN3D, spent: 1496.8799999999999
+2022-01-21 23:00:52,016:    root:DEBUG   ::update whitelist set spent_sigusd = 1496.8799999999999 where "walletAddress" = '9g8gpvDHMeetTFuoGNsEj53Cz1ke1mDzhQPUUh9EBud8rMoEN3D'
+2022-01-21 23:00:52,018:    root:DEBUG   ::checking 9hxpJEUnhDTuMm4aQWinVoWggmZ6wmJWC6S2y5c1QTWEnxPscQz
+2022-01-21 23:00:52,021:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:52,527:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hxpJEUnhDTuMm4aQWinVoWggmZ6wmJWC6S2y5c1QTWEnxPscQz HTTP/1.1" 200 289
+2022-01-21 23:00:52,531:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 666661.0, 'outstanding': [{'date': '2022-01-26', 'amount': 222220.33}, {'date': '2022-02-26', 'amount': 222220.33}, {'date': '2022-03-28', 'amount': 222220.34}]}]}
+2022-01-21 23:00:52,531:    root:DEBUG   ::update wallet: 9hxpJEUnhDTuMm4aQWinVoWggmZ6wmJWC6S2y5c1QTWEnxPscQz, spent: 19999.829999999998
+2022-01-21 23:00:52,531:    root:DEBUG   ::update whitelist set spent_sigusd = 19999.829999999998 where "walletAddress" = '9hxpJEUnhDTuMm4aQWinVoWggmZ6wmJWC6S2y5c1QTWEnxPscQz'
+2022-01-21 23:00:52,533:    root:DEBUG   ::checking 9hCR7uXVXdE64n9BbrtUjuHhb6DLZec7nVbtkeFp5jFy7WgsDjN
+2022-01-21 23:00:52,542:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:53,090:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hCR7uXVXdE64n9BbrtUjuHhb6DLZec7nVbtkeFp5jFy7WgsDjN HTTP/1.1" 200 281
+2022-01-21 23:00:53,091:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 6569.0, 'outstanding': [{'date': '2022-01-26', 'amount': 2189.66}, {'date': '2022-02-26', 'amount': 2189.66}, {'date': '2022-03-28', 'amount': 2189.68}]}]}
+2022-01-21 23:00:53,091:    root:DEBUG   ::update wallet: 9hCR7uXVXdE64n9BbrtUjuHhb6DLZec7nVbtkeFp5jFy7WgsDjN, spent: 197.07
+2022-01-21 23:00:53,091:    root:DEBUG   ::update whitelist set spent_sigusd = 197.07 where "walletAddress" = '9hCR7uXVXdE64n9BbrtUjuHhb6DLZec7nVbtkeFp5jFy7WgsDjN'
+2022-01-21 23:00:53,092:    root:DEBUG   ::checking 9fyUgttquqbeodi1JJDmhiw8BR1tExJmLV5tcNfU4AdQtwVWaD8
+2022-01-21 23:00:53,094:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:53,653:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fyUgttquqbeodi1JJDmhiw8BR1tExJmLV5tcNfU4AdQtwVWaD8 HTTP/1.1" 200 285
+2022-01-21 23:00:53,654:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 66577.0, 'outstanding': [{'date': '2022-01-26', 'amount': 22192.33}, {'date': '2022-02-26', 'amount': 22192.33}, {'date': '2022-03-28', 'amount': 22192.34}]}]}
+2022-01-21 23:00:53,654:    root:DEBUG   ::update wallet: 9fyUgttquqbeodi1JJDmhiw8BR1tExJmLV5tcNfU4AdQtwVWaD8, spent: 1997.31
+2022-01-21 23:00:53,654:    root:DEBUG   ::update whitelist set spent_sigusd = 1997.31 where "walletAddress" = '9fyUgttquqbeodi1JJDmhiw8BR1tExJmLV5tcNfU4AdQtwVWaD8'
+2022-01-21 23:00:53,655:    root:DEBUG   ::checking 9fDwkf5UkFrqrPzq5V778cGtcSkhHwTkMXePKAvVonfUZAtgdB3
+2022-01-21 23:00:53,658:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:54,143:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fDwkf5UkFrqrPzq5V778cGtcSkhHwTkMXePKAvVonfUZAtgdB3 HTTP/1.1" 200 282
+2022-01-21 23:00:54,144:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 49896.0, 'outstanding': [{'date': '2022-01-26', 'amount': 16632.0}, {'date': '2022-02-26', 'amount': 16632.0}, {'date': '2022-03-28', 'amount': 16632.0}]}]}
+2022-01-21 23:00:54,144:    root:DEBUG   ::update wallet: 9fDwkf5UkFrqrPzq5V778cGtcSkhHwTkMXePKAvVonfUZAtgdB3, spent: 1496.8799999999999
+2022-01-21 23:00:54,145:    root:DEBUG   ::update whitelist set spent_sigusd = 1496.8799999999999 where "walletAddress" = '9fDwkf5UkFrqrPzq5V778cGtcSkhHwTkMXePKAvVonfUZAtgdB3'
+2022-01-21 23:00:54,146:    root:DEBUG   ::checking 9gC6pXKzyoovsJkLf1jC4jBhfA8Lk1L4F77YFjNV8y62TQbLEFA
+2022-01-21 23:00:54,148:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:54,691:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gC6pXKzyoovsJkLf1jC4jBhfA8Lk1L4F77YFjNV8y62TQbLEFA HTTP/1.1" 200 289
+2022-01-21 23:00:54,693:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 596900.0, 'outstanding': [{'date': '2022-01-26', 'amount': 198966.66}, {'date': '2022-02-26', 'amount': 198966.66}, {'date': '2022-03-28', 'amount': 198966.68}]}]}
+2022-01-21 23:00:54,693:    root:DEBUG   ::update wallet: 9gC6pXKzyoovsJkLf1jC4jBhfA8Lk1L4F77YFjNV8y62TQbLEFA, spent: 17907.0
+2022-01-21 23:00:54,693:    root:DEBUG   ::update whitelist set spent_sigusd = 17907.0 where "walletAddress" = '9gC6pXKzyoovsJkLf1jC4jBhfA8Lk1L4F77YFjNV8y62TQbLEFA'
+2022-01-21 23:00:54,695:    root:DEBUG   ::checking 9fuRfyY8btkTTGvLdx2j9jH1zBDNtUM3deYm2J1uc3R7iFpbWTL
+2022-01-21 23:00:54,697:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:55,218:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fuRfyY8btkTTGvLdx2j9jH1zBDNtUM3deYm2J1uc3R7iFpbWTL HTTP/1.1" 200 282
+2022-01-21 23:00:55,219:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 49911.0, 'outstanding': [{'date': '2022-01-26', 'amount': 16637.0}, {'date': '2022-02-26', 'amount': 16637.0}, {'date': '2022-03-28', 'amount': 16637.0}]}]}
+2022-01-21 23:00:55,219:    root:DEBUG   ::update wallet: 9fuRfyY8btkTTGvLdx2j9jH1zBDNtUM3deYm2J1uc3R7iFpbWTL, spent: 1497.33
+2022-01-21 23:00:55,219:    root:DEBUG   ::update whitelist set spent_sigusd = 1497.33 where "walletAddress" = '9fuRfyY8btkTTGvLdx2j9jH1zBDNtUM3deYm2J1uc3R7iFpbWTL'
+2022-01-21 23:00:55,220:    root:DEBUG   ::checking 9hjDpaFvevxD4NC3iqvzmB1LMxeMGKFifDb6Rq79V7NJuMemxHz
+2022-01-21 23:00:55,222:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:55,728:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hjDpaFvevxD4NC3iqvzmB1LMxeMGKFifDb6Rq79V7NJuMemxHz HTTP/1.1" 200 285
+2022-01-21 23:00:55,729:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 66548.0, 'outstanding': [{'date': '2022-01-26', 'amount': 22182.66}, {'date': '2022-02-26', 'amount': 22182.66}, {'date': '2022-03-28', 'amount': 22182.68}]}]}
+2022-01-21 23:00:55,729:    root:DEBUG   ::update wallet: 9hjDpaFvevxD4NC3iqvzmB1LMxeMGKFifDb6Rq79V7NJuMemxHz, spent: 1996.4399999999998
+2022-01-21 23:00:55,730:    root:DEBUG   ::update whitelist set spent_sigusd = 1996.4399999999998 where "walletAddress" = '9hjDpaFvevxD4NC3iqvzmB1LMxeMGKFifDb6Rq79V7NJuMemxHz'
+2022-01-21 23:00:55,731:    root:DEBUG   ::checking 9gqCTTD54bZ6fFskk7EFPmWDVmgZki9cdugdQNUFEnPyHvh7M9V
+2022-01-21 23:00:55,733:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:56,727:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gqCTTD54bZ6fFskk7EFPmWDVmgZki9cdugdQNUFEnPyHvh7M9V HTTP/1.1" 200 281
+2022-01-21 23:00:56,728:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 7366.0, 'outstanding': [{'date': '2022-01-26', 'amount': 2455.33}, {'date': '2022-02-26', 'amount': 2455.33}, {'date': '2022-03-28', 'amount': 2455.34}]}]}
+2022-01-21 23:00:56,728:    root:DEBUG   ::update wallet: 9gqCTTD54bZ6fFskk7EFPmWDVmgZki9cdugdQNUFEnPyHvh7M9V, spent: 220.98
+2022-01-21 23:00:56,728:    root:DEBUG   ::update whitelist set spent_sigusd = 220.98 where "walletAddress" = '9gqCTTD54bZ6fFskk7EFPmWDVmgZki9cdugdQNUFEnPyHvh7M9V'
+2022-01-21 23:00:56,730:    root:DEBUG   ::checking 9fx71xgNxwQkpoDCCaYaLLcA2NpjjW24nVjWcTApynKu2ukvDwQ
+2022-01-21 23:00:56,732:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:57,241:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9fx71xgNxwQkpoDCCaYaLLcA2NpjjW24nVjWcTApynKu2ukvDwQ HTTP/1.1" 200 278
+2022-01-21 23:00:57,242:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 3339.0, 'outstanding': [{'date': '2022-01-26', 'amount': 1113.0}, {'date': '2022-02-26', 'amount': 1113.0}, {'date': '2022-03-28', 'amount': 1113.0}]}]}
+2022-01-21 23:00:57,242:    root:DEBUG   ::update wallet: 9fx71xgNxwQkpoDCCaYaLLcA2NpjjW24nVjWcTApynKu2ukvDwQ, spent: 100.17
+2022-01-21 23:00:57,243:    root:DEBUG   ::update whitelist set spent_sigusd = 100.17 where "walletAddress" = '9fx71xgNxwQkpoDCCaYaLLcA2NpjjW24nVjWcTApynKu2ukvDwQ'
+2022-01-21 23:00:57,244:    root:DEBUG   ::checking 9gWVubYzdhMQBFDUTQyK389rm8tSaxRtVpUeRraiUCfMtRer28h
+2022-01-21 23:00:57,246:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:57,766:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9gWVubYzdhMQBFDUTQyK389rm8tSaxRtVpUeRraiUCfMtRer28h HTTP/1.1" 200 275
+2022-01-21 23:00:57,767:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 1905.0, 'outstanding': [{'date': '2022-01-26', 'amount': 635.0}, {'date': '2022-02-26', 'amount': 635.0}, {'date': '2022-03-28', 'amount': 635.0}]}]}
+2022-01-21 23:00:57,767:    root:DEBUG   ::update wallet: 9gWVubYzdhMQBFDUTQyK389rm8tSaxRtVpUeRraiUCfMtRer28h, spent: 57.15
+2022-01-21 23:00:57,767:    root:DEBUG   ::update whitelist set spent_sigusd = 57.15 where "walletAddress" = '9gWVubYzdhMQBFDUTQyK389rm8tSaxRtVpUeRraiUCfMtRer28h'
+2022-01-21 23:00:57,768:    root:DEBUG   ::checking 9h5PmjJsuXoaZwB6t1Zojj6NQTZPBoFrYXMazrti9sDRcSUtanh
+2022-01-21 23:00:57,770:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:58,264:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9h5PmjJsuXoaZwB6t1Zojj6NQTZPBoFrYXMazrti9sDRcSUtanh HTTP/1.1" 200 286
+2022-01-21 23:00:58,266:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 133250.0, 'outstanding': [{'date': '2022-01-26', 'amount': 44416.66}, {'date': '2022-02-26', 'amount': 44416.66}, {'date': '2022-03-28', 'amount': 44416.68}]}]}
+2022-01-21 23:00:58,267:    root:DEBUG   ::update wallet: 9h5PmjJsuXoaZwB6t1Zojj6NQTZPBoFrYXMazrti9sDRcSUtanh, spent: 3997.5
+2022-01-21 23:00:58,267:    root:DEBUG   ::update whitelist set spent_sigusd = 3997.5 where "walletAddress" = '9h5PmjJsuXoaZwB6t1Zojj6NQTZPBoFrYXMazrti9sDRcSUtanh'
+2022-01-21 23:00:58,269:    root:DEBUG   ::checking 9ea2ZTZyQNkPW8aoXwpjjn26wyaJ5XLhp7jTBnJcSZNCGndCJvm
+2022-01-21 23:00:58,272:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:58,796:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9ea2ZTZyQNkPW8aoXwpjjn26wyaJ5XLhp7jTBnJcSZNCGndCJvm HTTP/1.1" 200 282
+2022-01-21 23:00:58,797:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 29125.0, 'outstanding': [{'date': '2022-01-26', 'amount': 9708.33}, {'date': '2022-02-26', 'amount': 9708.33}, {'date': '2022-03-28', 'amount': 9708.34}]}]}
+2022-01-21 23:00:58,797:    root:DEBUG   ::update wallet: 9ea2ZTZyQNkPW8aoXwpjjn26wyaJ5XLhp7jTBnJcSZNCGndCJvm, spent: 873.75
+2022-01-21 23:00:58,797:    root:DEBUG   ::update whitelist set spent_sigusd = 873.75 where "walletAddress" = '9ea2ZTZyQNkPW8aoXwpjjn26wyaJ5XLhp7jTBnJcSZNCGndCJvm'
+2022-01-21 23:00:58,799:    root:DEBUG   ::checking 9goCYTgdLH49WseVm4gRfNT5CfLDsWM5jwwCrSyVj1H6NNWNwBL
+2022-01-21 23:00:58,803:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:59,157:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9goCYTgdLH49WseVm4gRfNT5CfLDsWM5jwwCrSyVj1H6NNWNwBL HTTP/1.1" 200 278
+2022-01-21 23:00:59,158:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 3285.0, 'outstanding': [{'date': '2022-01-26', 'amount': 1095.0}, {'date': '2022-02-26', 'amount': 1095.0}, {'date': '2022-03-28', 'amount': 1095.0}]}]}
+2022-01-21 23:00:59,158:    root:DEBUG   ::update wallet: 9goCYTgdLH49WseVm4gRfNT5CfLDsWM5jwwCrSyVj1H6NNWNwBL, spent: 98.55
+2022-01-21 23:00:59,158:    root:DEBUG   ::update whitelist set spent_sigusd = 98.55 where "walletAddress" = '9goCYTgdLH49WseVm4gRfNT5CfLDsWM5jwwCrSyVj1H6NNWNwBL'
+2022-01-21 23:00:59,160:    root:DEBUG   ::checking 9iKQWQY1YWEo1yKS19RgVd3NMwzVsFkxgSsUL9g1P9irr5dsFSB
+2022-01-21 23:00:59,163:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:00:59,715:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9iKQWQY1YWEo1yKS19RgVd3NMwzVsFkxgSsUL9g1P9irr5dsFSB HTTP/1.1" 200 307
+2022-01-21 23:00:59,716:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 748424.0, 'outstanding': [{'date': '2022-01-26', 'amount': 249474.65999999997}, {'date': '2022-02-26', 'amount': 249474.65999999997}, {'date': '2022-03-28', 'amount': 249474.68}]}]}
+2022-01-21 23:00:59,716:    root:DEBUG   ::update wallet: 9iKQWQY1YWEo1yKS19RgVd3NMwzVsFkxgSsUL9g1P9irr5dsFSB, spent: 22452.719999999998
+2022-01-21 23:00:59,716:    root:DEBUG   ::update whitelist set spent_sigusd = 22452.719999999998 where "walletAddress" = '9iKQWQY1YWEo1yKS19RgVd3NMwzVsFkxgSsUL9g1P9irr5dsFSB'
+2022-01-21 23:00:59,718:    root:DEBUG   ::checking 9hVeFbrHXSrhhbgiAG63C4zkFzc1EbabwP23e6QtNs9usRFL5e1
+2022-01-21 23:00:59,721:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:01:00,258:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hVeFbrHXSrhhbgiAG63C4zkFzc1EbabwP23e6QtNs9usRFL5e1 HTTP/1.1" 200 289
+2022-01-21 23:01:00,258:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 601666.0, 'outstanding': [{'date': '2022-01-26', 'amount': 200555.33}, {'date': '2022-02-26', 'amount': 200555.33}, {'date': '2022-03-28', 'amount': 200555.34}]}]}
+2022-01-21 23:01:00,259:    root:DEBUG   ::update wallet: 9hVeFbrHXSrhhbgiAG63C4zkFzc1EbabwP23e6QtNs9usRFL5e1, spent: 18049.98
+2022-01-21 23:01:00,259:    root:DEBUG   ::update whitelist set spent_sigusd = 18049.98 where "walletAddress" = '9hVeFbrHXSrhhbgiAG63C4zkFzc1EbabwP23e6QtNs9usRFL5e1'
+2022-01-21 23:01:00,260:    root:DEBUG   ::checking 9hjUdyzPPvbdk63WDf4iArYEm926P1xtUM1oz7fBL7dTnEnZRtT
+2022-01-21 23:01:00,261:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:01:00,834:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hjUdyzPPvbdk63WDf4iArYEm926P1xtUM1oz7fBL7dTnEnZRtT HTTP/1.1" 200 282
+2022-01-21 23:01:00,835:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 28666.0, 'outstanding': [{'date': '2022-01-26', 'amount': 9555.33}, {'date': '2022-02-26', 'amount': 9555.33}, {'date': '2022-03-28', 'amount': 9555.34}]}]}
+2022-01-21 23:01:00,835:    root:DEBUG   ::update wallet: 9hjUdyzPPvbdk63WDf4iArYEm926P1xtUM1oz7fBL7dTnEnZRtT, spent: 859.98
+2022-01-21 23:01:00,835:    root:DEBUG   ::update whitelist set spent_sigusd = 859.98 where "walletAddress" = '9hjUdyzPPvbdk63WDf4iArYEm926P1xtUM1oz7fBL7dTnEnZRtT'
+2022-01-21 23:01:00,836:    root:DEBUG   ::checking 9iKQWQY1YWEo1yKS19RgVd3NMwzVsFkxgSsUL9g1P9irr5dsFSB
+2022-01-21 23:01:00,839:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:01:01,346:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9iKQWQY1YWEo1yKS19RgVd3NMwzVsFkxgSsUL9g1P9irr5dsFSB HTTP/1.1" 200 307
+2022-01-21 23:01:01,347:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 748424.0, 'outstanding': [{'date': '2022-01-26', 'amount': 249474.65999999997}, {'date': '2022-02-26', 'amount': 249474.65999999997}, {'date': '2022-03-28', 'amount': 249474.68}]}]}
+2022-01-21 23:01:01,347:    root:DEBUG   ::update wallet: 9iKQWQY1YWEo1yKS19RgVd3NMwzVsFkxgSsUL9g1P9irr5dsFSB, spent: 22452.719999999998
+2022-01-21 23:01:01,347:    root:DEBUG   ::update whitelist set spent_sigusd = 22452.719999999998 where "walletAddress" = '9iKQWQY1YWEo1yKS19RgVd3NMwzVsFkxgSsUL9g1P9irr5dsFSB'
+2022-01-21 23:01:01,349:    root:DEBUG   ::checking 9hvB5rJhbN9LnwmiyBiNwcJGHN1GVHQyxZM33Bc4JRBBfQBaxVP
+2022-01-21 23:01:01,351:urllib3.connectionpool:DEBUG   ::Starting new HTTP connection (1): backend:8000
+2022-01-21 23:01:01,927:urllib3.connectionpool:DEBUG   ::http://backend:8000 "GET /api/vesting/vested/9hvB5rJhbN9LnwmiyBiNwcJGHN1GVHQyxZM33Bc4JRBBfQBaxVP HTTP/1.1" 200 289
+2022-01-21 23:01:01,932:    root:DEBUG   ::{'status': 'success', 'vested': [{'tokenId': 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', 'name': 'ergopad', 'totalVested': 666596.0, 'outstanding': [{'date': '2022-01-26', 'amount': 222198.66}, {'date': '2022-02-26', 'amount': 222198.66}, {'date': '2022-03-28', 'amount': 222198.68}]}]}
+2022-01-21 23:01:01,934:    root:DEBUG   ::update wallet: 9hvB5rJhbN9LnwmiyBiNwcJGHN1GVHQyxZM33Bc4JRBBfQBaxVP, spent: 19997.88
+2022-01-21 23:01:01,935:    root:DEBUG   ::update whitelist set spent_sigusd = 19997.88 where "walletAddress" = '9hvB5rJhbN9LnwmiyBiNwcJGHN1GVHQyxZM33Bc4JRBBfQBaxVP'
+2022-01-21 23:01:01,937:    root:DEBUG   ::TOTAL VESTED: 11671267.0
+2022-01-21 23:01:01,938:    root:INFO    ::sleeping...
+

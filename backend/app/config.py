@@ -86,9 +86,11 @@ Config = {
     'debug'             : True,
     'validCurrencies'   : {
       'seedsale'        : '0890ad268cd62f29d09245baa423f2251f1d77ea21443a27d60c3c92377d2e4d',
+      # 'seedsale'        : '129804369cc01c02f9046b8f0e37f8fc924e71b64652a0a331e6cd3c16c1f028',
       'strategic_sale'  : 'e403836f51838b949c05cd4ab221ba3e004bddc9b5af4025c39031bb8853dc43',
       'sigusd'          : '931aadfacfdde2849a7353472910b2e5e56f5b6f8f2be92859a7ff61d0bf9948',
-      'ergopad'         : '58c6125991977ab70fe84869e379f508bf03f81517b1e6c66c2267247eb30915', # 
+      # 'ergopad'         : '58c6125991977ab70fe84869e379f508bf03f81517b1e6c66c2267247eb30915', # 
+      'ergopad'         : '129804369cc01c02f9046b8f0e37f8fc924e71b64652a0a331e6cd3c16c1f028', # 
       # 'sigusd'   : '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04', # official SigUSD
       # 'ergopad'  : '0890ad268cd62f29d09245baa423f2251f1d77ea21443a27d60c3c92377d2e4d', # TODO: need official ergonad token
       # 'kushti' : '??',
@@ -100,6 +102,7 @@ Config = {
     'explorer'          : 'https://api.ergoplatform.com/api/v1',
     'ergoPlatform'      : 'https://api.ergoplatform.com/api/v1',
     'assembler'         : 'http://assembler:8080',
+    'ergopadNode'       : 'http://ergonode:9053',
     'buyerNode'         : 'http://ergonode2:9053',
     'ergoWatch'         : 'https://ergo.watch/api/sigmausd/state',
     'coinGecko'         : 'https://api.coingecko.com/api/v3',

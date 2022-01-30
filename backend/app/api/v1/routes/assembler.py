@@ -21,7 +21,10 @@ headers = {'Content-Type': 'application/json'}
 async def assemblerReturn(wallet: str, smartContract: str):
     try:
         res = requests.get(f'{CFG.assembler}/return/{wallet}/{smartContract}')
-        return JSONResponse(status_code=res.status_code, content=res.json())
+        if res.status_code == 200:
+            return JSONResponse(status_code=res.status_code, content=res.text)
+        else:
+            return JSONResponse(status_code=res.status_code, content=res.json())
 
     except:
         logging.debug(
@@ -52,24 +55,14 @@ async def pendingStatus(wallet: str):
         res = con.execute(sql).fetchall()
         logging.debug(f'res: {res}')
 
-        
-        # sql = f"""
-        #     select distinct "assemblerId" 
-        #     from purchases 
-        #     where "walletAddress" = {wallet!r}
-        # """
-        # logging.debug(sql)
-        # res = con.execute(sql).fetchall()
-        # logging.debug(f'res: {res}')
-
         result = {}
         if res == None:
             JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'no wallet status results')
         else:
             for r in res:
-                # res = requests.get(f"{CFG.assembler}/result/{r['assemblerId']}")
-                # if res.ok: result[r['assemblerId']] = res.json()['detail']
-                result[r['assemblerId']] = r['assemblerStatus']
+                res = requests.get(f"{CFG.assembler}/result/{r['assemblerId']}")
+                if res.ok:
+                    result[r['assemblerId']] = res.json()['detail']
         return result
 
     except:

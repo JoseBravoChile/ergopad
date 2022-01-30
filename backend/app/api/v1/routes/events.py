@@ -47,42 +47,107 @@ myself = lambda: inspect.stack()[1][3]
 @r.get("/summary/{eventName}")
 def summary(eventName):
     try:
-        con = create_engine(DATABASE)
-        sql = f"""
-            with evt as (
-                select id
-                from events
-                where name = 'presale-ergopad-202201wl'
-            )
-            , pur as (
-                select 3 as id
-                    , sum(coalesce("tokenAmount"/100, 0.0)) as spent_ergopad
-                from purchases 
-                where "assemblerStatus" = 'success' 
-                    and id > 0
-                    and "eventName" = 'presale-ergopad-202201wl'
-            )
-            select evt.id
-                , coalesce(sum(allowance_sigusd), 0.0) as allowance_sigusd
-				, coalesce(sum(spent_sigusd), 0.0) as spent_sigusd
-                , coalesce(count(*), 0.0) as entries
-                , coalesce(max(created_dtz), '1/1/1900') as last_entry
-				, coalesce(max(spent_ergopad), 0.0) as spent_ergopad
-            from whitelist wht
-                join evt on evt.id = wht."eventId"
-                join pur on pur.id = wht."eventId"
-            group by evt.id;
-        """
-        res = con.execute(sql).fetchone()
-        return {
-            'event': eventName,
-            'id': res['id'],
-            'total (sigusd)': f"\u01A9\u0024{res['allowance_sigusd']:,.2f}",
-            'spent (sigusd)': f"\u01A9\u0024{res['spent_sigusd']:,.2f}",
-            'spent (ergopad)': f"\u2234{res['spent_ergopad']:,.2f} tokens",
-            'number of entries': res['entries'],
-            'time of last entry': res['last_entry'],
-        }
+        headers = {'Content-Type': 'application/json', 'api_key': CFG.ergopadApiKey}
+
+        startingTokenAmount = 20500000
+        spentTokenAmount = 0
+        res = requests.get('http://ergonode:9053/wallet/balances', headers=headers)
+        if res.ok:
+            try:
+                balance = res.json()
+                remainingTokenAmount = int(balance['assets']['d71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413']/100)
+                spentTokenAmount = startingTokenAmount - remainingTokenAmount
+                return {
+                    'event': eventName,
+                    # 'id': res['id'],
+                    'total presale (tokens)': f"\u046E\u262F{startingTokenAmount:,.2f}", # \u01A9\u0024
+                    'spent presale (tokens)': f"\u046E\u262F{spentTokenAmount:,.2f}",
+                    'remaining presale (tokens)': f"\u046E\u262F{remainingTokenAmount:,.2f}",
+                }
+            except:
+                pass
+
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'invalid events request')
+
+        # res = requests.get('http://ergonode:9053/wallet/transactions', headers=headers)
+        # totTokens = 0
+        # if res.ok:
+        #     tx = res.json()
+        #     for t in tx:
+        #         # print(f"tx: {t['id']}")
+        #         for o in t['outputs']:
+        #             if 'assets' in o and 'additionalRegisters' in o:
+        #                 if o['address'] != '9gibNzudNny7MtB725qGM3Pqftho1SMpQJ2GYLYRDDAftMaC285' and 'R5' in o['additionalRegisters']:
+        #                     if o['additionalRegisters']['R5'] == '0580e4a0ca13':
+        #                         for a in o['assets']:
+        #                             if 'tokenId' in a:
+        #                                 if a['tokenId'] == 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413':
+        #                                     totTokens += a['amount']/100
+        # 
+        # con = create_engine(DATABASE)
+        # sql = f"""
+        #     with evt as (
+        #         select id
+        #         from events
+        #         where name = 'presale-ergopad-202201wl'
+        #     )
+        #     , pur as (
+        #         select 3 as id
+        #             , sum(coalesce("tokenAmount"/100, 0.0)) as spent_ergopad
+        #         from purchases 
+        #         where "assemblerStatus" = 'success' 
+        #             and id > 0
+        #             and currency = 'ergo'
+        #             and "eventName" = 'presale-ergopad-202201wl'
+        #     )
+        #     , exg_strat as (
+        #         select 3 as id
+        #             , sum(coalesce("tokenAmount"/100, 0.0)) as spent_ergopad
+        #         from purchases 
+        #         where "assemblerStatus" = 'success' 
+        #             and id > 0
+        #             and currency = 'strategic_sale'
+        #             and "eventName" = 'presale-ergopad-202201wl'
+        #     )
+        #     , exg_seed as (
+        #         select 3 as id
+        #             , sum(coalesce("tokenAmount"/100, 0.0)) as spent_ergopad
+        #         from purchases 
+        #         where "assemblerStatus" = 'success' 
+        #             and id > 0
+        #             and currency = 'seedsale'
+        #             and "eventName" = 'presale-ergopad-202201wl'
+        #     )
+        #     select evt.id
+        #         , coalesce(sum(allowance_sigusd), 0.0) as allowance_sigusd
+		# 		, coalesce(sum(spent_sigusd), 0.0) as spent_sigusd
+        #         , coalesce(count(*), 0.0) as entries
+        #         , coalesce(max(created_dtz), '1/1/1900') as last_entry
+		# 		, coalesce(max(pur.spent_ergopad), 0.0) as spent_ergopad_presale
+		# 		, coalesce(max(exg_strat.spent_ergopad), 0.0) as spent_ergopad_strategic
+		# 		, coalesce(max(exg_seed.spent_ergopad), 0.0) as spent_ergopad_seedsale
+        #     from whitelist wht
+        #         join evt on evt.id = wht."eventId"
+        #         join pur on pur.id = wht."eventId"
+        #         join exg_strat on exg_strat.id = wht."eventId"
+        #         join exg_seed on exg_seed.id = wht."eventId"
+        #     where "isWhitelist" = 1
+        #     group by evt.id;
+        # """
+        # res = con.execute(sql).fetchone() 
+        # 
+        # return {
+        #     'event': eventName,
+        #     'id': res['id'],
+        #     'total (sigusd)': f"\u01A9\u0024{res['allowance_sigusd']:,.2f}",
+        #     'spent (sigusd)': f"\u01A9\u0024{res['spent_sigusd']:,.2f}",
+        #     'remaining (sigusd)': f"\u01A9\u0024{res['allowance_sigusd']-res['spent_sigusd']:,.2f}",
+        #     'spent presale (ergopad)': f"\u2234{totTokens:,.2f} tokens",
+        #     'spent strategic (ergopad)': f"\u2234{res['spent_ergopad_strategic']:,.2f} tokens",
+        #     'spent seedsale (ergopad)': f"\u2234{res['spent_ergopad_seedsale']:,.2f} tokens",
+        #     'number of entries': res['entries'],
+        #     'time of last entry': res['last_entry'],
+        # }
 
     except Exception as e:
         logging.error(f'ERR:{myself()}: events info {e}')

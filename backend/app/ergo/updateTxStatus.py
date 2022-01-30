@@ -18,7 +18,7 @@ while True:
     try:
         con = create_engine(DATABASE)
         sql = f"""
-            select "assemblerId", "assemblerStatus"
+            select "assemblerId", "assemblerStatus", "walletAddress"
             from purchases
             where id > 0
                 and "assemblerStatus" not in ('success', 'timeout')
@@ -28,6 +28,7 @@ while True:
         logging.debug(res)
 
         for r in res:
+            wallet = r['walletAddress']
             logging.debug(f"assemblerId: {r['assemblerId']}")
             res = requests.get(f"{ASSEMBLER}/result/{r['assemblerId']}")
             if res.ok:
@@ -46,9 +47,10 @@ while True:
                         res = con.execute(sql)
                     except:
                         pass
+
             else:
                 logging.info(f"issue with followId:{r['assemblerId']}--{res.content}")
-            
+
         logging.info(f'sleeping...')
         sleep(POWERNAP)
 

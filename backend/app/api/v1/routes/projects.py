@@ -64,7 +64,7 @@ async def project_details(
         fundsRaised=project.fundsRaised,
         shortDescription=project.shortDescription,
         description=project.description,
-        teamTelegramHandle=project.teamTelegramHandle,
+        socials=project.socials,
         bannerImgUrl=project.bannerImgUrl,
         isLaunched=project.isLaunched,
         team=project_team

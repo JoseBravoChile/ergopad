@@ -28,7 +28,7 @@ services:
       - ${BACKEND_PORT}:${BACKEND_PORT}
     depends_on: 
       - postgres
-    command: uvicorn main:app --workers 4 --proxy-headers --host 0.0.0.0 --port ${BACKEND_PORT} # --reload --reload-dir /app 
+    command: uvicorn main:app --workers 4 --host 0.0.0.0 --port ${BACKEND_PORT} --reload --reload-dir /app 
 
   postgres:
     container_name: postgres
@@ -116,6 +116,25 @@ services:
             max-size: 10m
     command: java -jar -Xmx3G -Dlogback.stdout.level=${ERGONODE_LOGLEVEL} -Dlogback.file.level=${ERGONODE_LOGLEVEL} ergo.jar --${ERGONODE_NETWORK} -c ${ERGONODE_CONF}
 
+  ergonodexchg:
+    container_name: ergonodexchg
+    env_file: .env
+    image: openjdk
+    volumes:
+      - ./ergonode/ergonodexchg.conf:/etc/ergonodexchg.conf # jar/conf
+      - ./ergonode/ergo.jar:/opt/ergo/ergo.jar
+      - /ergo/ergonodexchg/.ergo:/opt/ergo/.ergo # blockchain
+    ports:
+      - 9054:9053
+      # - 9030:9030
+    working_dir: /opt/ergo
+    logging:
+        driver: "json-file"
+        options:
+            max-file: 5
+            max-size: 10m
+    command: java -jar -Xmx3G -Dlogback.stdout.level=${ERGONODE_LOGLEVEL} -Dlogback.file.level=${ERGONODE_LOGLEVEL} ergo.jar --${ERGONODE_NETWORK} -c /etc/ergonodexchg.conf
+
   assembler:
     container_name: assembler
     env_file: .env
@@ -131,6 +150,23 @@ services:
             max-file: 5
             max-size: 10m
     command: java -jar -Dconfig.file=${ASSEMBLER_CONF} -Dhttp.port=${ASSEMBLER_PORT} ${ASSEMBLER_JAR}
+
+  assemblerxchg:
+    container_name: assemblerxchg
+    env_file: .env
+    image: openjdk:11.0.13-jdk-buster
+    volumes: 
+      - ./assembler/ergo-assembler-1.1.jar:/opt/assembler/assembler.jar
+      - ./assembler/assemblerxchg.conf:/etc/assemblerxchg.conf
+    ports: 
+      - 8081:8081
+    working_dir: /opt/assembler # set this if using image and not build
+    logging:
+        driver: "json-file"
+        options:
+            max-file: 5
+            max-size: 10m
+    command: java -jar -Dconfig.file=/etc/assemblerxchg.conf -Dhttp.port=8081 assembler.jar
 
 volumes:
   postgres_data:
