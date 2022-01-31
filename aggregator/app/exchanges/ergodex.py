@@ -159,6 +159,7 @@ def getErgodexToken():
                            'erdoge': [getTokenPrice("Erdoge", prices)],
                            'lunadog': [getTokenPrice("LunaDog", prices)],
                            'ergopad': [getTokenPrice("Ergopad", prices)],
+                           'neta': [getTokenPrice("NETA", prices)],
                            }).astype({'timestamp_utc': 'datetime64[ms]'}).set_index('timestamp_utc')
         df.to_sql('ergodex_ERG/ergodexToken_continuous_5m', con=db,
                   if_exists='append', index_label='timestamp_utc')
