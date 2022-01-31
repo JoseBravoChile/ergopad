@@ -117,6 +117,10 @@ async def get_asset_balance_from_address(address: str = Path(..., min_length=40,
         if token['tokenId'] == '472c3d4ecaa08fb7392ff041ee2e6af75f4a558810a74b28600549d5392810e8':
             price = (await get_asset_current_price('NETA'))['price']
             token['price'] = price
+        # ergopad
+        if token['tokenId'] == 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413':
+            price = (await get_asset_current_price('ergopad'))['price']
+            token['price'] = price
         tokens.append(token)
 
     # normalize result
