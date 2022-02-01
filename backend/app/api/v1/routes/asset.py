@@ -255,9 +255,9 @@ async def get_asset_historical_price(coin: str = "all", stepSize: int = 1, stepU
         table = "ergodex_ERG/ergodexToken_continuous_5m"
         # sql
         sql = f"""
-        SELECT timestamp_utc, sigusd, sigrsv, erdoge, lunadog, ergopad FROM 
-        (SELECT timestamp_utc, sigusd, sigrsv, erdoge, lunadog, ergopad, ROW_NUMBER() OVER (ORDER BY timestamp_utc DESC) AS rownum FROM "{table}") as t
-        WHERE (t.rownum - 1) %% {resolution} = 0
+        SELECT timestamp_utc, sigusd, sigrsv, erdoge, lunadog, ergopad, neta FROM 
+        (SELECT timestamp_utc, sigusd, sigrsv, erdoge, lunadog, ergopad, neta, ROW_NUMBER() OVER (ORDER BY timestamp_utc DESC) AS rownum FROM "{table}") as t
+        WHERE ((t.rownum - 1) %% {resolution}) = 0
         ORDER BY t.timestamp_utc DESC
         LIMIT {limit}
         """
@@ -265,7 +265,7 @@ async def get_asset_historical_price(coin: str = "all", stepSize: int = 1, stepU
         res = con.execute(sql, con=con).fetchall()
         result = []
         # filter tokens
-        tokens = ("sigusd", "sigrsv", "erdoge", "lunadog", "ergopad")
+        tokens = ("sigusd", "sigrsv", "erdoge", "lunadog", "ergopad", "neta")
         for index, token in enumerate(tokens):
             if (token != coin and coin != "all"):
                 continue
