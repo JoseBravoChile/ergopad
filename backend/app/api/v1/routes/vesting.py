@@ -456,7 +456,7 @@ def findVestingTokens(wallet:str):
     result = {}
     userWallet = Wallet(wallet)
     userErgoTree = userWallet.ergoTree()
-    address = getErgoscript('vesting2', params={}) # just a quick hack, is always the same so should just be part of the CFG
+    address = CFG.vestingContract
     offset = 0
     res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset={offset}&limit=500', headers=dict(headers), timeout=2)
     while res.ok: 
