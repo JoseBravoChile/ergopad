@@ -1,0 +1,86 @@
+<html>
+    <head>
+        <style>
+            /* make pretty */
+            body, td { font-family: Arial, Helvetica, sans-serif; }
+            .showy { font-weight: bold; }
+        </style>
+        <script>
+            // make sure page is loaded
+            window.onload = function init() {
+                // find wallets
+                isNautilus = document.getElementById("isNautilusEnbaled");
+                isYoroi = document.getElementById("isYoroiEnabled");
+
+                // keep track of interest wallet thingys
+                wallets = {
+                    "yoroi": {
+                        "exists": typeof ergo_request_read_access === "undefined" ? false : true,
+                        "access": false
+                    }, 
+                    "nautilus": {
+                        "exists": false,
+                        "access": false
+                    }
+                }
+
+                // wallets.yoroiExists = true
+                isNautilus.innerHTML = wallets.nautilus.exists ? 'enabled' : 'disabled';
+                isYoroi.innerHTML = wallets.yoroi.exists ? 'enabled' : 'disabled';
+
+                // handle SEND button
+                document.getElementById("go").addEventListener("click", sendErgo);
+                
+                // not sure how this works
+                window.removeEventListener("ergo_wallet_disconnected", () => { localStorage.removeItem('wallet') });
+                window.addEventListener("ergo_wallet_disconnected", () => { localStorage.removeItem('wallet') });
+            }
+
+            async function initYoroi() {
+                if (wallets.yoroi.exists) {
+                    if (await ergo_check_read_access()) { hasAccess = true }
+                    else if (await ergo_request_read_access()) { hasAccess = true } 
+                }
+                return false;
+            }
+
+            async function initNautilus() {
+                return false;
+            }
+
+            // trying to pop wallet to simulate send action
+            function sendErgo() {
+                let sendAmount = document.getElementById("amount").value;
+                console.log('amount: '+sendAmount);
+                
+                // not sure where AH is initializing the ergo variable
+                let res = sendAmount; // await ergo.get_change_address()
+                alert(res);
+            }
+
+        </script>
+    </head>
+    <body>
+        <table cellpadding=2 cellspacing=1>
+            <tr>
+                <td>Nautilus</td>
+                <td><div class=showy id=isNautilusEnbaled></div></td>
+            </tr>
+            <tr>
+                <td>Yoroi</td>
+                <td><div class=showy id=isYoroiEnabled></div></td>
+            </tr>
+            <tr><td colspan=2><hr width=100%></td></tr>
+            <tr>
+                <td>Amount</td>
+                <td><input type=text id=amount value=0></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><input type=button id=go value=Send></td>
+            </tr>
+        </table>
+    </body>
+    <script>
+    </script>
+</html>

@@ -376,33 +376,35 @@ def redeemToken(address:str):
                         'address': box['address'],
                         'value': box['value'],
                         'registers': {
-                        'R4': box['additionalRegisters']['R4']['serializedValue'],
-                        'R5': box['additionalRegisters']['R5']['serializedValue'],
-                        'R6': box['additionalRegisters']['R6']['serializedValue'],
-                        'R7': box['additionalRegisters']['R7']['serializedValue'],
-                        'R8': box['additionalRegisters']['R8']['serializedValue'],
-                        'R9': box['additionalRegisters']['R9']['serializedValue']
+                            'R4': box['additionalRegisters']['R4']['serializedValue'],
+                            'R5': box['additionalRegisters']['R5']['serializedValue'],
+                            'R6': box['additionalRegisters']['R6']['serializedValue'],
+                            'R7': box['additionalRegisters']['R7']['serializedValue'],
+                            'R8': box['additionalRegisters']['R8']['serializedValue'],
+                            'R9': box['additionalRegisters']['R9']['serializedValue']
                         },
                         'assets': [{
-                        'tokenId': box['assets'][0]['tokenId'],
-                        'amount': (totalVested-(redeemableTokens+redeemed))
+                            'tokenId': box['assets'][0]['tokenId'],
+                            'amount': (totalVested-(redeemableTokens+redeemed))
                         }]
                     }
                     txBoxTotal_nerg += box['value']
                     outBoxes.append(outBox)
+
                 outBox = {
-                'address': str(buyerAddress),
-                'value': txFee_nerg,
-                'assets': [{
-                    'tokenId': box['assets'][0]['tokenId'],
-                    'amount': redeemableTokens
-                }],
-                'registers': {
-                    'R4': box['additionalRegisters']['R9']['serializedValue']
-                }
+                    'address': str(buyerAddress),
+                    'value': txFee_nerg,
+                    'assets': [{
+                        'tokenId': box['assets'][0]['tokenId'],
+                        'amount': redeemableTokens
+                    }],
+                    'registers': {
+                        'R4': box['additionalRegisters']['R9']['serializedValue']
+                    }
                 }
                 outBoxes.append(outBox)
                 txBoxTotal_nerg += txFee_nerg
+
                 inBoxes.append(box['boxId'])
 
         if len(res.json()['items']) == 500 and len(outBoxes) < 500:

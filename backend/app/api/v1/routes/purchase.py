@@ -44,6 +44,12 @@ class TokenPurchase(BaseModel):
     isToken: Optional[bool] = True
     currency: Optional[str] = 'sigusd'
 
+class PurchaseDetails(BaseModel):
+    wallet: str
+    ergs: float
+    isToken: Optional[bool] = True
+    currency: Optional[str] = 'sigusd'
+
 nodeWallet  = Wallet(CFG.ergopadWallet) # contains ergopad tokens (xerg10M)
 buyerWallet = Wallet(CFG.buyerWallet) # simulate buyer / seed tokens
 #endregion INIT
@@ -58,7 +64,7 @@ myself = lambda: inspect.stack()[1][3]
 #endregion LOGGING
 
 # purchase tokens
-@r.post("/", name="blockchain:purchaseToken")
+@r.post("/", name="purchase:purchaseToken")
 async def purchaseToken(tokenPurchase: TokenPurchase):
     # close route for now
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'use api/vesting')
@@ -365,7 +371,7 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
         logging.error(f'ERR:{myself()}: building request ({e})')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'building request')
 
-@r.get("/allowance/{wallet}", name="blockchain:whitelist")
+@r.get("/allowance/{wallet}", name="purchase:whitelist")
 async def allowance(wallet:str, eventName:Optional[str]='presale-ergopad-202201wl'):
     NOW = int(time())
 
@@ -407,6 +413,98 @@ async def allowance(wallet:str, eventName:Optional[str]='presale-ergopad-202201w
 
     logging.info(f'sigusd: 0 (not found)')
     return {'wallet': wallet, 'sigusd': 0.0, 'message': 'not found'}
+
+@r.get("/perEvent", name="purchase:pricePerToken")
+async def pricePerToken(purchaseDetails: PurchaseDetails):
+    
+    # select event, tokenId, tokenConversion from ...
+    return {
+        # ergopad
+        'ergopad_seedsale_202112': .01,
+        'ergopad_strategic_202201': .03,
+        'ergopad_presale_202201': .04,
+        'ergopad_ido_202202': .05,
+
+        # darlpool
+        'darkpool_presale_202206': .04,
+        'darkpool_ido_202208': .05,
+    }
+
+@r.get("/perToken/{tokenId}", name="purchase:pricePerToken")
+async def pricePerToken(purchaseDetails: PurchaseDetails):
+    
+    # lookup in database
+    tkn2sigusd = 69 # you get 69 tokens per sigusd
+    erg2sigusd = 4.20 # an erg is worth $4.20sigusd
+
+    return {
+        'tokenId': tokenId,
+        'tokensRequested': amount,
+        'sigusdPerToken': f'{1/tkn2sigusd:.09}',
+        'ergPerToken': f'{(1/tkn2sigusd)/erg2sigusd:.09}',
+    }
+
+
+@r.get("/transaction", name="purchase:transaction")
+async def transaction(purchaseDetails: PurchaseDetails):
+    return true
+
+    # sandbox
+    erg2nerg = 10**9
+    ergopadTokenWallet = wallet('')
+    ergopadTreasuryWallet = wallet('')
+    ergopadFeeWallet = wallet('')
+    ergopadTokenId = ''
+    conversion = 420 # bogus
+    tokenAmount = int(purchaseDetails.amount*conversion)
+    # build box for requested amount to isolate from other transactions
+    tokenBoxId = buildTokenBox(ergopadTokenId, conversion*amount)    
+
+    # build tx: inputs, outputs, dataInputs (for assigned boxes), fee
+    requests = [
+        # ergopad tokens from treasury
+        {
+            'address': ergopadTokenWallet.address
+            'value': purchaseDetails.amount * erg2nerg,
+            'assets': [{
+                'tokenId': ergopadTokenId,
+                'amount': tokenAmount
+            }],
+            'registers': {
+                'R4': serializeRegister(f'helloworld'), # str
+                'R5': serializeRegister(12345), # long
+            },
+            # creationHeight: block.height # ?? is this needed
+        },
+
+        # politely handle fees
+        {
+            'address': ergopadFeeWallet.address # cause we are that nice
+            'value': txFee_nerg,
+        },
+
+        # user payment
+        {
+            'address': purchaseDetails.address,
+            'value': int(purchaseDetails.ergs*erg2nerg),
+            # 'assets': [{ # ?? NFT or exchange tokens
+            #     'tokenId': ergopadTokenId,
+            #     'amount': tokenAmount
+            # }],
+            # 'registers': {}, # ?? additional tracking info
+        }
+    ]
+    fee = txFee_nerg
+    inputs = [tokenBoxId]
+    dataInputs = []
+    
+    # new and shiny; unsigned transaction
+    tx = {
+        'requests': requests
+        'fee': fee
+        'inputs': inputs
+        'dataInputs': dataInputs
+    }
 
 ### MAIN
 if __name__ == '__main__':
