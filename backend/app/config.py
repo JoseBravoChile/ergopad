@@ -1,5 +1,5 @@
 import os
-
+import time
 from types import SimpleNamespace
 # from base64 import b64encode
 
@@ -57,7 +57,7 @@ Config = {
     'ergopadNode'       : 'http://ergonode:9052',
     'buyerNode'         : 'http://ergonode2:9052',
     'buyerNode'         : 'http://ergonode2:9053',
-    'ergoPlatform'      : 'https://api-testnet.ergoplatform.com/api/v1',
+    'ergoPlatform'      : 'https://api.ergoplatform.com/api/v1',
     'ergoWatch'         : 'https://ergo.watch/api/sigmausd/state',
     'coinGecko'         : 'https://api.coingecko.com/api/v3',
     'oraclePool'        : 'https://erg-oracle-ergusd.spirepools.com/frontendData',
@@ -82,6 +82,8 @@ Config = {
     'vestingPeriods_1'  : 9,
     'vestingDuration_1' : 30, # days
     'connectionString'  : f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DBNM')}",
+    'redisHost'         : os.getenv('REDIS_HOST'),
+    'redisPort'         : os.getenv('REDIS_PORT'),
     'jwtSecret'         : os.getenv('JWT_SECRET_KEY'),
     'debug'             : True,
     'validCurrencies'   : {
@@ -122,6 +124,8 @@ Config = {
     'vestingPeriods_1'  : 9,
     'vestingDuration_1' : 30, # days
     'connectionString'  : f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DBNM')}",
+    'redisHost'         : os.getenv('REDIS_HOST'),
+    'redisPort'         : os.getenv('REDIS_PORT'),
     'jwtSecret'         : os.getenv('JWT_SECRET_KEY'),
     'debug'             : True,
     'validCurrencies'   : {

@@ -12,6 +12,8 @@ from time import time
 from datetime import datetime
 from ergodex.price import getErgodexTokenPrice
 from config import Config, Network # api specific config
+from cache.cache import cache
+
 CFG = Config[Network]
 
 asset_router = r = APIRouter()
@@ -146,9 +148,13 @@ async def get_asset_balance_from_address(address: str = Path(..., min_length=40,
 #
 @r.get("/price/{coin}", name="coin:coin-price")
 async def get_asset_current_price(coin: str = None) -> None:
+    coin = coin.lower()
+    # check cache
+    cached = cache.get(f"get_api_asset_price_{coin}")
+    if cached:
+        return cached
 
     price = 0.0  # init/default
-    coin = coin.lower()
 
     # SigUSD/SigRSV
     if coin in ('sigusd', 'sigrsv'):
@@ -221,10 +227,11 @@ async def get_asset_current_price(coin: str = None) -> None:
             except:
                 pass
 
-
-    return {
+    ret = {
         "price": price
     }
+    cache.set(f"get_api_asset_price_{coin}", ret)
+    return ret
 
 
 # Coin history response schema
