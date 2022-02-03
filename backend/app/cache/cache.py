@@ -4,7 +4,7 @@ import json
 
 
 class RedisCache:
-    def __init__(self, timeout: int = 1500):
+    def __init__(self, timeout: int = 900):
         self.client = redisClient
         # default 15 mins
         self.timeout = timeout
