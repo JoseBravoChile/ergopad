@@ -1,0 +1,120 @@
+<html>
+    <head>
+        <style>
+            /* make pretty */
+            body, td { font-family: Arial, Helvetica, sans-serif; }
+            .showy { font-weight: bold; }
+        </style>
+        <script>
+            // make sure page is loaded
+            window.onload = function init() {
+                // find wallets
+                isNautilus = document.getElementById("isNautilusEnbaled");
+                isYoroi = document.getElementById("isYoroiEnabled");
+
+                isWalletConnected = document.getElementById("isWalletConnected");
+                walletAmount = document.getElementById("walletAmount");
+
+                // keep track of interest wallet thingys
+                wallets = {
+                    "yoroi": {
+                        "exists": typeof ergo_request_read_access === "undefined" ? false : true,
+                        "access": false
+                    }, 
+                    "nautilus": {
+                        "exists": typeof ergoConnector.nautilus.connect === "undefined" ? false : true,
+                        "access": false
+                    }
+                }
+
+                // wallets.yoroiExists = true
+                isNautilus.innerHTML = wallets.nautilus.exists ? 'Enabled' : 'Disabled';
+                isYoroi.innerHTML = wallets.yoroi.exists ? 'Enabled' : 'Disabled';
+
+                // connect
+                initNautilus()
+
+                // handle SEND button
+                document.getElementById("go").addEventListener("click", sendErgo);
+                document.getElementById("nautalisConnect").addEventListener("click", initNautilus);
+                
+                // not sure how this works
+                window.removeEventListener("ergo_wallet_disconnected", () => { localStorage.removeItem('wallet') });
+                window.addEventListener("ergo_wallet_disconnected", () => { localStorage.removeItem('wallet') });
+
+                tx = {
+                    'requests': [{
+                        'address': '',
+                        'amount': 10**9 // 1 erg
+                    }],
+                    'inputs': [],
+                    'dataInputs': [],
+                    'fee': 10**7 // .01 erg
+                };
+            }
+
+            async function initNautilus() {
+                if (await ergo_request_read_access()) { wallets.nautilus.access = true }
+                if (wallets.nautilus.access) {
+                    isWalletConnected.innerHTML = "<b>Connected</b>"
+
+                    let walletBalance = await ergo.get_balance()
+                    walletAmount.innerHTML = parseInt(walletBalance/10**9).toFixed(2)+' <i>ergs</i>';
+                }
+            }
+
+            async function initYoroi() {
+                if (wallets.yoroi.exists) {
+                    if (await ergo_check_read_access()) { hasAccess = true }
+                    else if (await ergo_request_read_access()) { hasAccess = true } 
+                }
+                return false;
+            }
+
+            // trying to pop wallet to simulate send action
+            async function sendErgo() {
+                let sendAmount = document.getElementById("amount").value;
+                console.log('amount: '+sendAmount+'ergs');
+                
+                // not sure where AH is initializing the ergo variable
+                tx.requests[0].amount *= parseInt(sendAmount)
+                utxos = await ergo.get_utxos();
+                boxId = utxos[0]['boxId']; // just grab first for testing
+                tx.requests[0].inputs = [boxId]
+                let res = await ergo.sign_tx(tx, 0);                
+                alert(res);
+            }
+
+        </script>
+    </head>
+    <body>
+        <table cellpadding=2 cellspacing=1 width=400>
+            <tr>
+                <td>Nautilus</td>
+                <td><div class=showy id=isNautilusEnbaled></div></td>
+                <td><div class=showy id=isWalletConnected><input type=button id=nautalisConnect value=Connect></div></td>
+            </tr>
+            <tr>
+                <td>Yoroi</td>
+                <td><div class=showy id=isYoroiEnabled></div></td>
+                <td><input type=button id=yoroiConnect value=Connect></td>
+            </tr>
+            <tr><td colspan=3><hr width=100%></td></tr>
+            <tr>
+                <td valign=right>Balance:</td>
+                <td colspan=2><div class=showy id=walletAmount></div></td>
+            </tr>
+            <tr>
+                <td><div class=showy id=walletAmount></div></td>
+                <td colspan=2><input type=text id=amount value=0></td>
+            </tr>
+            <tr><td colspan=3><hr width=100%></td></tr>
+            <tr>
+                <td></td>
+                <td colspan=2><input type=button id=go value=Send></td>
+            </tr>
+        </table>
+    </body>
+    <script>
+    </script>
+</html>
