@@ -52,7 +52,7 @@ Config = {
   # 'devnet':
   'testnet': dotdict({
     'node'              : os.getenv('ERGONODE_HOST'),
-    'explorer'          : 'https://api-testnet.ergoplatform.com/api/v1',
+    'explorer'          : 'https://api.ergoplatform.com/api/v1',
     'assembler'         : 'http://assembler:8080',
     'ergopadNode'       : 'http://ergonode:9052',
     'buyerNode'         : 'http://ergonode2:9052',
