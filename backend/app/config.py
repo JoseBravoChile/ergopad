@@ -52,12 +52,12 @@ Config = {
   # 'devnet':
   'testnet': dotdict({
     'node'              : os.getenv('ERGONODE_HOST'),
-    'explorer'          : 'https://api.ergoplatform.com/api/v1',
+    'explorer'          : 'https://api-testnet.ergoplatform.com/api/v1',
     'assembler'         : 'http://assembler:8080',
     'ergopadNode'       : 'http://ergonode:9052',
     'buyerNode'         : 'http://ergonode2:9052',
     'buyerNode'         : 'http://ergonode2:9053',
-    'ergoPlatform'      : 'https://api.ergoplatform.com/api/v1',
+    'ergoPlatform'      : 'https://api-testnet.ergoplatform.com/api/v1',
     'ergoWatch'         : 'https://ergo.watch/api/sigmausd/state',
     'coinGecko'         : 'https://api.coingecko.com/api/v3',
     'oraclePool'        : 'https://erg-oracle-ergusd.spirepools.com/frontendData',
