@@ -24,8 +24,8 @@ logging.basicConfig(format='{asctime}:{name:>8s}:{levelname:<8s}::{message}', st
 ### INIT
 # CFG = Config[Network]
 
-assembler = 'http://38.15.40.14:8888'
-ergonode  = 'http://38.15.40.14:9053'
+assembler = 'http://assembler:8080'
+ergonode  = 'http://ergonode:9053'
 headers   = {'Content-Type': 'application/json'}
 myself    = lambda: inspect.stack()[1][3]
 

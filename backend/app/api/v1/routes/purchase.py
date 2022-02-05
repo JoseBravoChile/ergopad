@@ -182,8 +182,8 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
                     from events
                     where name = {eventName!r}
                 )
-                select wal.id as walletId
-                    , evt.id as eventId
+                select wht.id
+                    , wal.id as walletId
                     , wal.address as wallet
                     , max(wht.allowance_sigusd) as allowance_sigusd
                     , max(wht.spent_sigusd) as spent_sigusd
@@ -195,6 +195,7 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
             res = con.execute(sql).fetchall()
             for r in res:
                 whitelist[r['wallet']] = {
+                    'id': r['id'],
                     'walletid': r['walletId'],
                     'eventId': r['eventId'],
                     'total': float(r['allowance_sigusd']),
@@ -277,6 +278,7 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
             params['purchaseTokenAmount'] = sendAmount_nerg # coinAmount_nerg
         logging.info(f'params: {params}')
 
+        currencyAmount = params['purchaseTokenAmount']
         scPurchase = getErgoscript('directSale', params=params)
         logging.info(f'scPurchase: {scPurchase}')
 
@@ -321,7 +323,7 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
                     {validCurrencies['ergopad']!r}, 
                     {tokenAmount!r},
                     {('erg', 'sigusd')[isToken]!r},
-                    startWhen,
+                    {currencyAmount!r},
                     txFee_nerg,
                 )
             """
@@ -329,22 +331,13 @@ async def purchaseToken(tokenPurchase: TokenPurchase):
 
             # update summary
             sql = f"""
-                with spt as (
-                    select {whitelist[buyerWallet.address]['id']!r} as "whitelistId"
-                        sum(coalesce(tokenAmount, 0.0)) + {price}*sum(coalesce(currencyAmount, 0.0)) as total_sigusd
-                    from purchases
-                    where "walletId" = {whitelist[buyerWallet.address]['walletId']!r}
-                        and "eventId" = {whitelist[buyerWallet.address]['eventId']!r}
-                )
-                update 
-                    set wht.spent_sigusd = spt.total_sigusd
-                from whitelist wht
-                    join spt on spt."whitelistId" = wht.id
+                update whitelist set spent_sigusd = {tokenPurchase.amount!r}
+                where id = {whitelist[buyerWallet.address]['id']!r}
             """
             res = con.execute(sql)
         except:
             with open(BONKFILE, 'a') as f:
-                f.write(f'--purchase ergopad for eventId {eventId}\n--{NOW}\n{sql};\n\n')
+                f.write(f"--purchase ergopad for eventId {whitelist[buyerWallet.address]['eventId']}\n--{NOW}\n{sql};\n\n")
             pass
 
         logging.debug(f'::TOOK {time()-st:.2f}s')
@@ -373,7 +366,7 @@ async def allowance(wallet:str, eventName:Optional[str]='presale-ergopad-202201w
         con = create_engine(DATABASE)
         sql = f"""
             with evt as (
-                select id
+                select id, address
                 from events
                 where name = {eventName!r}
             )
@@ -382,10 +375,20 @@ async def allowance(wallet:str, eventName:Optional[str]='presale-ergopad-202201w
                 from wallets
                 where address = {wallet!r}
             )
-            select sum(coalesce(allowance_sigusd-spent_sigusd, 0.0)) as remaining_sigusd
+            , pur as (
+                select "walletAddress", sum(coalesce("sigusdAmount", 0.0)) as "sigusdAmount"
+                from purchases
+                where "walletAddress" = {wallet!r}
+                    and "assemblerStatus" = 'success'
+                group by "walletAddress"
+            )
+            select coalesce(sum(coalesce(allowance_sigusd-spent_sigusd, 0.0)), 0.0) as remaining_sigusd
+                , coalesce(max(pur."sigusdAmount"), 0.0) as success_sigusd
             from whitelist wht
                 join evt on evt.id = wht."eventId"
                 join wal on wal.id = wht."walletId"        
+                left outer join pur on pur."walletAddress" = wal.address
+            where wht."isWhitelist" = 1    
         """
         logging.debug(sql)
         res = con.execute(sql).fetchone()
@@ -397,8 +400,9 @@ async def allowance(wallet:str, eventName:Optional[str]='presale-ergopad-202201w
         else:
             return {
                 'wallet': wallet, 
+                'remaining (sigusd)': res['remaining_sigusd'], 
+                'successes (sigusd)': res['success_sigusd'], 
                 'sigusd': res['remaining_sigusd'], 
-                'message': 'remaining sigusd'
             }
 
     except Exception as e:
