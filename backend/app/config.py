@@ -103,14 +103,15 @@ Config = {
     'explorer'          : 'https://api.ergoplatform.com/api/v1',
     'ergoPlatform'      : 'https://api.ergoplatform.com/api/v1',
     'assembler'         : 'http://assembler:8080',
+    'ergopadNode'       : 'http://ergonode:9053',
     'buyerNode'         : 'http://ergonode2:9053',
     'ergoWatch'         : 'https://ergo.watch/api/sigmausd/state',
     'coinGecko'         : 'https://api.coingecko.com/api/v3',
     'oraclePool'        : 'https://erg-oracle-ergusd.spirepools.com/frontendData',
     'ergopadApiKey'     : os.getenv('ERGOPAD_APIKEY'),
     'bogusApiKey'       : os.getenv('BOGUS_APIKEY'),
+    'nodeWallet'        : os.getenv('ERGOPAD_WALLET'),
     'ergopadTokenId'    : os.getenv('ERGOPAD_TOKENID'),
-    'ergopadApiKey'     : os.getenv('ERGOPAD_APIKEY'),
     'ergopadWallet'     : os.getenv('ERGOPAD_WALLET'),
     'buyerApiKey'       : os.getenv('BUYER_APIKEY'),
     'buyerWallet'       : os.getenv('BUYER_WALLET'),
@@ -136,9 +137,12 @@ Config = {
       # 'sigusd'   : '29275cf36ffae29ed186df55ac6f8d47b367fe8e398721e200acb71bc32b10a0', # xyzpad
       # 'sigusd'   : '191dd93523e052d9be49680508f675f82e461ef5452d60143212beb42b7f62a8',
       # 'ergopad'  : 'cc3c5dc01bb4b2a05475b2d9a5b4202ed235f7182b46677ed8f40358333b92bb', # xerg10M / TESTING, strategic token
+      'seedsale'        : '02203763da5f27c01ba479c910e479c4f479e5803c48b2bf4fd4952efa5c62d9', # mainnet seed
+      'strategic_sale' : '60def1ed45ffc6493c8c6a576c7a23818b6b2dfc4ff4967e9867e3795886c437', # mainnet strategic token
       'ergopad'  : '60def1ed45ffc6493c8c6a576c7a23818b6b2dfc4ff4967e9867e3795886c437', # official
       'sigusd'   : '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04', # official SigUSD (SigmaUSD - V2)
-      # 'ergopad'  : 'cc3c5dc01bb4b2a05475b2d9a5b4202ed235f7182b46677ed8f40358333b92bb', # TODO: need official ergopad token
+      # 'ergopad'         : 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', # mainnet official
+      # 'sigusd'          : '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04', # mainnet official SigUSD (SigmaUSD - V2)
       # 'kushti' : '??',
       # '$COMET' : '??',
     }

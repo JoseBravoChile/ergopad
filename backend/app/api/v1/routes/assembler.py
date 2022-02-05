@@ -46,9 +46,10 @@ async def pendingStatus(wallet: str):
     try:
         con = create_engine(DATABASE)
         sql = f"""
-            select distinct "assemblerId" 
+            select distinct "assemblerStatus", "assemblerId"
             from purchases 
             where "walletAddress" = {wallet!r}
+                and "assemblerStatus" not in ('success', 'timeout', 'ignore')
         """
         logging.debug(sql)
         res = con.execute(sql).fetchall()

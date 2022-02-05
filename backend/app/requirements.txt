@@ -36,5 +36,3 @@ asgi-lifespan==1.0.1
 ecdsa
 pyblake2
 base58
-
-aiofiles

@@ -213,7 +213,7 @@ async def get_asset_current_price(coin: str = None) -> None:
                     "eth": "ETH/USDT",
                 } 
                 sqlFindLatestPrice = f'select close from "{exchange}_{pairMapper[coin]}_1m" order by timestamp_utc desc limit 1'
-                res = con.execute(sqlFindLatestPrice, con=con)
+                res = con.execute(sqlFindLatestPrice)
                 price = res.fetchone()[0]
             except:
                 pass
@@ -270,14 +270,17 @@ async def get_asset_historical_price(coin: str = "all", stepSize: int = 1, stepU
         table = "ergodex_ERG/ergodexToken_continuous_5m"
         # sql
         sql = f"""
-        SELECT timestamp_utc, sigusd, sigrsv, erdoge, lunadog, ergopad, neta FROM 
-        (SELECT timestamp_utc, sigusd, sigrsv, erdoge, lunadog, ergopad, neta, ROW_NUMBER() OVER (ORDER BY timestamp_utc DESC) AS rownum FROM "{table}") as t
-        WHERE ((t.rownum - 1) %% {resolution}) = 0
-        ORDER BY t.timestamp_utc DESC
-        LIMIT {limit}
+            SELECT timestamp_utc, sigusd, sigrsv, erdoge, lunadog, ergopad, neta 
+            FROM (
+                SELECT timestamp_utc, sigusd, sigrsv, erdoge, lunadog, ergopad, neta, ROW_NUMBER() OVER (ORDER BY timestamp_utc DESC) AS rownum 
+                FROM "{table}"
+            ) as t
+            WHERE ((t.rownum - 1) %% {resolution}) = 0
+            ORDER BY t.timestamp_utc DESC
+            LIMIT {limit}
         """
         logging.debug(f'exec sql: {sql}')
-        res = con.execute(sql, con=con).fetchall()
+        res = con.execute(sql).fetchall()
         result = []
         # filter tokens
         tokens = ("sigusd", "sigrsv", "erdoge", "lunadog", "ergopad", "neta")
