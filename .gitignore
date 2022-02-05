@@ -20,6 +20,9 @@ docker-compose-luitest.yml
 /build
 backend/app/*.?sv
 
+#build artifacts
+**/target
+
 
 # misc
 .DS_Store
