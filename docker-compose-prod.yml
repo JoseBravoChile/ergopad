@@ -123,8 +123,8 @@ services:
     env_file: .env
     image: openjdk
     volumes:
-      - ./ergonode/:/opt/ergo # jar/conf
-      - /ergo/mainnet/:/ergo # blockchain
+      - ./ergonode/mainnet.conf:/etc/mainnet.conf # jar/conf
+      - ./ergonode/ergo.jar:/opt/ergo/ergo.jar
     ports:
       - ${ERGONODE_PORT}:${ERGONODE_PORT}
       - 9030:9030
@@ -147,17 +147,6 @@ services:
     working_dir: /opt/assembler # set this if using image and not build
     command: java -jar -Dconfig.file=mainnet.conf -Dhttp.port=${ASSEMBLER_PORT} ergo-assembler-1.1.jar
     # command: tail /dev/null -f
-
-#   ergostratum:
-#     container_name: ergostratum
-#     env_file: .env
-#     build: 
-#       context: .
-#       dockerfile: Dockerfile.stratum
-#     volumes: './stratum:/opt/ergo'
-#     ports: 8008:8008 # stratum
-#     depends_on: ergonode
-#     command: nodemon ./tulip.js -e js # restart on js file changes
 
 volumes:
   postgres_data:

@@ -17,12 +17,15 @@ CFG = Config[Network]
 DATABASE = CFG.connectionString
 headers = {'Content-Type': 'application/json'}
 
+
 @r.get("/return/{wallet}/{smartContract}", name="assembler:return")
 async def assemblerReturn(wallet: str, smartContract: str):
     try:
         res = requests.get(f'{CFG.assembler}/return/{wallet}/{smartContract}')
-        return JSONResponse(status_code=res.status_code, content=res.json())
-
+        if res.status_code == 200:
+            return JSONResponse(status_code=res.status_code, content=res.text)
+        else:
+            return JSONResponse(status_code=res.status_code, content=res.json())
     except:
         logging.debug(
             f'request failed for "wallet": {wallet}, "smartContract": {smartContract}')
@@ -43,9 +46,10 @@ async def pendingStatus(wallet: str):
     try:
         con = create_engine(DATABASE)
         sql = f"""
-            select distinct "assemblerId" 
+            select distinct "assemblerStatus", "assemblerId"
             from purchases 
             where "walletAddress" = {wallet!r}
+                and "assemblerStatus" not in ('success', 'timeout', 'ignore')
         """
         logging.debug(sql)
         res = con.execute(sql).fetchall()

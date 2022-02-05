@@ -68,3 +68,7 @@ VALUES
         'https://raw.githubusercontent.com/ergo-pad/ergopad/main/frontend/public/projects/social-media-platforms.jpg',
         false
     );
+
+-- schema change
+ALTER TABLE
+    projects RENAME "teamTelegramHandle" TO socials;

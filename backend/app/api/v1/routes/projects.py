@@ -10,7 +10,7 @@ import os
 from core.auth import get_current_active_superuser
 
 from db.session import get_db
-from db.crud import (
+from db.crud.projects import (
     get_project_team,
     get_projects,
     get_project,
@@ -18,7 +18,7 @@ from db.crud import (
     edit_project,
     delete_project
 )
-from db.schemas import CreateAndUpdateProjectWithTeam, Project, ProjectWithTeam
+from db.schemas.projects import CreateAndUpdateProjectWithTeam, Project, ProjectWithTeam
 
 from aws.s3 import AWS_REGION, S3, S3_BUCKET, S3_KEY
 
@@ -64,7 +64,7 @@ async def project_details(
         fundsRaised=project.fundsRaised,
         shortDescription=project.shortDescription,
         description=project.description,
-        teamTelegramHandle=project.teamTelegramHandle,
+        socials=project.socials,
         bannerImgUrl=project.bannerImgUrl,
         isLaunched=project.isLaunched,
         team=project_team

@@ -159,6 +159,7 @@ async def vestToken(vestment: Vestment):
         presale['remaining_sigusd'] = res['allowance_sigusd'] - res['spent_sigusd']
         presale['walletId'] = res['walletId']
         presale['eventId'] = res['eventId']
+        presale['whitelistId'] = res['whitelistId']
 
         # missing legit response from whitelist
         if res == None or len(res) == 0:
@@ -171,32 +172,37 @@ async def vestToken(vestment: Vestment):
             return {'status': 'error', 'message': f'purchase limit reached.'}
 
     # handle token params
-    currencyDecimals = 0
-    vestedTokenDecimals = 0
+    currencyDecimals = None
+    vestedTokenDecimals = None
     try:
         if isToken:
             tokenDecimals = getTokenInfo(CFG.validCurrencies[vs.currency])
             logging.debug(tokenDecimals)
             if 'decimals' in tokenDecimals:
                 currencyDecimals = int(tokenDecimals['decimals'])
+            else:
+                return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Could not retrieve token decimals')
         else:
             currencyDecimals = 9
         tokenDecimals = getTokenInfo(CFG.validCurrencies[vs.vestedToken])
         if 'decimals' in tokenDecimals:
             vestedTokenDecimals = int(tokenDecimals['decimals'])
+        else:
+            return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Could not retrieve token decimals')
     except Exception as e:
         logging.error(f'{myself()}: {e}')
         logging.error('invalid decimals found for sigusd')
-        pass
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Invalid token decimals')
 
     logging.info(f'decimals for currency: {currencyDecimals}, vestedToken: {vestedTokenDecimals}')
     vestedTokenDecimals = 10**vestedTokenDecimals
     currencyDecimals = 10**currencyDecimals
 
+    nodeWalletAddress = CFG.nodeWallet
     try:
         logging.info(CFG.nodeWallet)
         buyerWallet        = Wallet(vestment.wallet)
-        nodeWallet         = Wallet(CFG.nodeWallet)
+        nodeWallet         = Wallet(nodeWalletAddress)
         amountInUSD        = vestment.vestingAmount*vs.vestedTokenPrice
         
         vestingDuration_ms = duration_ms[vs.periodType]*vs.periodDuration
@@ -204,8 +210,7 @@ async def vestToken(vestment: Vestment):
 
         txFee_nerg         = int(.001*nergsPerErg)
         tokenAmount        = vestment.vestingAmount*vestedTokenDecimals
-        logging.info(f"1 {amountInUSD}")
-        currencyAmount = amountInUSD/vs.currencyPrice
+        currencyAmount     = amountInUSD/vs.currencyPrice
         coinAmount_nerg    = int(.01*nergsPerErg)
         if vs.currency == "ergo":
             coinAmount_nerg = int(currencyAmount*nergsPerErg)
@@ -269,6 +274,8 @@ async def vestToken(vestment: Vestment):
         logging.info(params)
         scPurchase = getErgoscript('vesting1', params=params)
         # create transaction with smartcontract, into outbox(es), using tokens from ergopad token box
+        if presale == {}:
+            ergopadTokenBoxes = getUnspentExchange()
         ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId=CFG.validCurrencies[vs.vestedToken], nErgAmount=txFee_nerg*3, tokenAmount=tokenAmount)
         logging.info(f'build request')
         request = {
@@ -292,7 +299,7 @@ async def vestToken(vestment: Vestment):
 
         # make async request to assembler
         res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)    
-        logging.debug(res)
+        logging.debug(res.content)
         assemblerId = res.json()['id']
         fin = requests.get(f'{CFG.assembler}/result/{assemblerId}')
         logging.info({'status': 'success', 'fin': fin.json(), 'followId': assemblerId})
@@ -303,12 +310,12 @@ async def vestToken(vestment: Vestment):
             insert into purchases ("walletAddress", "eventName", "toAddress", "tokenId", "tokenAmount", "currency", "currencyAmount", "feeAmount", "assemblerId")
             values (
                 {buyerWallet.address!r}
-                , {vestment.vestingScenario!r}
+                , 'presale-ergopad-202201wl'
                 , {scPurchase!r}
                 , {CFG.validCurrencies[vs.vestedToken]!r}
                 , {tokenAmount!r}
                 , {vs.currency!r}
-                , {vestment.vestingAmount!r}
+                , {(sendAmount_nerg/nergsPerErg, currencyAmount)[isToken]!r}
                 , {txFee_nerg!r}
                 , {assemblerId!r}
             )
@@ -316,6 +323,19 @@ async def vestToken(vestment: Vestment):
         logging.debug(f'SQL::PURCHASES::\n{sql}')
         res = con.execute(sql)
         logging.debug(res)
+
+        # update if presale/whitelist
+        if presale != {}:
+            try:
+                sql = f"""
+                    update whitelist 
+                    set spent_sigusd = coalesce(spent_sigusd, 0.0)+{amountInUSD!r}
+                    where id = {presale['whitelistId']!r}
+                """
+                logging.debug(sql)
+                # res = con.execute(sql)
+            except:
+                pass
 
         logging.debug(f'::TOOK {time()-st:.2f}s')
         if isToken:
@@ -329,6 +349,8 @@ async def vestToken(vestment: Vestment):
             # 'coins'         : coinAmount_nerg/nergsPerErg,
             # 'boxes'         : txBoxTotal_nerg/nergsPerErg,
             # 'fees'          : txFee_nerg/nergsPerErg,
+            'currencyAmount': currencyAmount,
+            'currency'      : vs.currency,
             'assembler'     : json.dumps(fin.json()),
             'smartContract' : scPurchase, 
             'request'       : json.dumps(request),
@@ -340,7 +362,7 @@ async def vestToken(vestment: Vestment):
 
 # redeem/disburse tokens after lock
 @r.get("/redeem/{address}", name="vesting:redeem")
-def redeemToken(address:str):
+def redeemToken(address:str, numBoxes:Optional[int]=200):
 
     txFee_nerg = CFG.txFee
     txBoxTotal_nerg = 0
@@ -354,10 +376,8 @@ def redeemToken(address:str):
         rJson = res.json()
         logging.info(rJson['total'])
         for box in rJson['items']:
-            if len(outBoxes) > 500:
+            if len(inBoxes) >= numBoxes:
                 break
-            nodeRes = requests.get(f"{CFG.ergopadNode}/utils/ergoTreeToAddress/{box['additionalRegisters']['R4']['renderedValue']}").json()
-            buyerAddress = nodeRes['address']
             redeemPeriod = int(box['additionalRegisters']['R5']['renderedValue'])
             redeemAmount = int(box['additionalRegisters']['R6']['renderedValue'])
             vestingStart = int(box['additionalRegisters']['R7']['renderedValue'])
@@ -368,31 +388,33 @@ def redeemToken(address:str):
             totalRedeemable = periods * redeemAmount
             redeemableTokens = totalVested - redeemed if (totalVested-totalRedeemable) < redeemAmount else totalRedeemable - redeemed
             if redeemableTokens > 0:
+                nodeRes = requests.get(f"{CFG.ergopadNode}/utils/ergoTreeToAddress/{box['additionalRegisters']['R4']['renderedValue']}").json()
+                buyerAddress = nodeRes['address']
                 if (totalVested-(redeemableTokens+redeemed))>0:
                     outBox = {
                         'address': box['address'],
                         'value': box['value'],
                         'registers': {
-                        'R4': box['additionalRegisters']['R4']['serializedValue'],
-                        'R5': box['additionalRegisters']['R5']['serializedValue'],
-                        'R6': box['additionalRegisters']['R6']['serializedValue'],
-                        'R7': box['additionalRegisters']['R7']['serializedValue'],
-                        'R8': box['additionalRegisters']['R8']['serializedValue'],
-                        'R9': box['additionalRegisters']['R9']['serializedValue']
+                            'R4': box['additionalRegisters']['R4']['serializedValue'],
+                            'R5': box['additionalRegisters']['R5']['serializedValue'],
+                            'R6': box['additionalRegisters']['R6']['serializedValue'],
+                            'R7': box['additionalRegisters']['R7']['serializedValue'],
+                            'R8': box['additionalRegisters']['R8']['serializedValue'],
+                            'R9': box['additionalRegisters']['R9']['serializedValue']
                         },
                         'assets': [{
-                        'tokenId': box['assets'][0]['tokenId'],
-                        'amount': (totalVested-(redeemableTokens+redeemed))
+                            'tokenId': box['assets'][0]['tokenId'],
+                            'amount': (totalVested-(redeemableTokens+redeemed))
                         }]
                     }
                     txBoxTotal_nerg += box['value']
                     outBoxes.append(outBox)
                 outBox = {
-                'address': str(buyerAddress),
-                'value': txFee_nerg,
-                'assets': [{
-                    'tokenId': box['assets'][0]['tokenId'],
-                    'amount': redeemableTokens
+                    'address': str(buyerAddress),
+                    'value': txFee_nerg,
+                    'assets': [{
+                        'tokenId': box['assets'][0]['tokenId'],
+                        'amount': redeemableTokens
                 }],
                 'registers': {
                     'R4': box['additionalRegisters']['R9']['serializedValue']
@@ -402,40 +424,40 @@ def redeemToken(address:str):
                 txBoxTotal_nerg += txFee_nerg
                 inBoxes.append(box['boxId'])
 
-        if len(res.json()['items']) == 500 and len(outBoxes) < 500:
+        if len(res.json()['items']) == 500 and len(inBoxes) < 200:
             offset += 500
-            res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset={0}&limit=500', headers=dict(headers), timeout=2)
+            res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset={offset}&limit=500', headers=dict(headers), timeout=2)
         else:
             break
 
     # redeem
+    result = ""
     if len(outBoxes) > 0:
-        
-        ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId="", nErgAmount=txBoxTotal_nerg, tokenAmount=0)
+        inBoxesRaw = []
+        txFee = max(txFee_nerg,(len(outBoxes)+len(inBoxes))*100000)
+        ergopadTokenBoxes = getBoxesWithUnspentTokens(tokenId="", nErgAmount=txBoxTotal_nerg+txFee, tokenAmount=0)
+        for box in inBoxes+list(ergopadTokenBoxes.keys()):
+            res = requests.get(f'{CFG.ergopadNode}/utxo/withPool/byIdBinary/{box}', headers=dict(headers), timeout=2)
+            if res.ok:
+                inBoxesRaw.append(res.json()['bytes'])
         request = {
-            'address': scPurchase,
-            'returnTo': CFG.nodeWallet,
-            'startWhen': {
-                'erg': 0, 
-            },
-            'txSpec': {
                 'requests': outBoxes,
-                'fee': txFee_nerg,          
-                'inputs': inBoxes+list(ergopadTokenBoxes.keys()),
-                'dataInputs': [],
-            },
-        }
+                'fee': txFee,          
+                'inputsRaw': inBoxesRaw
+            }
 
         # make async request to assembler
         # logging.info(request); exit(); # !! testing
         logging.debug(request)
-        res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)   
+        res = requests.post(f'{CFG.ergopadNode}/wallet/transaction/send', headers=dict(headers, **{'api_key': CFG.ergopadApiKey}), json=request)   
         logging.debug(res)
-
+        result = res.content
     try:
         return({
-            'status': 'success', 
-            #'details': f'send {txFee_nerg} to {scPurchase}',
+            'status': 'success',
+            'inboxes': len(inBoxes),
+            'outboxes': len(outBoxes),
+            'result': result,
         })
     
     except Exception as e:
@@ -451,7 +473,7 @@ def findVestingTokens(wallet:str):
     result = {}
     userWallet = Wallet(wallet)
     userErgoTree = userWallet.ergoTree()
-    address = getErgoscript('vesting2', params={}) # just a quick hack, is always the same so should just be part of the CFG
+    address = CFG.vestingContract
     offset = 0
     res = requests.get(f'{CFG.explorer}/boxes/unspent/byAddress/{address}?offset={offset}&limit=500', headers=dict(headers), timeout=2)
     while res.ok: 
@@ -476,7 +498,7 @@ def findVestingTokens(wallet:str):
                         result[tokenId]['outstanding'][nextRedeemDate] = {}
                         result[tokenId]['outstanding'][nextRedeemDate]['amount'] = 0.0
                     redeemAmount = nextRedeemAmount if remainingVested >= 2*nextRedeemAmount else remainingVested
-                    result[tokenId]['outstanding'][nextRedeemDate]['amount'] += redeemAmount
+                    result[tokenId]['outstanding'][nextRedeemDate]['amount'] += round(redeemAmount,int(box["assets"][0]["decimals"]))
                     remainingVested -= redeemAmount
                     nextRedeemTimestamp += int(box["additionalRegisters"]["R5"]["renderedValue"])/1000.0
                     nextRedeemDate = date.fromtimestamp(nextRedeemTimestamp)
@@ -506,3 +528,33 @@ def findVestingTokens(wallet:str):
   except Exception as e:
     logging.error(f'ERR:{myself()}: unable to build vesting request ({e})')
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to build vesting request')
+
+@r.get('/unspent', name="vesting:unspent")
+def getUnspentExchange(tokenId=CFG.ergopadTokenId, allowMempool=True):
+    logging.debug(f'TOKEN::{tokenId}')
+    ergopadTokenBoxes = {}
+    try:
+        res = requests.get(f'{CFG.node}/wallet/boxes/unspent?minInclusionHeight=0&minConfirmations={(0, -1)[allowMempool]}', headers=dict(headers, **{'api_key': CFG.ergopadApiKey}))
+        if res.ok:
+            for box in res.json():
+                try: 
+                    for asset in box['box']['assets']:
+                        try:
+                            assert asset['tokenId'] == tokenId
+                            assert asset['amount'] > 0
+
+                            boxId = box['box']['boxId']
+                            if boxId in ergopadTokenBoxes:
+                                ergopadTokenBoxes[boxId].append(asset)
+                            else: 
+                                ergopadTokenBoxes[boxId] = [asset]
+                    
+                        except: pass # tokens
+
+                except: pass # assets
+
+    except Exception as e:
+        logging.error(f'ERR:{myself()}: unable to find tokens for exchange ({e})')
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to find tokens for exchange')
+
+    return ergopadTokenBoxes
