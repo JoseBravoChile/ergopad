@@ -43,13 +43,20 @@
                 window.addEventListener("ergo_wallet_disconnected", () => { localStorage.removeItem('wallet') });
 
                 tx = {
-                    'requests': [{
-                        'address': '',
-                        'amount': 10**9 // 1 erg
-                    }],
+                    'requests': [
+                        {
+                            'address': '9fJ4Xcxg9C9QJFpdj4ysVUAkTAWjdZwrgAuj4gQnnJ7rMSCwqxx',
+                            'value': 10**9, // 1 erg
+                            'registers': {
+                                'R4': '0e1054cf5a0b415e4625a67b1c89fc96aee8',
+                                'R5': '0e1054cf5a0b415e4625a67b1c89fc96aee8',
+                                'R6': '0e1054cf5a0b415e4625a67b1c89fc96aee8',
+                            }
+                        },
+                    ],
                     'inputs': [],
                     'dataInputs': [],
-                    'fee': 10**7 // .01 erg
+                    'fee': 10**6 // .001 erg
                 };
             }
 
@@ -81,7 +88,8 @@
                 utxos = await ergo.get_utxos();
                 boxId = utxos[0]['boxId']; // just grab first for testing
                 tx.requests[0].inputs = [boxId]
-                let res = await ergo.sign_tx(tx, 0);                
+                // let res = await ergo.submit_tx(tx);                
+                let res = await ergo.sign_tx(tx);
                 alert(res);
             }
 
@@ -114,6 +122,33 @@
                 <td colspan=2><input type=button id=go value=Send></td>
             </tr>
         </table>
+
+        <ul>
+            <li>Make sure Nautilus is enabled and connected at top.  If not enabled, need to install in chrome, if not connected, click connect button</li>
+            <li>once dapp is connected to nautilus, verify balance is expected (esp. with multiple wallet possibilities)</li>
+            <li>Using simple tx below, generate unsigned from node for .1erg (registers optional for simple test): http://ergonode:9053/wallet/transaction/generateUnsigned
+                <blockquote>
+                    {
+                        "requests": [
+                          {
+                            "address": "9fJ4Xcxg9C9QJFpdj4ysVUAkTAWjdZwrgAuj4gQnnJ7rMSCwqxx",
+                            "value": 100000000,
+                            "registers": {
+                              "R4": "0e1054cf5a0b415e4625a67b1c89fc96aee8"
+                            }
+                          }
+                        ],
+                        "inputs": [],
+                        "dataInputs": [],
+                        "fee": 1000000
+                      }
+                </blockquote>
+                <blockquote>JSON.stringify(tx) if you need to get above from chrome dev console</blockquote>
+            </li>
+            <li>from chrome dev console, set var utx = output from previous step</li>
+            <li>then sign transaction using ergo object: stx = ergo.sign_tx(utx), which will popup a nautilus box to confirm</li>
+            <li>once confirmed, ergo.submit(stx) to finalize signed transaction</li>
+        </ul>
     </body>
     <script>
     </script>
