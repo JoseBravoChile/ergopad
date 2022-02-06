@@ -17,6 +17,6 @@ scalacOptions ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.ergoplatform" %% "ergo-playground-env" % "0.0.0-94-a3ea79fe-20220205-1600-SNAPSHOT"
+  "org.ergoplatform" %% "ergo-playground-env" % "0.0.0-94-a3ea79fe-20220206-1457-SNAPSHOT"
 )
 libraryDependencies += "org.slf4j" % "slf4j-nop" % "1.7.21"
