@@ -9,9 +9,13 @@ import java.util.Base64
 import java.nio.charset.StandardCharsets
 import sigmastate.Values.{BigIntConstant, ByteArrayConstant, GroupElementConstant, LongArrayConstant, LongConstant}
 import org.ergoplatform.appkit.{ErgoContract, ErgoType, ErgoValue, JavaHelpers}
+import org.ergoplatform.playgroundenv.models.TokenInfo
 import scorex.crypto.hash.Digest32
+import scorex.util.ModifierId
 import sigmastate.serialization.ErgoTreeSerializer
 import special.collection.Coll
+
+import scala.collection.mutable
 
 object Main extends App {
 
@@ -29,6 +33,8 @@ object Main extends App {
   val stakePoolNFT = blockchainSim.newToken("ErgoPad Stake Pool")
   val emissionNFT = blockchainSim.newToken("ErgoPad Emission")
   val stakeTokenId = blockchainSim.newToken("ErgoPad Stake Token")
+
+  val stakeKeys: mutable.Map[Coll[Byte], TokenInfo] = mutable.Map()
 
   // Define the ergopadio wallet
   val ergopadio = blockchainSim.newParty("Ergopad.io")
@@ -113,7 +119,11 @@ object Main extends App {
        } else {
        if (SELF.R4[Coll[Long]].get(0) > OUTPUTS(0).R4[Coll[Long]].get(0) && INPUTS.size >= 3) { // Unstake
            // Stake State (SELF), Stake, Stake Key Box => Stake State, User Wallet, Stake (optional for partial unstake)
-           val remaining = if (OUTPUTS(2).propositionBytes == INPUTS(1).propositionBytes) OUTPUTS(2).tokens(1)._2 else 0L
+           val remaining = if (OUTPUTS(2).propositionBytes == INPUTS(1).propositionBytes)
+                            INPUTS(1).tokens(1)._2 - OUTPUTS(1).tokens(0)._2
+                           else
+                            0L
+           val stakeKey = INPUTS(2).tokens.exists({(token: (Coll[Byte],Long)) => token._1 == INPUTS(1).R5[Coll[Byte]].get})
            val unstaked = INPUTS(1).tokens(1)._2 - remaining
            val timeInWeeks = (blockTime - INPUTS(1).R4[Coll[Long]].get(1))/1000/3600/24/7
            val penalty =  if (timeInWeeks > 8) 0L else
@@ -123,6 +133,7 @@ object Main extends App {
                            unstaked*25/100
            sigmaProp(allOf(Coll(
                selfReplication,
+               stakeKey,
                //Stake State
                OUTPUTS(0).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0)-unstaked,
                OUTPUTS(0).R4[Coll[Long]].get(1) == SELF.R4[Coll[Long]].get(1),
@@ -298,10 +309,13 @@ object Main extends App {
            )))
       } else {
       if (INPUTS(1).id == SELF.id) { // Unstake
-          val selfReplication = if (OUTPUTS(2).propositionBytes == SELF.propositionBytes)
-                                  OUTPUTS(2).R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get &&
-                                  OUTPUTS(1).tokens(1)._1 == INPUTS(1).R5[Coll[Byte]].get
-                                else true
+          val selfReplication = true //if (OUTPUTS(2).propositionBytes == SELF.propositionBytes)
+                                  //if (OUTPUTS(2).R5[Coll[Byte]].isDefined)
+                                  //  OUTPUTS(2).R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get &&
+                                  //  OUTPUTS(1).tokens(1)._1 == INPUTS(1).R5[Coll[Byte]].get
+                                  //else
+                                  //  false
+                                //else true
           sigmaProp(stakeStateInput && selfReplication) //Stake state handles logic here to minimize stake box size
       } else {
           sigmaProp(false)
@@ -430,7 +444,7 @@ object Main extends App {
 
     //Simulate minting new nft
     val stakeKey = blockchainSim.newToken("ErgoPad Stake Key")
-
+    stakeKeys += (stakeKey.tokenId -> stakeKey)
     val stakerBox = Box(
       value = minErg,
       token = stakeKey -> 1L,
@@ -458,7 +472,7 @@ object Main extends App {
       ),
       outputs = List(newStakeStateBox, stakeBox, stakerBox),
       fee = MinTxFee,
-      sendChangeTo = stakerA.wallet.getAddress
+      sendChangeTo = staker.wallet.getAddress
     )
 
     val stakeTransactionSigned = staker.wallet.sign(stakeTransaction)
@@ -637,8 +651,90 @@ object Main extends App {
   emission = compoundOutput(1)
   stakerABox = compoundOutput(2)
 
+  def unstake(unstaker: Party, _unstakeAmount: Long, currentStakeState: ErgoBox, stakeBox: ErgoBox): IndexedSeq[ErgoBox] = {
+    val partialUnstake = (stakeBox.additionalTokens(1)._2 > _unstakeAmount)
+    val unstakeAmount = math.min(_unstakeAmount,stakeBox.additionalTokens(1)._2)
+    val outputs = new mutable.ListBuffer[ErgoBoxCandidate]()
+    val unstakeKey = stakeKeys(ByteArrayConstant.unapply(stakeBox.additionalRegisters(R5)).get)
+    outputs += Box(
+      value = currentStakeState.value,
+      tokens = List(
+        stakeStateNFT -> 1L,
+        stakeTokenId -> (currentStakeState.additionalTokens(1)._2 + (if (partialUnstake) 0L else 1L))
+      ),
+      registers = Map(
+        R4 -> Array[Long]((LongArrayConstant
+          .unapply(currentStakeState.additionalRegisters(R4))
+          .get(0) - unstakeAmount),
+          LongArrayConstant.unapply(currentStakeState.additionalRegisters(R4)).get(1),
+          (LongArrayConstant.unapply(currentStakeState.additionalRegisters(R4)).get(2) - (if (partialUnstake) 0L else 1L)),
+          LongArrayConstant.unapply(currentStakeState.additionalRegisters(R4)).get(3),
+          LongArrayConstant.unapply(currentStakeState.additionalRegisters(R4)).get(4))
+      ),
+      script = stakeStateContract
+    )
+    outputs += Box(
+      value = minErg,
+      tokens = if (partialUnstake) List(stakedTokenId -> unstakeAmount, unstakeKey -> 1L)
+        else List(stakedTokenId -> unstakeAmount),
+      script = contract(unstaker.wallet.getAddress.pubKey)
+    )
+    if (partialUnstake) {
+      outputs += Box(
+        value = stakeBox.value,
+        tokens = List(
+          stakeTokenId -> 1L,
+          stakedTokenId -> (stakeBox.additionalTokens(1)._2 - unstakeAmount)
+        ),
+        registers = Map(
+          R4 -> Array[Long](LongArrayConstant.unapply(stakeBox.additionalRegisters(R4)).get(0),
+            LongArrayConstant.unapply(stakeBox.additionalRegisters(R4)).get(1)),
+          R5 -> ByteArrayConstant.unapply(stakeBox.additionalRegisters(R5)).get.toArray
+        ),
+        script = stakeContract
+      )
+    }
+    val unstakeTransaction = Transaction(
+      inputs = List(currentStakeState, stakeBox) ++ unstaker.selectUnspentBoxes(
+        toSpend = 2 * MinTxFee,
+        tokensToSpend = List(unstakeKey -> 1L)
+      ),
+      outputs = outputs.toList,
+      fee = 2 * MinTxFee,
+      sendChangeTo = unstaker.wallet.getAddress
+    )
+
+    val unstakeTransactionSigned = unstaker.wallet.sign(unstakeTransaction)
+
+    // Submit the tx to the simulated blockchain
+    blockchainSim.send(unstakeTransactionSigned)
+    unstakeTransactionSigned.outputs
+  }
+
+  var unstakeOutputs = unstake(stakerA,10000000000L,stakeState,stakerABox)
+  stakeState = unstakeOutputs(0)
+
   emitOutput = emit(ergopadio,stakeState,stakePool,emission)
   stakeState = emitOutput(0)
   stakePool = emitOutput(1)
   emission = emitOutput(2)
+
+  compoundOutput = compound(ergopadio,stakeState,emission,Array[ErgoBox](stakerBBox))
+  stakeState = compoundOutput(0)
+  emission = compoundOutput(1)
+  stakerBBox = compoundOutput(2)
+
+  unstakeOutputs = unstake(stakerB,1000000L,stakeState,stakerBBox)
+  stakeState = unstakeOutputs(0)
+  stakerBBox = unstakeOutputs(2)
+
+  emitOutput = emit(ergopadio,stakeState,stakePool,emission)
+  stakeState = emitOutput(0)
+  stakePool = emitOutput(1)
+  emission = emitOutput(2)
+
+  compoundOutput = compound(ergopadio,stakeState,emission,Array[ErgoBox](stakerBBox))
+  stakeState = compoundOutput(0)
+  emission = compoundOutput(1)
+  stakerBBox = compoundOutput(2)
 }
