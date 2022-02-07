@@ -16,7 +16,8 @@ scalacOptions ++= Seq(
   "-unchecked"
 )
 
-//libraryDependencies ++= Seq(
-//  "org.ergoplatform" %% "ergo-playground-env" % "0.0.0-94-a3ea79fe-20220205-1600-SNAPSHOT"
-//)
+libraryDependencies ++= Seq(
+  "org.ergoplatform" % "ergo-scala-compiler_2.12" % "0.0.0-32-aaadbee1-SNAPSHOT",
+  "org.ergoplatform" % "ergo-appkit_2.12" % "develop-d77acfb8-SNAPSHOT"
+)
 libraryDependencies += "org.slf4j" % "slf4j-nop" % "1.7.21"

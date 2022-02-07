@@ -43,6 +43,155 @@ object Main extends App {
   val stakerA = blockchainSim.newParty("Alice")
   val stakerB = blockchainSim.newParty("Bob")
 
+  val emissionScript = """
+  {
+      // Emission
+      // Registers:
+      // 4:0 Long: Total amount staked
+      // 4:1 Long: Checkpoint
+      // 4:2 Long: Stakers
+      // 4:3 Long: Emission amount
+      // Assets:
+      // 0: Emission NFT: Identifier for emit box
+      // 1: Staked Tokens (ErgoPad): Tokens to be distributed
+
+      val stakeStateNFT = _stakeStateNFT
+      val stakeTokenID = _stakeTokenID
+      val stakedTokenID = _stakedTokenID
+      val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT
+
+      if (stakeStateInput && INPUTS(2).id == SELF.id) { // Emit transaction
+          sigmaProp(allOf(Coll(
+              //Stake State, Stake Pool, Emission (self) => Stake State, Stake Pool, Emission
+              OUTPUTS(2).propositionBytes == SELF.propositionBytes,
+              OUTPUTS(2).R4[Coll[Long]].get(0) == INPUTS(0).R4[Coll[Long]].get(0),
+              OUTPUTS(2).R4[Coll[Long]].get(1) == INPUTS(0).R4[Coll[Long]].get(1),
+              OUTPUTS(2).R4[Coll[Long]].get(2) == INPUTS(0).R4[Coll[Long]].get(2),
+              OUTPUTS(2).R4[Coll[Long]].get(3) == INPUTS(1).R4[Coll[Long]].get(0),
+              OUTPUTS(2).tokens(0)._1 == SELF.tokens(0)._1,
+              OUTPUTS(2).tokens(1)._1 == stakedTokenID,
+              OUTPUTS(2).tokens(1)._2 == OUTPUTS(2).R4[Coll[Long]].get(3)
+          )))
+      } else {
+      if (stakeStateInput && INPUTS(1).id == SELF.id) { // Compound transaction
+          // Stake State, Emission (SELF), Stake*N => Stake State, Emission, Stake*N
+          val stakeBoxes = INPUTS.filter({(box: Box) => if (box.tokens.size > 0) box.tokens(0)._1 == stakeTokenID && box.R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(1) else false})
+          val rewardsSum = stakeBoxes.fold(0L, {(z: Long, box: Box) => z+(box.tokens(1)._2*SELF.R4[Coll[Long]].get(3)/SELF.R4[Coll[Long]].get(0))})
+          val remainingTokens = if (SELF.tokens(1)._2 <= rewardsSum) OUTPUTS(1).tokens.size == 1 else (OUTPUTS(1).tokens(1)._1 == stakedTokenID && OUTPUTS(1).tokens(1)._2 >= (SELF.tokens(1)._2 - rewardsSum))
+          sigmaProp(allOf(Coll(
+               OUTPUTS(1).propositionBytes == SELF.propositionBytes,
+               OUTPUTS(1).tokens(0)._1 == SELF.tokens(0)._1,
+               remainingTokens,
+               OUTPUTS(1).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0),
+               OUTPUTS(1).R4[Coll[Long]].get(1) == SELF.R4[Coll[Long]].get(1),
+               OUTPUTS(1).R4[Coll[Long]].get(2) == SELF.R4[Coll[Long]].get(2) - stakeBoxes.size,
+               OUTPUTS(1).R4[Coll[Long]].get(3) == SELF.R4[Coll[Long]].get(3)
+           )))
+      } else {
+          sigmaProp(false)
+      }
+      }
+  }
+  """.stripMargin
+
+  val emissionContract = ErgoScriptCompiler.compile(
+    Map(
+      "_stakedTokenID" -> stakedTokenId.tokenId,
+      "_stakeStateNFT" -> stakeStateNFT.tokenId,
+      "_stakeTokenID" -> stakeTokenId.tokenId
+    ),
+    emissionScript
+  )
+
+  val stakePoolScript = """
+  {
+      // Stake Pool
+      // Registers:
+      // 4:0 Long: Emission amount per cycle
+      // Assets:
+      // 0: Stake Pool NFT
+      // 1: Remaining Staked Tokens for future distribution (ErgoPad)
+
+      val stakeStateNFT = _stakeStateNFT
+      val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT
+      if (stakeStateInput && INPUTS(1).id == SELF.id) { // Emit transaction
+          sigmaProp(allOf(Coll(
+              //Stake State, Stake Pool (self), Emission => Stake State, Stake Pool, Emission
+              OUTPUTS(1).propositionBytes == SELF.propositionBytes,
+              OUTPUTS(1).tokens(0)._1 == SELF.tokens(0)._1,
+              OUTPUTS(1).tokens(1)._1 == SELF.tokens(1)._1,
+              OUTPUTS(1).tokens(1)._2 == SELF.tokens(1)._2 + (if (INPUTS(2).tokens.size >= 2) INPUTS(2).tokens(1)._2 else 0L) - SELF.R4[Coll[Long]].get(0),
+              OUTPUTS(1).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0)
+          )))
+      } else {
+          sigmaProp(false)
+      }
+  }
+  """.stripMargin
+
+  val stakePoolContract = ErgoScriptCompiler.compile(
+    Map(
+      "_stakeStateNFT" -> stakeStateNFT.tokenId
+    ),
+    stakePoolScript
+  )
+
+  val stakeScript = """
+  {
+      // Stake
+      // Registers:
+      // 4:0 Long: Checkpoint
+      // 4:1 Long: Stake time
+      // 5: Coll[Byte]: Stake Key ID to be used for unstaking
+      // Assets:
+      // 0: Stake Token: 1 token to prove this is a legit stake box
+      // 1: Staked Token (ErgoPad): The tokens staked by the user
+
+      val stakeStateNFT = _stakeStateNFT
+      val emissionNFT = _emissionNFT
+      val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT
+
+      if (INPUTS(1).tokens(0)._1 == emissionNFT) { // Compound transaction
+          // Stake State, Emission, Stake*N (SELF) => Stake State, Emission, Stake * N
+          val boxIndex = INPUTS.indexOf(SELF,0)
+          val selfReplication = OUTPUTS(boxIndex)
+           sigmaProp(allOf(Coll(
+               stakeStateInput,
+               selfReplication.value == SELF.value,
+               selfReplication.propositionBytes == SELF.propositionBytes,
+               selfReplication.R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0) + 1,
+               selfReplication.R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get,
+               selfReplication.R4[Coll[Long]].get(1) == SELF.R4[Coll[Long]].get(1),
+               selfReplication.tokens(0)._1 == SELF.tokens(0)._1,
+               selfReplication.tokens(0)._2 == SELF.tokens(0)._2,
+               selfReplication.tokens(1)._1 == SELF.tokens(1)._1,
+               selfReplication.tokens(1)._2 == SELF.tokens(1)._2 + (INPUTS(1).R4[Coll[Long]].get(3) * SELF.tokens(1)._2 / INPUTS(1).R4[Coll[Long]].get(0))
+           )))
+      } else {
+      if (INPUTS(1).id == SELF.id) { // Unstake
+          val selfReplication = true //if (OUTPUTS(2).propositionBytes == SELF.propositionBytes)
+                                  //if (OUTPUTS(2).R5[Coll[Byte]].isDefined)
+                                  //  OUTPUTS(2).R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get &&
+                                  //  OUTPUTS(1).tokens(1)._1 == INPUTS(1).R5[Coll[Byte]].get
+                                  //else
+                                  //  false
+                                //else true
+          sigmaProp(stakeStateInput && selfReplication) //Stake state handles logic here to minimize stake box size
+      } else {
+          sigmaProp(false)
+      }
+      }
+  }
+  """.stripMargin
+
+  val stakeContract = ErgoScriptCompiler.compile(
+    Map(
+      "_stakeStateNFT" -> stakeStateNFT.tokenId,
+      "_emissionNFT" -> emissionNFT.tokenId
+    ),
+    stakeScript
+  )
+
   val stakeStateScript = s"""
     {
       // Stake State
@@ -61,6 +210,7 @@ object Main extends App {
       val stakePoolNFT = _stakePoolNFT
       val emissionNFT = _emissionNFT
       val cycleDuration = SELF.R4[Coll[Long]].get(4)
+      val stakeContract = fromBase64(_stakeContract)
 
       def isStakeBox(box: Box) = if (box.tokens.size >= 1) box.tokens(0)._1 == SELF.tokens(1)._1 else false
       def isCompoundBox(box: Box) = if (box.tokens.size >= 1) isStakeBox(box) || box.tokens(0)._1 == emissionNFT || box.tokens(0)._1 == SELF.tokens(0)._1 else false
@@ -75,7 +225,7 @@ object Main extends App {
           OUTPUTS(0).tokens.size == 2
       ))
       if (OUTPUTS(1).tokens(0)._1 == SELF.tokens(1)._1) { // Stake transaction
-          // Stake State (SELF), preStake => Stake State, Stake, Stake Key (User)
+          // Stake State (SELF), User wallet => Stake State, Stake, Stake Key (User)
           sigmaProp(allOf(Coll(
               selfReplication,
               // Stake State
@@ -83,7 +233,19 @@ object Main extends App {
               OUTPUTS(0).R4[Coll[Long]].get(1) == SELF.R4[Coll[Long]].get(1),
               OUTPUTS(0).R4[Coll[Long]].get(2) == SELF.R4[Coll[Long]].get(2)+1,
               OUTPUTS(0).R4[Coll[Long]].get(3) == SELF.R4[Coll[Long]].get(3),
-              OUTPUTS(0).tokens(1)._2 == SELF.tokens(1)._2-1
+              OUTPUTS(0).tokens(1)._2 == SELF.tokens(1)._2-1,
+              // Stake
+              blake2b256(OUTPUTS(1).propositionBytes) == stakeContract,
+              OUTPUTS(1).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(1),
+              //Disabled in playground OUTPUTS(1).R4[Coll[Long]].get(1) >= blockTime - 1800000L, //Give half an hour leeway for staking start
+              //Disabled in playground OUTPUTS(1).R5[Coll[Byte]].get == SELF.id,
+              OUTPUTS(1).tokens(0)._1 == SELF.tokens(1)._1,
+              OUTPUTS(1).tokens(0)._2 == 1L,
+              OUTPUTS(1).tokens(1)._1 == stakedTokenID,
+              //Stake key
+              OUTPUTS(2).propositionBytes == INPUTS(1).propositionBytes,
+              OUTPUTS(2).tokens(0)._1 == OUTPUTS(1).R5[Coll[Byte]].get,
+              OUTPUTS(2).tokens(0)._2 == 1L
           )))
       } else {
       if (INPUTS(1).tokens(0)._1 == stakePoolNFT && INPUTS.size >= 3) { // Emit transaction
@@ -169,170 +331,12 @@ object Main extends App {
     Map(
       "_stakedTokenID" -> stakedTokenId.tokenId,
       "_stakePoolNFT" -> stakePoolNFT.tokenId,
-      "_emissionNFT" -> emissionNFT.tokenId
+      "_emissionNFT" -> emissionNFT.tokenId,
+      "_stakeContract" -> Base64.getEncoder.encodeToString(
+        Blake2b256(stakeContract.ergoTree.bytes)
+      )
     ),
     stakeStateScript
-  )
-
-  val emissionScript = """
-  {
-      // Emission
-      // Registers:
-      // 4:0 Long: Total amount staked
-      // 4:1 Long: Checkpoint
-      // 4:2 Long: Stakers
-      // 4:3 Long: Emission amount
-      // Assets:
-      // 0: Emission NFT: Identifier for emit box
-      // 1: Staked Tokens (ErgoPad): Tokens to be distributed
-
-      val stakeStateNFT = _stakeStateNFT
-      val stakeTokenID = _stakeTokenID
-      val stakedTokenID = _stakedTokenID
-      val stakeStateContract = fromBase64(_stakeStateContractHash)
-      val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT && blake2b256(INPUTS(0).propositionBytes) == stakeStateContract
-
-      if (stakeStateInput && INPUTS(2).id == SELF.id) { // Emit transaction
-          sigmaProp(allOf(Coll(
-              //Stake State, Stake Pool, Emission (self) => Stake State, Stake Pool, Emission
-              OUTPUTS(2).propositionBytes == SELF.propositionBytes,
-              OUTPUTS(2).R4[Coll[Long]].get(0) == INPUTS(0).R4[Coll[Long]].get(0),
-              OUTPUTS(2).R4[Coll[Long]].get(1) == INPUTS(0).R4[Coll[Long]].get(1),
-              OUTPUTS(2).R4[Coll[Long]].get(2) == INPUTS(0).R4[Coll[Long]].get(2),
-              OUTPUTS(2).R4[Coll[Long]].get(3) == INPUTS(1).R4[Coll[Long]].get(0),
-              OUTPUTS(2).tokens(0)._1 == SELF.tokens(0)._1,
-              OUTPUTS(2).tokens(1)._1 == stakedTokenID,
-              OUTPUTS(2).tokens(1)._2 == OUTPUTS(2).R4[Coll[Long]].get(3)
-          )))
-      } else {
-      if (stakeStateInput && INPUTS(1).id == SELF.id) { // Compound transaction
-          // Stake State, Emission (SELF), Stake*N => Stake State, Emission, Stake*N
-          val stakeBoxes = INPUTS.filter({(box: Box) => if (box.tokens.size > 0) box.tokens(0)._1 == stakeTokenID && box.R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(1) else false})
-          val rewardsSum = stakeBoxes.fold(0L, {(z: Long, box: Box) => z+(box.tokens(1)._2*SELF.R4[Coll[Long]].get(3)/SELF.R4[Coll[Long]].get(0))})
-          val remainingTokens = if (SELF.tokens(1)._2 <= rewardsSum) OUTPUTS(1).tokens.size == 1 else (OUTPUTS(1).tokens(1)._1 == stakedTokenID && OUTPUTS(1).tokens(1)._2 >= (SELF.tokens(1)._2 - rewardsSum))
-          sigmaProp(allOf(Coll(
-               OUTPUTS(1).propositionBytes == SELF.propositionBytes,
-               OUTPUTS(1).tokens(0)._1 == SELF.tokens(0)._1,
-               remainingTokens,
-               OUTPUTS(1).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0),
-               OUTPUTS(1).R4[Coll[Long]].get(1) == SELF.R4[Coll[Long]].get(1),
-               OUTPUTS(1).R4[Coll[Long]].get(2) == SELF.R4[Coll[Long]].get(2) - stakeBoxes.size,
-               OUTPUTS(1).R4[Coll[Long]].get(3) == SELF.R4[Coll[Long]].get(3)
-           )))
-      } else {
-          sigmaProp(false)
-      }
-      }
-  }
-  """.stripMargin
-
-  val emissionContract = ErgoScriptCompiler.compile(
-    Map(
-      "_stakedTokenID" -> stakedTokenId.tokenId,
-      "_stakeStateNFT" -> stakeStateNFT.tokenId,
-      "_stakeTokenID" -> stakeTokenId.tokenId,
-      "_stakeStateContractHash" -> Base64.getEncoder.encodeToString(
-        Blake2b256(stakeStateContract.ergoTree.bytes)
-      )
-    ),
-    emissionScript
-  )
-
-  val stakePoolScript = """
-  {
-      // Stake Pool
-      // Registers:
-      // 4:0 Long: Emission amount per cycle
-      // Assets:
-      // 0: Stake Pool NFT
-      // 1: Remaining Staked Tokens for future distribution (ErgoPad)
-
-      val stakeStateNFT = _stakeStateNFT
-      val stakeStateContract = fromBase64(_stakeStateContractHash)
-      val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT && blake2b256(INPUTS(0).propositionBytes) == stakeStateContract
-      if (stakeStateInput && INPUTS(1).id == SELF.id) { // Emit transaction
-          sigmaProp(allOf(Coll(
-              //Stake State, Stake Pool (self), Emission => Stake State, Stake Pool, Emission
-              OUTPUTS(1).propositionBytes == SELF.propositionBytes,
-              OUTPUTS(1).tokens(0)._1 == SELF.tokens(0)._1,
-              OUTPUTS(1).tokens(1)._1 == SELF.tokens(1)._1,
-              OUTPUTS(1).tokens(1)._2 == SELF.tokens(1)._2 + (if (INPUTS(2).tokens.size >= 2) INPUTS(2).tokens(1)._2 else 0L) - SELF.R4[Coll[Long]].get(0),
-              OUTPUTS(1).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0)
-          )))
-      } else {
-          sigmaProp(false)
-      }
-  }
-  """.stripMargin
-
-  val stakePoolContract = ErgoScriptCompiler.compile(
-    Map(
-      "_stakeStateNFT" -> stakeStateNFT.tokenId,
-      "_stakeStateContractHash" -> Base64.getEncoder.encodeToString(
-        Blake2b256(stakeStateContract.ergoTree.bytes)
-      )
-    ),
-    stakePoolScript
-  )
-
-  val stakeScript = """
-  {
-      // Stake
-      // Registers:
-      // 4:0 Long: Checkpoint
-      // 4:1 Long: Stake time
-      // 5: Coll[Byte]: Stake Key ID to be used for unstaking
-      // Assets:
-      // 0: Stake Token: 1 token to prove this is a legit stake box
-      // 1: Staked Token (ErgoPad): The tokens staked by the user
-
-      val stakeStateNFT = _stakeStateNFT
-      val emissionNFT = _emissionNFT
-      val stakeStateContract = fromBase64(_stakeStateContractHash)
-      val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT && blake2b256(INPUTS(0).propositionBytes) == stakeStateContract
-
-      if (INPUTS(1).tokens(0)._1 == emissionNFT) { // Compound transaction
-          // Stake State, Emission, Stake*N (SELF) => Stake State, Emission, Stake * N
-          val boxIndex = INPUTS.indexOf(SELF,0)
-          val selfReplication = OUTPUTS(boxIndex)
-           sigmaProp(allOf(Coll(
-               stakeStateInput,
-               selfReplication.value == SELF.value,
-               selfReplication.propositionBytes == SELF.propositionBytes,
-               selfReplication.R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0) + 1,
-               selfReplication.R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get,
-               selfReplication.R4[Coll[Long]].get(1) == SELF.R4[Coll[Long]].get(1),
-               selfReplication.tokens(0)._1 == SELF.tokens(0)._1,
-               selfReplication.tokens(0)._2 == SELF.tokens(0)._2,
-               selfReplication.tokens(1)._1 == SELF.tokens(1)._1,
-               selfReplication.tokens(1)._2 == SELF.tokens(1)._2 + (INPUTS(1).R4[Coll[Long]].get(3) * SELF.tokens(1)._2 / INPUTS(1).R4[Coll[Long]].get(0))
-           )))
-      } else {
-      if (INPUTS(1).id == SELF.id) { // Unstake
-          val selfReplication = true //if (OUTPUTS(2).propositionBytes == SELF.propositionBytes)
-                                  //if (OUTPUTS(2).R5[Coll[Byte]].isDefined)
-                                  //  OUTPUTS(2).R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get &&
-                                  //  OUTPUTS(1).tokens(1)._1 == INPUTS(1).R5[Coll[Byte]].get
-                                  //else
-                                  //  false
-                                //else true
-          sigmaProp(stakeStateInput && selfReplication) //Stake state handles logic here to minimize stake box size
-      } else {
-          sigmaProp(false)
-      }
-      }
-  }
-  """.stripMargin
-
-  val stakeContract = ErgoScriptCompiler.compile(
-    Map(
-      "_stakeStateNFT" -> stakeStateNFT.tokenId,
-      "_emissionNFT" -> emissionNFT.tokenId,
-      "_stakeStateContractHash" -> Base64.getEncoder.encodeToString(
-        Blake2b256(stakeStateContract.ergoTree.bytes)
-      )
-    ),
-    stakeScript
   )
 
   ///////////////////////////////////////////////////////////////////////////////////

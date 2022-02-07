@@ -19,7 +19,6 @@ Brief overview of the components of the system:
 | NFT | Emission NFT | NFT to identify the Emission box |
 | NFT | Stake Key NFT | NFT to be used as a key to unstake funds, uniquely generated for each Stake box |
 | Token | Stake Token | Token to prove the Stake box is generated in the correct way and is qualified for receiving funds in the Compound transaction |
-| Contract | preStake | Proxy for staking setup |
 | Contract | Stake State | Script ensuring correctness of the Stake State box |
 | Contract | Stake | Script to guard staked funds |
 | Contract | Stake Pool | Box to hold the funds that are to be distributed through staking |
@@ -29,22 +28,6 @@ Brief overview of the components of the system:
 
 There are multiple contracts in play in the staking setup, each playing their role to ensure proper execution of the different transactions.
 
-## preStake
-
-The preStake contract is a proxy for the staking setup to ensure the correct amount of assets are present and the actual stake transaction can be executed correctly. If for some reason conditions for staking are not met a refund can be issued to the user so they can try again.
-
-### Registers
-
-| Register | Type | Description |
-| --- | --- | --- |
-| 4 | Coll\[Byte\] | Ergotree of user wallet |
-
-### Assets
-
-| Index | Asset | Amount |
-| --- | --- | --- |
-| 0 | ErgoPad | >0 |
-
 ## Stake Pool
 
 The Stake Pool contract locks the tokens to be distributed during the staking period and only allows the correct amount of tokens to be released for each staking cycle.
@@ -53,7 +36,7 @@ The Stake Pool contract locks the tokens to be distributed during the staking pe
 
 | Register | Type | Description |
 | --- | --- | --- |
-| 4 | Long | Emission amount |
+| 4:0 | Long | Emission amount |
 
 ### Assets
 
@@ -70,11 +53,11 @@ The stake state box keeps track of the state of the system and is identified wit
 
 | Register | Type | Description |
 | --- | --- | --- |
-| 4 | Long | Total amount staked |
-| 5 | Long | Checkpoint |
-| 6 | Long | Stakers |
-| 7 | Long | Last checkpoint timestamp |
-| 8 | Long | Cycle duration |
+| 4:0 | Long | Total amount staked |
+| 4:1 | Long | Checkpoint |
+| 4:2 | Long | Stakers |
+| 4:3 | Long | Last checkpoint timestamp |
+| 4:4 | Long | Cycle duration |
 
 ### Assets
 
@@ -91,9 +74,9 @@ The contract guarding the boxes holding the users ErgoPad tokens. Keeps track of
 
 | Register | Type | Description |
 | --- | --- | --- |
-| 4 | Long | Checkpoint |
+| 4:0 | Long | Checkpoint |
+| 4:1 | Long | Staking Time |
 | 5 | Coll\[Byte\] | Stake Key ID |
-| 6 | Long | Staking Time |
 
 ### Assets
 
@@ -110,10 +93,10 @@ Box holding tokens for one staking cycle. Ensures all stake boxes that belong to
 
 | Register | Type | Description |
 | --- | --- | --- |
-| 4 | Long | Total amount staked |
-| 5 | Long | Checkpoint |
-| 6 | Long | Stakers |
-| 7 | Long | Emission amount |
+| 4:0 | Long | Total amount staked |
+| 4:1 | Long | Checkpoint |
+| 4:2 | Long | Stakers |
+| 4:3 | Long | Emission amount |
 
 ### Assets
 
@@ -123,18 +106,6 @@ Box holding tokens for one staking cycle. Ensures all stake boxes that belong to
 | 1 | ErgoPad | <= Emission amount |
 
 # Transactions
-
-## Initiate
-
-Funds are sent from the users wallet to the preStake box to ensure all is in order before the tokens are staked.
-
-![Initiate](images/staking-initiate.drawio.png)
-
-## Refund
-
-If there is anything wrong the funds can be refunded to the users wallet from the preStake box
-
-![Refund](images/staking-refund.drawio.png)
 
 ## Stake
 
@@ -154,8 +125,14 @@ Now to the fun part, compounding the amount of staked tokens! Each Stake box wil
 
 ![Compound](images/staking-compound.drawio.png)
 
-## Unstake
+## Full Unstake
 
 Unstaking is done by using the Stake Key NFT. If unstaked prematurely the penalty will be burned and the remaining tokens sent to the user. The Stake State box is updated with the new total amount staked and the amount of stakers is reduced with 1.
 
 ![Unstake](images/staking-unstake.drawio.png)
+
+## Partial Unstake
+
+Partial unstaking is done by using the Stake Key NFT. If unstaked prematurely the penalty will be burned and the remaining tokens sent to the user. The Stake State box is updated with the new total amount staked. The remaining staked tokens stay in a stake box with identical parameters (penalty timer does not reset).
+
+![Unstake](images/staking-unstake-partial.drawio.png)
