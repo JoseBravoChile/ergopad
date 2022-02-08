@@ -81,14 +81,14 @@ Staking will go live very shortly after IDO on January 26th.
 
 ### Tiers
 
-Tier | Amount | Whitelist Requirements | Allocation Weight
---- | --- | --- | ---
-(A) Alpha | 25000	| Twitter like, retweet | 10
-(Β) Beta | 50000	| Twitter like, retweet | 24
-(Γ) Gamma | 100000 | Twitter like, retweet | 58
-(Ω) Omega	| 250000	| Twitter like | 175
-(Φ) Phi	| 500000	| Twitter like | 420
-(Σ) Sigma	| 1500000 | none | 1500
+Tier | Amount | Allocation Weight
+--- | --- | ---
+(A) Alpha | 25000	| 10
+(Β) Beta | 50000	| 24
+(Γ) Gamma | 100000 | 58
+(Ω) Omega	| 250000	| 175
+(Φ) Phi	| 500000	| 420
+(Σ) Sigma	| 1500000 | 1500
 
 #### Pool Allocation
 
