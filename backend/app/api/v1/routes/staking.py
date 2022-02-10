@@ -55,7 +55,86 @@ def emit():
     stakePoolBox = getNFTBox(CFG.stakePoolNFT)
     emissionBox = getNFTBox(CFG.emissionNFT)
 
+    stakeStateR4 = eval(stakeStateBox["additionalRegisters"]["R4"]["renderedValue"])
+    stakePoolR4 = eval(stakePoolBox["additionalRegisters"]["R4"]["renderedValue"])
+
+    stakeStateOutput = {
+        'value': stakeStateBox["value"],
+        'address': stakeStateBox["address"],
+        'assets': stakeStateBox["assets"],
+        'registers': {
+            'R4': encodeLongArray([
+                stakeStateR4[0],
+                stakeStateR4[1]+1,
+                stakeStateR4[2],
+                stakeStateR4[3]+stakeStateR4[4],
+                stakeStateR4[4]
+            ])
+        }
+    }
+
+    newStakePoolAmount = stakePoolBox["assets"][1]["amount"] - stakePoolR4[0]
+    if len(emissionBox["assets"]) > 1:
+        newStakePoolAmount += emissionBox["assets"][1]["amount"]
     
+    stakePoolOutput = {
+        'value': stakePoolBox["value"],
+        'address': stakePoolBox["address"],
+        'registers': {'R4': stakePoolBox["additionalRegisters"]["R4"]["serializedValue"]},
+        'assets': [
+            {
+                'tokenId': stakePoolBox["assets"][0]["tokenId"],
+                'amount': stakePoolBox["assets"][0]["amount"]
+            },
+            {
+                'tokenId': stakePoolBox["assets"][1]["tokenId"],
+                'amount': newStakePoolAmount
+            }
+        ]
+    }
+
+    emissionOutput = {
+        'value': emissionBox["value"],
+        'address': emissionBox["address"],
+        'assets': [
+            {
+                'tokenId': emissionBox["assets"][0]["tokenId"],
+                'amount': emissionBox["assets"][0]["amount"]
+            },
+            {
+                'tokenId': stakePoolBox["assets"][1]["tokenId"],
+                'amount': stakePoolR4[0]
+            }
+        ],
+        'registers': {
+            'R4': encodeLongArray([
+                stakeStateR4[0],
+                stakeStateR4[1],
+                stakeStateR4[2],
+                stakePoolR4[0]
+            ])
+        }
+    }
+
+    inBoxesRaw = []
+    for box in [stakeStateBox["boxId"],stakePoolBox["boxId"],emissionBox["boxId"]]+list(getBoxesWithUnspentTokens(nErgAmount=CFG.txFee).keys()):
+        res = requests.get(f'{CFG.ergopadNode}/utxo/withPool/byIdBinary/{box}', headers=dict(headers), timeout=2)
+        if res.ok:
+            inBoxesRaw.append(res.json()['bytes'])
+        else:
+            return res
+
+    request =  {
+            'requests': [stakeStateOutput,stakePoolOutput,emissionOutput],
+            'fee': int(0.001*nergsPerErg),
+            'inputsRaw': inBoxesRaw
+        }
+
+    res = requests.post(f'{CFG.ergopadNode}/wallet/transaction/send', headers=dict(headers, **{'api_key': CFG.ergopadApiKey}), json=request)   
+    logging.debug(res)
+    return res.content
+
+
 
 class StakeRequest(BaseModel):
     wallet: str
