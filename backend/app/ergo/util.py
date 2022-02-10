@@ -19,8 +19,15 @@ def encodeLong(n: int):
   r = '05' + ''.join(['{0:02x}'.format(i) for i in v])
   return r
 
+def encodeLongArray(la):
+  r = '11'+hex(len(la))[2:].rjust(2,'0')
+  for l in la:
+    r += encodeLong(l)[2:]
+  return r
+
+
 def encodeString(n: str):
-  return '0e'+hex(len(bytes.fromhex(n)))[2:]+n
+  return '0e'+hex(len(bytes.fromhex(n)))[2:].rjust(2,'0')+n
 
 def hexstringToB64(string: str):
   return b64encode(bytes.fromhex(string)).decode('utf-8')

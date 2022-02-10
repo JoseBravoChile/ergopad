@@ -169,13 +169,13 @@ object Main extends App {
            )))
       } else {
       if (INPUTS(1).id == SELF.id) { // Unstake
-          val selfReplication = true //if (OUTPUTS(2).propositionBytes == SELF.propositionBytes)
-                                  //if (OUTPUTS(2).R5[Coll[Byte]].isDefined)
-                                  //  OUTPUTS(2).R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get &&
-                                  //  OUTPUTS(1).tokens(1)._1 == INPUTS(1).R5[Coll[Byte]].get
-                                  //else
-                                  //  false
-                                //else true
+          val selfReplication = if (OUTPUTS(2).propositionBytes == SELF.propositionBytes)
+                                  if (OUTPUTS(2).R5[Coll[Byte]].isDefined)
+                                    OUTPUTS(2).R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get &&
+                                    OUTPUTS(1).tokens(1)._1 == INPUTS(1).R5[Coll[Byte]].get
+                                  else
+                                    false
+                                else true
           sigmaProp(stakeStateInput && selfReplication) //Stake state handles logic here to minimize stake box size
       } else {
           sigmaProp(false)

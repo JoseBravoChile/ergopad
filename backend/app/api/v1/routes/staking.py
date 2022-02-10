@@ -5,14 +5,14 @@ from starlette.responses import JSONResponse
 from wallet import Wallet, NetworkEnvironment # ergopad.io library
 from config import Config, Network # api specific config
 from fastapi import APIRouter, status
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel
 from time import time
 from datetime import date, datetime, timezone
 from api.v1.routes.asset import get_asset_current_price
 from base64 import b64encode, encode
 from ergo.updateAllowance import handleAllowance
-from ergo.util import encodeLong, encodeString, hexstringToB64
+from ergo.util import encodeLong, encodeLongArray, encodeString, hexstringToB64
 import uuid
 from hashlib import blake2b
 from api.v1.routes.blockchain import getNFTBox, getTokenInfo, getErgoscript, getBoxesWithUnspentTokens
@@ -24,11 +24,11 @@ CFG = Config[Network]
 DEBUG = True # CFG.DEBUG
 DATABASE = CFG.connectionString
 
-CFG["stakeStateNFT"] = "174f8bc88320897763f79e5da5e088043ca2db95df63eb68cf0edd9eeb3b3d74"
-CFG["stakePoolNFT"] = "17da70ae8ecc814f6bf04262a0f247b8efc2bf765d016e36072ea9b200ddcf17"
-CFG["emissionNFT"] = "18f2d72eaf1821142c0b5f2f7a8e95775dfbc34a2ae9af0be6ad7d630d2db6e2"
-CFG["stakeTokenID"] =  "19a1cba03bb9b5416a42a5c5e95d4db0bc9790ebde480c2538cf7c2bc8949f0f"
-CFG["stakedTokenID"] = "129804369cc01c02f9046b8f0e37f8fc924e71b64652a0a331e6cd3c16c1f028"
+CFG["stakeStateNFT"] = "1daffe65f73b8c2e50e9feca69f4accaa1ef8c4ccd5bfb65a0616fef910bb12b"
+CFG["stakePoolNFT"] = "1c93f4621a128471b4b575ae6e3b3324dd73220735acd4116281a597aa588292"
+CFG["emissionNFT"] = "1e9f9461d66c16e4715f53f0b4b039966076398d21592f115e2e33692ec0b527"
+CFG["stakeTokenID"] =  "1fa30b0b99e01a674b9a09f5ad6ea1c20d0dee000ed6d809538a6eaa961b0be5"
+CFG["stakedTokenID"] = "1c30f5cac51947206fb05b69076a0da74788ba7dc5712eb33007c6605f13409f"
 
 nergsPerErg        = 1000000000
 headers            = {'Content-Type': 'application/json'}
@@ -49,9 +49,18 @@ import inspect
 myself = lambda: inspect.stack()[1][3]
 #endregion LOGGING
 
+@r.get("/emit/", name="staking:emit")
+def emit():
+    stakeStateBox = getNFTBox(CFG.stakeStateNFT)
+    stakePoolBox = getNFTBox(CFG.stakePoolNFT)
+    emissionBox = getNFTBox(CFG.emissionNFT)
+
+    
+
 class StakeRequest(BaseModel):
     wallet: str
     amount: float
+    utxos: List[str]
 
 @r.post("/stake/", name="staking:stake")
 async def stake(req: StakeRequest):
@@ -65,46 +74,22 @@ async def stake(req: StakeRequest):
 
     stakedTokenInfo = getTokenInfo(CFG.stakedTokenID)
 
-    stakeStateAddress = getErgoscript("stakeState",params=params)
-
-    logging.info(stakeStateAddress)
-
-    stakeStateWallet = Wallet(stakeStateAddress)
-    stakeStateErgoTreeBytes = bytes.fromhex(stakeStateWallet.ergoTree()[2:])
-
-    logging.info(stakeStateWallet.ergoTree()[2:])
-
-    stakeStateHash = b64encode(blake2b(stakeStateErgoTreeBytes, digest_size=32).digest()).decode('utf-8')
-    params["stakeStateContractHash"] = stakeStateHash
-
     stakeAddress = getErgoscript("stake", params=params)
-
-    stakeWallet = Wallet(stakeAddress)
-    stakeErgoTreeBytes = bytes.fromhex(stakeWallet.ergoTree()[2:])
-
-    logging.info(stakeErgoTreeBytes)
-
-    stakeHash = b64encode(blake2b(stakeErgoTreeBytes, digest_size=32).digest()).decode('utf-8')
-    params["stakeContractHash"] = stakeHash
-    params["buyerWallet"] = req.wallet
-    params["timestamp"] = int(time())
-
-    #preStakeAddress = getErgoscript("preStake", params=params)
-    preStakeAddress = getErgoscript("alwaysTrue", params=params)
 
     stakeStateBox = getNFTBox(CFG.stakeStateNFT)
 
     tokenAmount = int(req.amount*10**stakedTokenInfo["decimals"])
-
+    
+    r4 = eval(stakeStateBox["additionalRegisters"]["R4"]["renderedValue"])
     stakeStateOutput = {
-        'address': stakeStateAddress,
+        'address': stakeStateBox["address"],
         'value': stakeStateBox["value"],
         'registers': {
-            'R4': encodeLong(int(stakeStateBox["additionalRegisters"]["R4"]["renderedValue"])+tokenAmount),
-            'R5': stakeStateBox["additionalRegisters"]["R5"]["serializedValue"],
-            'R6': encodeLong(int(stakeStateBox["additionalRegisters"]["R6"]["renderedValue"])+1),
-            'R7': stakeStateBox["additionalRegisters"]["R7"]["serializedValue"],
-            'R8': stakeStateBox["additionalRegisters"]["R8"]["serializedValue"],
+            'R4': encodeLongArray([int(r4[0])+tokenAmount,
+                    int(r4[1]),
+                    int(r4[2])+1,
+                    int(r4[3]),
+                    int(r4[4])])
         },
         'assets': [
             {
@@ -122,9 +107,8 @@ async def stake(req: StakeRequest):
         'address': stakeAddress,
         'value': int(0.001*nergsPerErg),
         'registers': {
-            'R4': stakeStateBox["additionalRegisters"]["R5"]["serializedValue"],
-            'R5': encodeString(stakeStateBox["boxId"]),
-            'R6': encodeLong(int(time()*1000))
+            'R4': encodeLongArray([int(r4[1]),int(time()*1000)]),
+            'R5': encodeString(stakeStateBox["boxId"])
         },
         'assets': [
             {
@@ -147,34 +131,21 @@ async def stake(req: StakeRequest):
         'decimals': "0"
     }
 
-    request = {
-        'address': preStakeAddress,
-        'returnTo': req.wallet,
-        'startWhen': {
-            'erg': int(0.01*nergsPerErg),
-            CFG.stakedTokenID: int(req.amount*10**stakedTokenInfo["decimals"])
-        },
-        'txSpec': {
+    inBoxesRaw = []
+    for box in [stakeStateBox["boxId"]]+req.utxos:
+        res = requests.get(f'{CFG.ergopadNode}/utxo/withPool/byIdBinary/{box}', headers=dict(headers), timeout=2)
+        if res.ok:
+            inBoxesRaw.append(res.json()['bytes'])
+        else:
+            return res
+
+    request =  {
             'requests': [stakeStateOutput,stakeOutput,userOutput],
             'fee': int(0.001*nergsPerErg),
-            'inputs': [stakeStateBox["boxId"],'$userIns'],
-            'dataInputs': []
+            'inputsRaw': inBoxesRaw
         }
-    }
 
-    # don't bonk if can't jsonify request
-    try: logging.info(f'request: {json.dumps(request)}')
-    except: pass
-
-    # logging.info(f'build request: {request}')
-    # logging.info(f'\n::REQUEST::::::::::::::::::\n{json.dumps(request)}\n::REQUEST::::::::::::::::::\n')
-
-    # make async request to assembler
-    res = requests.post(f'{CFG.assembler}/follow', headers=headers, json=request)    
-    logging.debug(res.content)
-    assemblerId = res.json()['id']
-    fin = requests.get(f'{CFG.assembler}/result/{assemblerId}')
-    logging.info({'status': 'success', 'fin': fin.json(), 'followId': assemblerId})
+    return request
 
     
 
@@ -231,27 +202,27 @@ async def bootstrapStaking(req: BootstrapRequest):
     params["stakeTokenID"] = hexstringToB64(req.stakeTokenID)
     params["timestamp"] = int(time())
 
-    stakeStateAddress = getErgoscript("stakeState",params=params)
-
-    logging.info(stakeStateAddress)
-
-    stakeStateWallet = Wallet(stakeStateAddress)
-    stakeStateErgoTreeBytes = bytes.fromhex(stakeStateWallet.ergoTree()[2:])
-
-    logging.info(stakeStateWallet.ergoTree()[2:])
-
-    stakeStateHash = b64encode(blake2b(stakeStateErgoTreeBytes, digest_size=32).digest()).decode('utf-8')
-    params["stakeStateContractHash"] = stakeStateHash
 
     emissionAddress = getErgoscript("emission",params=params)
 
     stakePoolAddress = getErgoscript("stakePool", params=params)
 
+    stakeAddress = getErgoscript("stake",params=params)
+
+    stakeWallet = Wallet(stakeAddress)
+    stakeErgoTreeBytes = bytes.fromhex(stakeWallet.ergoTree()[2:])
+
+    stakeHash = b64encode(blake2b(stakeErgoTreeBytes, digest_size=32).digest()).decode('utf-8')
+
+    params["stakeContractHash"] = stakeHash
+
+    stakeStateAddress = getErgoscript("stakeState",params=params)
+
     stakePoolBox = {
         'address': stakePoolAddress,
         'value': int(0.001*nergsPerErg),
         'registers': {
-            'R4': encodeLong(int(req.emissionAmount*stakedTokenDecimalMultiplier))
+            'R4': encodeLongArray([int(req.emissionAmount*stakedTokenDecimalMultiplier)])
         },
         'assets': [
             {
@@ -269,11 +240,7 @@ async def bootstrapStaking(req: BootstrapRequest):
         'address': stakeStateAddress,
         'value': int(0.001*nergsPerErg),
         'registers': {
-            'R4': encodeLong(int(0)),
-            'R5': encodeLong(int(0)),
-            'R6': encodeLong(int(0)),
-            'R7': encodeLong(int(0)),
-            'R8': encodeLong(req.cycleDuration_ms)
+            'R4': encodeLongArray([0,0,0,0,req.cycleDuration_ms])
         },
         'assets': [
             {
@@ -291,10 +258,7 @@ async def bootstrapStaking(req: BootstrapRequest):
         'address': emissionAddress,
         'value': int(0.001*nergsPerErg),
         'registers': {
-            'R4': encodeLong(int(0)),
-            'R5': encodeLong(int(0)),
-            'R6': encodeLong(int(0)),
-            'R7': encodeLong(req.emissionAmount*stakedTokenDecimalMultiplier)
+            'R4': encodeLongArray([0,-1,0,req.emissionAmount*stakedTokenDecimalMultiplier])
         },
         'assets': [
             {
