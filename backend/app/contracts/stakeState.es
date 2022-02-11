@@ -95,9 +95,14 @@
                            if (timeInWeeks > 4) unstaked*125/1000 else
                            if (timeInWeeks > 2) unstaked*20/100 else
                            unstaked*25/100
+           val penaltyBurned = if (remaining == 0L)
+                                OUTPUTS.size <= 4 && OUTPUTS(2).tokens.size==0
+                                else
+                                OUTPUTS.size <= 5 && OUTPUTS(3).tokens.size==0
            sigmaProp(allOf(Coll(
                selfReplication,
                stakeKey,
+               penaltyBurned,
                //Stake State
                OUTPUTS(0).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0)-unstaked,
                OUTPUTS(0).R4[Coll[Long]].get(1) == SELF.R4[Coll[Long]].get(1),
@@ -114,6 +119,7 @@
                  OUTPUTS(2).tokens(0)._1 == INPUTS(1).tokens(0)._1,
                  OUTPUTS(2).tokens(0)._2 == INPUTS(1).tokens(0)._2,
                  OUTPUTS(2).tokens(1)._1 == INPUTS(1).tokens(1)._1,
+                 OUTPUTS(2).tokens(1)._2 == remaining,
                  OUTPUTS(2).R4[Coll[Long]].get(0) == INPUTS(1).R4[Coll[Long]].get(0),
                  OUTPUTS(2).R4[Coll[Long]].get(1) == INPUTS(1).R4[Coll[Long]].get(1)
                 ))

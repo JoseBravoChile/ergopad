@@ -290,19 +290,14 @@ object Main extends App {
                            if (timeInWeeks > 4) unstaked*125/1000 else
                            if (timeInWeeks > 2) unstaked*20/100 else
                            unstaked*25/100
-           //def stakeTokens(box: Box) = {
-           // if (box.tokens.size > 0)
-           //   box.tokens.fold(0L, {(y: Long, token: (Coll[Byte],Long)) => y + (if (token._1 == stakedTokenID) token._2 else 0L)})
-           // else
-           //   0L
-           //}
-           //val penaltyBurned = INPUTS.fold(0L, {(z: Long, box: Box) => z+stakeTokens(box)}) -
-           //                    OUTPUTS.fold(0L, {(z: Long, box: Box) => z+stakeTokens(box)}) ==
-           //                   penalty
+           val penaltyBurned = if (remaining == 0L)
+                                OUTPUTS.size <= 4 && OUTPUTS(2).tokens.size==0
+                                else
+                                OUTPUTS.size <= 5 && OUTPUTS(3).tokens.size==0
            sigmaProp(allOf(Coll(
                selfReplication,
                stakeKey,
-               //penaltyBurned,
+               penaltyBurned,
                //Stake State
                OUTPUTS(0).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0)-unstaked,
                OUTPUTS(0).R4[Coll[Long]].get(1) == SELF.R4[Coll[Long]].get(1),
@@ -319,6 +314,7 @@ object Main extends App {
                  OUTPUTS(2).tokens(0)._1 == INPUTS(1).tokens(0)._1,
                  OUTPUTS(2).tokens(0)._2 == INPUTS(1).tokens(0)._2,
                  OUTPUTS(2).tokens(1)._1 == INPUTS(1).tokens(1)._1,
+                 OUTPUTS(2).tokens(1)._2 == remaining,
                  OUTPUTS(2).R4[Coll[Long]].get(0) == INPUTS(1).R4[Coll[Long]].get(0),
                  OUTPUTS(2).R4[Coll[Long]].get(1) == INPUTS(1).R4[Coll[Long]].get(1)
                 ))
@@ -706,11 +702,12 @@ object Main extends App {
         script = stakeContract
       )
     }
-    outputs += Box(
-      value = minErg,
-      tokens = List(stakedTokenId -> (unstakeAmount*25/100)),
-      script = contract(unstaker.wallet.getAddress.pubKey)
-    )
+    //Steal penalty test
+    //outputs += Box(
+    //  value = minErg,
+    //  tokens = List(stakedTokenId -> (unstakeAmount*25/100)),
+    //  script = contract(unstaker.wallet.getAddress.pubKey)
+    //)
     val unstakeTransaction = Transaction(
       inputs = List(currentStakeState, stakeBox) ++ unstaker.selectUnspentBoxes(
         toSpend = 2 * MinTxFee,
