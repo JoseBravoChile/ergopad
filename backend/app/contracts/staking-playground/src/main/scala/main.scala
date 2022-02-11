@@ -281,21 +281,28 @@ object Main extends App {
        } else {
        if (SELF.R4[Coll[Long]].get(0) > OUTPUTS(0).R4[Coll[Long]].get(0) && INPUTS.size >= 3) { // Unstake
            // Stake State (SELF), Stake, Stake Key Box => Stake State, User Wallet, Stake (optional for partial unstake)
-           val remaining = if (OUTPUTS(2).propositionBytes == INPUTS(1).propositionBytes)
-                            INPUTS(1).tokens(1)._2 - OUTPUTS(1).tokens(0)._2
-                           else
-                            0L
+           val unstaked = SELF.R4[Coll[Long]].get(0) - OUTPUTS(0).R4[Coll[Long]].get(0)
            val stakeKey = INPUTS(2).tokens.exists({(token: (Coll[Byte],Long)) => token._1 == INPUTS(1).R5[Coll[Byte]].get})
-           val unstaked = INPUTS(1).tokens(1)._2 - remaining
+           val remaining = INPUTS(1).tokens(1)._2 - unstaked
            val timeInWeeks = (blockTime - INPUTS(1).R4[Coll[Long]].get(1))/1000/3600/24/7
            val penalty =  if (timeInWeeks > 8) 0L else
                            if (timeInWeeks > 6) unstaked*5/100 else
                            if (timeInWeeks > 4) unstaked*125/1000 else
                            if (timeInWeeks > 2) unstaked*20/100 else
                            unstaked*25/100
+           //def stakeTokens(box: Box) = {
+           // if (box.tokens.size > 0)
+           //   box.tokens.fold(0L, {(y: Long, token: (Coll[Byte],Long)) => y + (if (token._1 == stakedTokenID) token._2 else 0L)})
+           // else
+           //   0L
+           //}
+           //val penaltyBurned = INPUTS.fold(0L, {(z: Long, box: Box) => z+stakeTokens(box)}) -
+           //                    OUTPUTS.fold(0L, {(z: Long, box: Box) => z+stakeTokens(box)}) ==
+           //                   penalty
            sigmaProp(allOf(Coll(
                selfReplication,
                stakeKey,
+               //penaltyBurned,
                //Stake State
                OUTPUTS(0).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0)-unstaked,
                OUTPUTS(0).R4[Coll[Long]].get(1) == SELF.R4[Coll[Long]].get(1),
@@ -463,7 +470,7 @@ object Main extends App {
       ),
       registers = Map(
         R4 -> Array[Long](LongArrayConstant.unapply(currentStakeState.additionalRegisters(R4)).get(1),
-          0L),
+          99999999999999L),
         R5 -> stakerBox.additionalTokens(0)._1
       ),
       script = stakeContract
@@ -657,6 +664,7 @@ object Main extends App {
 
   def unstake(unstaker: Party, _unstakeAmount: Long, currentStakeState: ErgoBox, stakeBox: ErgoBox): IndexedSeq[ErgoBox] = {
     val partialUnstake = (stakeBox.additionalTokens(1)._2 > _unstakeAmount)
+    if (partialUnstake) println("Partial unstake") else println("Unstake")
     val unstakeAmount = math.min(_unstakeAmount,stakeBox.additionalTokens(1)._2)
     val outputs = new mutable.ListBuffer[ErgoBoxCandidate]()
     val unstakeKey = stakeKeys(ByteArrayConstant.unapply(stakeBox.additionalRegisters(R5)).get)
@@ -679,8 +687,8 @@ object Main extends App {
     )
     outputs += Box(
       value = minErg,
-      tokens = if (partialUnstake) List(stakedTokenId -> unstakeAmount, unstakeKey -> 1L)
-        else List(stakedTokenId -> unstakeAmount),
+      tokens = if (partialUnstake) List(stakedTokenId -> (unstakeAmount*75/100), unstakeKey -> 1L)
+        else List(stakedTokenId -> (unstakeAmount*75/100)),
       script = contract(unstaker.wallet.getAddress.pubKey)
     )
     if (partialUnstake) {
@@ -698,6 +706,11 @@ object Main extends App {
         script = stakeContract
       )
     }
+    outputs += Box(
+      value = minErg,
+      tokens = List(stakedTokenId -> (unstakeAmount*25/100)),
+      script = contract(unstaker.wallet.getAddress.pubKey)
+    )
     val unstakeTransaction = Transaction(
       inputs = List(currentStakeState, stakeBox) ++ unstaker.selectUnspentBoxes(
         toSpend = 2 * MinTxFee,

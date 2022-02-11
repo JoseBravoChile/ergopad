@@ -1,6 +1,8 @@
+import io
 import requests, json, os
 import math
 import uuid
+import json_stream
 
 from starlette.responses import JSONResponse
 from wallet import Wallet, NetworkEnvironment # ergopad.io library
@@ -166,6 +168,26 @@ def followInfo(followId):
 
 def getNFTBox(tokenId: str):
     try:
+        memRes = requests.get(f'{CFG.explorer}/mempool/boxes/unspent')
+        if memRes.ok:
+            memResJson = []
+            memResContent = memRes.content.decode('utf-8')
+            index = 0
+            offset = 0
+            while index < len(memResContent):
+                index += 1
+                try:
+                    newElement = json.loads(memResContent[offset:index])
+                    memResJson.append(newElement)
+                    offset = index
+                except:
+                    pass
+            for memBox in memResJson:
+                logging.info(memBox)
+                if "assets" in memBox:
+                    for token in memBox["assets"]:
+                        if token["tokenId"]==tokenId:
+                            return memBox
         res = requests.get(f'{CFG.explorer}/boxes/unspent/byTokenId/{tokenId}')
         if res.ok:
             items = res.json()["items"]
@@ -176,6 +198,16 @@ def getNFTBox(tokenId: str):
     except Exception as e:
         logging.error(f'ERR:{myself()}: unable to find nft box ({e})')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to find nft box')
+
+def getTokenBoxes(tokenId: str, offset: int = 0, limit: int = 100):
+    try:
+        res = requests.get(f'{CFG.explorer}/boxes/unspent/byTokenId/{tokenId}?offset={offset}&limit={limit}')
+        if res.ok:
+            items = res.json()["items"]
+            return items
+    except Exception as e:
+        logging.error(f'ERR:{myself()}: unable to find token box ({e})')
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to find token box')
 
 # find unspent boxes with tokens
 @r.get("/unspentTokens", name="blockchain:unspentTokens")
