@@ -332,6 +332,11 @@ async def get_asset_historical_price(coin: str = "all", stepSize: int = 1, stepU
 @r.get("/price/chart/{pair}", response_model=CoinHistory, name="coin:trading-pair-historical")
 async def get_asset_historical_price(pair: str = "ergopad_sigusd", stepSize: int = 1, stepUnit: str = "w", limit: int = 100):
     pair = pair.lower()
+    # check cache
+    cached = cache.get(f"get_api_asset_price_chart_{pair}_{stepSize}_{stepUnit}_{limit}")
+    if cached:
+        return cached
+
     if pair not in ("ergopad_erg", "ergopad_sigusd"):
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Error: trading pair not supported')
     # aggregator stores at 5 min resolution
@@ -374,10 +379,11 @@ async def get_asset_historical_price(pair: str = "ergopad_sigusd", stepSize: int
             if (tokenPrice != 0):
                 tokenBase = num / tokenPrice
             tokenData["history"].append({
-                "timestamp": row[0],
+                "timestamp": str(row[0]),
                 "price": tokenBase,
             })
 
+        cache.set(f"get_api_asset_price_chart_{pair}_{stepSize}_{stepUnit}_{limit}", tokenData)
         return tokenData
 
     except Exception as e:
