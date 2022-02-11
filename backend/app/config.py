@@ -139,7 +139,7 @@ Config = {
       # 'ergopad'  : 'cc3c5dc01bb4b2a05475b2d9a5b4202ed235f7182b46677ed8f40358333b92bb', # xerg10M / TESTING, strategic token
       'seedsale'        : '02203763da5f27c01ba479c910e479c4f479e5803c48b2bf4fd4952efa5c62d9', # mainnet seed
       'strategic_sale' : '60def1ed45ffc6493c8c6a576c7a23818b6b2dfc4ff4967e9867e3795886c437', # mainnet strategic token
-      'ergopad'  : '60def1ed45ffc6493c8c6a576c7a23818b6b2dfc4ff4967e9867e3795886c437', # official
+      'ergopad'  : 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', # official
       'sigusd'   : '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04', # official SigUSD (SigmaUSD - V2)
       # 'ergopad'         : 'd71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413', # mainnet official
       # 'sigusd'          : '03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04', # mainnet official SigUSD (SigmaUSD - V2)
