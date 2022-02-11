@@ -13,7 +13,7 @@ ssm_client = boto3.client(
 response = ssm_client.send_command(
     InstanceIds=[INSTANCE_ID],
     DocumentName="AWS-RunShellScript",
-    Parameters={'commands': ["runuser -l ec2-user -c 'cd ergopad && docker compose -f docker-compose-prod.yml down && git pull origin dev && docker compose -f docker-compose-prod.yml up -d'"]})
+    Parameters={'commands': ["runuser -l ubuntu -c 'cd /opt/git/ergopad && docker compose -f docker-compose-prod.yml down && git pull && docker compose -f docker-compose-prod.yml up -d'"]})
 
 command_id = response['Command']['CommandId']
 
