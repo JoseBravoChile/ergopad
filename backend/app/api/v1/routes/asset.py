@@ -323,6 +323,65 @@ async def get_asset_historical_price(coin: str = "all", stepSize: int = 1, stepU
     except Exception as e:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Error: {str(e)}')
 
+#
+# Find price by trading pair (ergodex)
+#
+# - Currently Supports
+# - 1. ergopad_erg
+# - 2. ergopad_sigusd
+@r.get("/price/chart/{pair}", response_model=CoinHistory, name="coin:trading-pair-historical")
+async def get_asset_historical_price(pair: str = "ergopad_sigusd", stepSize: int = 1, stepUnit: str = "w", limit: int = 100):
+    pair = pair.lower()
+    if pair not in ("ergopad_erg", "ergopad_sigusd"):
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Error: trading pair not supported')
+    # aggregator stores at 5 min resolution
+    timeMap = {
+        "h": 10,
+        "d": 288,
+        "w": 2016,
+        "m": 8064,
+    }
+    try:
+        # return every nth row
+        resolution = int(stepSize * timeMap[stepUnit])
+        logging.info(f'Fecthing history for resolution: {resolution}')
+        table = "ergodex_ERG/ergodexToken_continuous_5m"
+        # sql
+        sql = f"""
+            SELECT timestamp_utc, sigusd, ergopad
+            FROM (
+                SELECT timestamp_utc, sigusd, ergopad, ROW_NUMBER() OVER (ORDER BY timestamp_utc DESC) AS rownum 
+                FROM "{table}"
+            ) as t
+            WHERE ((t.rownum - 1) %% {resolution}) = 0
+            ORDER BY t.timestamp_utc DESC
+            LIMIT {limit}
+        """
+        logging.debug(f'exec sql: {sql}')
+        res = con.execute(sql).fetchall()
+
+        tokenData = {
+            "token": pair,
+            "resolution": resolution,
+            "history": [],
+        }
+        for row in res:
+            num = 1
+            if pair == "ergopad_sigusd":
+                num = row[1]
+            tokenPrice = row[2]
+            tokenBase = 0
+            if (tokenPrice != 0):
+                tokenBase = num / tokenPrice
+            tokenData["history"].append({
+                "timestamp": row[0],
+                "price": tokenBase,
+            })
+
+        return tokenData
+
+    except Exception as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Error: {str(e)}')
 
 #endregion ROUTES
 
