@@ -10,7 +10,7 @@ services:
     working_dir: /app
     environment:
       - BASEDIR=/backups
-      - DBLIST=hello alpha
+      - DBLIST=ergopad alpha
       - DUMPPREFIX=ergopad
     volumes:
       - /backups/pgmaint:/backups
