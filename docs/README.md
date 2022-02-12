@@ -59,7 +59,7 @@ Early investment rounds will take place starting December 17, 2021. The seed rou
 
 ### Dao tokens
 
-The ErgoPad DAO will receive 6% of the total supply of tokens. This will be released quarterly to the DAO over 6 quarters (one and a half years). The DAO will vote to determine how those tokens will be spent. Salaries, new hires, marketing, buybacks, and other expenses will be considered, and remaining tokens will be burned. 
+The ErgoPad DAO will receive 6% of the total supply of tokens. This will be released quarterly to the DAO over 6 quarters (one and a half years). The DAO will vote to determine how those tokens will be spent. Salaries, new hires, marketing, buybacks, and other expenses will be considered.
 
 ### Tokenomics and Vesting Schedule
 
