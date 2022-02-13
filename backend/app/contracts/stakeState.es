@@ -16,6 +16,7 @@
       val emissionNFT = fromBase64("{emissionNFT}")
       val cycleDuration = SELF.R4[Coll[Long]].get(4)
       val stakeContract = fromBase64("{stakeContractHash}")
+      val minimumStake = 1000L
 
       def isStakeBox(box: Box) = if (box.tokens.size >= 1) box.tokens(0)._1 == SELF.tokens(1)._1 else false
       def isCompoundBox(box: Box) = if (box.tokens.size >= 1) isStakeBox(box) || box.tokens(0)._1 == emissionNFT || box.tokens(0)._1 == SELF.tokens(0)._1 else false
@@ -47,6 +48,7 @@
               OUTPUTS(1).tokens(0)._1 == SELF.tokens(1)._1,
               OUTPUTS(1).tokens(0)._2 == 1L,
               OUTPUTS(1).tokens(1)._1 == stakedTokenID,
+              OUTPUTS(1).tokens(1)._2 >= minimumStake,
               //Stake key
               OUTPUTS(2).propositionBytes == INPUTS(1).propositionBytes,
               OUTPUTS(2).tokens(0)._1 == OUTPUTS(1).R5[Coll[Byte]].get,
@@ -89,11 +91,11 @@
            val unstaked = SELF.R4[Coll[Long]].get(0) - OUTPUTS(0).R4[Coll[Long]].get(0)
            val stakeKey = INPUTS(2).tokens.exists({(token: (Coll[Byte],Long)) => token._1 == INPUTS(1).R5[Coll[Byte]].get})
            val remaining = INPUTS(1).tokens(1)._2 - unstaked
-           val timeInWeeks = (blockTime - INPUTS(1).R4[Coll[Long]].get(1))/1000/3600/24/7
-           val penalty =  if (timeInWeeks > 8) 0L else
-                           if (timeInWeeks > 6) unstaked*5/100 else
-                           if (timeInWeeks > 4) unstaked*125/1000 else
-                           if (timeInWeeks > 2) unstaked*20/100 else
+           val timeInWeeks = (blockTime - INPUTS(1).R4[Coll[Long]].get(1))/(1000*3600*24*7)
+           val penalty =  if (timeInWeeks >= 8) 0L else
+                           if (timeInWeeks >= 6) unstaked*5/100 else
+                           if (timeInWeeks >= 4) unstaked*125/1000 else
+                           if (timeInWeeks >= 2) unstaked*20/100 else
                            unstaked*25/100
            val penaltyBurned = if (remaining == 0L)
                                 OUTPUTS.size <= 4 && OUTPUTS(2).tokens.size==0
@@ -120,6 +122,7 @@
                  OUTPUTS(2).tokens(0)._2 == INPUTS(1).tokens(0)._2,
                  OUTPUTS(2).tokens(1)._1 == INPUTS(1).tokens(1)._1,
                  OUTPUTS(2).tokens(1)._2 == remaining,
+                 remaining >= minimumStake,
                  OUTPUTS(2).R4[Coll[Long]].get(0) == INPUTS(1).R4[Coll[Long]].get(0),
                  OUTPUTS(2).R4[Coll[Long]].get(1) == INPUTS(1).R4[Coll[Long]].get(1)
                 ))
