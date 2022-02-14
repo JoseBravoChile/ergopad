@@ -1,3 +1,4 @@
+from enum import Enum
 import io
 import requests, json, os
 import math
@@ -84,6 +85,12 @@ import inspect
 myself = lambda: inspect.stack()[1][3]
 #endregion LOGGING
 
+class TXFormat(str, Enum):
+    EIP_12 = "eip-12"
+    NODE = "node"
+    ERGO_PAY = "ergo_pay"
+
+
 #region ROUTES
 # current node info (and more)
 @r.get("/info", name="blockchain:info")
@@ -166,6 +173,64 @@ def followInfo(followId):
         logging.error(f'ERR:{myself()}: invalid assembly follow ({e})')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'invalid assembly follow')
 
+def getBoxCandidates(boxes):
+    outputs = []
+    for box in boxes:
+        outputs.append({
+            'value': box["value"],
+            'ergoTree': Wallet(box["address"]).ergoTree(),
+            'assets': box["assets"],
+            'additionalRegisters': box["registers"],
+            'creationHeight': getInfo()["currentHeight"]
+        })
+    return outputs
+
+def getUnsignedTX(inputs, dataInputs, outputs, txFormat: TXFormat, txFee = 0):
+    if txFormat==TXFormat.NODE:
+        return {
+                'requests': outputs,
+                'fee':txFee,
+                'inputsRaw': inputs,
+                'dataInputsRaw': dataInputs
+        }
+    if txFormat==TXFormat.EIP_12:
+        return {
+            'inputs': inputs,
+            'dataInputs': dataInputs,
+            'outputs': outputs
+        }
+
+
+def getInputBoxes(boxes, txFormat: TXFormat):
+    if txFormat==TXFormat.NODE:
+        inBoxesRaw = []
+        for box in boxes:
+            res = requests.get(f'{CFG.ergopadNode}/utxo/withPool/byIdBinary/{box}', headers=dict(headers), timeout=2)
+            if res.ok:
+                inBoxesRaw.append(res.json()['bytes'])
+            else:
+                return res
+        return inBoxesRaw
+    if txFormat==TXFormat.EIP_12:
+        unsignedInputs = []
+        for ibox in boxes:
+            res = requests.get(f'{CFG.ergopadNode}/utxo/withPool/byId/{ibox}', headers=dict(headers), timeout=2)
+            if res.ok:
+                box = res.json()
+                unsignedInputs.append({
+                    'extension': {},
+                    'boxId': box["boxId"],
+                    'value': box["value"],
+                    'ergoTree': box["ergoTree"],
+                    'assets': box["assets"],
+                    'additionalRegisters': box["additionalRegisters"],
+                    'creationHeight': box["creationHeight"],
+                    'transactionId': box["transactionId"],
+                    'index': box["index"]
+                })
+        return unsignedInputs
+    return None
+
 def getNFTBox(tokenId: str):
     try:
         memRes = requests.get(f'{CFG.explorer}/mempool/boxes/unspent')
@@ -197,7 +262,7 @@ def getNFTBox(tokenId: str):
                 logging.error(f'ERR:{myself()}: multiple nft box ({e})')
     except Exception as e:
         logging.error(f'ERR:{myself()}: unable to find nft box ({e})')
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'unable to find nft box')
+        return None
 
 def getTokenBoxes(tokenId: str, offset: int = 0, limit: int = 100):
     try:
