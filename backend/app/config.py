@@ -96,6 +96,7 @@ Config = {
     }
   }),
   'mainnet': dotdict({
+    'ergopadNode'              : os.getenv('ERGONODE_HOST'),
     'node'              : os.getenv('ERGONODE_HOST'),
     'explorer'          : 'https://api.ergoplatform.com/api/v1',
     'ergoPlatform'      : 'https://api.ergoplatform.com/api/v1',

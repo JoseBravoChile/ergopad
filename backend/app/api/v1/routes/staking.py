@@ -15,7 +15,7 @@ from ergo.updateAllowance import handleAllowance
 from ergo.util import encodeLong, encodeLongArray, encodeString, hexstringToB64
 import uuid
 from hashlib import blake2b
-from api.v1.routes.blockchain import TXFormat, getBoxCandidate, getBoxCandidates, getInputBoxes, getNFTBox, getTokenBoxes, getTokenInfo, getErgoscript, getBoxesWithUnspentTokens, getUnsignedTX
+from api.v1.routes.blockchain import TXFormat, getBoxCandidates, getInputBoxes, getNFTBox, getTokenBoxes, getTokenInfo, getErgoscript, getBoxesWithUnspentTokens, getUnsignedTX
 from hashlib import blake2b
 from enum import Enum
 
@@ -25,11 +25,11 @@ CFG = Config[Network]
 DEBUG = True # CFG.DEBUG
 DATABASE = CFG.connectionString
 
-CFG["stakeStateNFT"] = "1daffe65f73b8c2e50e9feca69f4accaa1ef8c4ccd5bfb65a0616fef910bb12b"
-CFG["stakePoolNFT"] = "1c93f4621a128471b4b575ae6e3b3324dd73220735acd4116281a597aa588292"
-CFG["emissionNFT"] = "1e9f9461d66c16e4715f53f0b4b039966076398d21592f115e2e33692ec0b527"
-CFG["stakeTokenID"] =  "1fa30b0b99e01a674b9a09f5ad6ea1c20d0dee000ed6d809538a6eaa961b0be5"
-CFG["stakedTokenID"] = "1c30f5cac51947206fb05b69076a0da74788ba7dc5712eb33007c6605f13409f"
+CFG["stakeStateNFT"] = "00703e4137e5dbd7a200b7b943c1bf0ba2a577c9a3a2ff6880ef05bf44401fe9"
+CFG["stakePoolNFT"] = "0e0ce70547f8743ae61053f993eed720c698dc21a9ac3fa1358b8e64edee342b"
+CFG["emissionNFT"] = "0dee1cb3dc5750ba57cc7cdcd8cc8a581487a024f9a3c6ff5758bf8615976af5"
+CFG["stakeTokenID"] =  "0e2e934ddddf92840661afc6d27d570f359dcb70dddac3d082d57ba74db67b02"
+CFG["stakedTokenID"] = "000e21f8e51ad4a3d3bdde9ac34d19eb2c24c92d2022260af6f99148cbc021d1"
 
 nergsPerErg        = 1000000000
 headers            = {'Content-Type': 'application/json'}
@@ -79,6 +79,7 @@ async def unstake(req: UnstakeRequest):
             timeStaked = currentTime - stakeTime
             weeksStaked = int(timeStaked/week)
             penalty = 0 if (weeksStaked > 8) else amountToUnstake*5/100  if (weeksStaked > 6) else amountToUnstake*125/1000 if (weeksStaked > 4) else amountToUnstake*20/100 if (weeksStaked > 2) else amountToUnstake*25/100
+            logging.info(penalty)
             partial = amountToUnstake < stakeBox["assets"][1]["amount"]
             stakeStateR4 = eval(stakeStateBox["additionalRegisters"]["R4"]["renderedValue"])
             outputs = []
@@ -159,12 +160,47 @@ async def unstake(req: UnstakeRequest):
             if len(assetsToBurn)>0:
                 outputs.append({'assetsToBurn': assetsToBurn})
 
-            inputs = getInputBoxes([stakeStateBox["boxId"],stakeBox["boxId"]]+req.utxos,req.txFormat)
-            outputs = getBoxCandidates(outputs,req.txFormat)
+            inputs = [stakeStateBox["boxId"],req.stakeBox]+req.utxos
+            inputsRaw = getInputBoxes(inputs,txFormat=TXFormat.NODE)
 
-            request = getUnsignedTX(inputs,[],outputs,req.txFormat,int(0.001*nergsPerErg))
+            request =  {
+                    "requests": outputs,
+                    "fee": int(0.001*nergsPerErg),
+                    "inputsRaw": inputsRaw
+                }
 
-            return request
+            if req.txFormat==TXFormat.NODE:
+                return request
+            
+            logging.info(request)
+            res = requests.post(f'{CFG.ergopadNode}/wallet/transaction/generateUnsigned', headers=dict(headers, **{'api_key': CFG.ergopadApiKey}), json=request)   
+            logging.info(res.content)
+            unsignedTX = res.json()
+            if req.txFormat==TXFormat.EIP_12:
+                logging.info(unsignedTX["inputs"])
+                nodeInputs = unsignedTX["inputs"]
+                eip12Inputs = []
+                for ni in nodeInputs:
+                    eip12Input = getInputBoxes([ni["boxId"]],TXFormat.EIP_12)[0]
+                    eip12Input["extension"] = ni["extension"]
+                    eip12Inputs.append(eip12Input)
+                unsignedTX["inputs"] = eip12Inputs
+                for out in unsignedTX["outputs"]:
+                    out["value"] = str(out["value"])
+                    for token in out["assets"]:
+                        token["amount"] = str(token["amount"])
+                if unsignedTX["outputs"][-1]["ergoTree"]!="1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304":
+                    unsignedTX["outputs"][-1]["ergoTree"] = unsignedTX["outputs"][1]["ergoTree"]
+
+            result = {
+                'inputs': unsignedTX["inputs"],
+                'dataInputs': unsignedTX["dataInputs"],
+                'outputs': unsignedTX["outputs"]
+            }
+
+            logging.info(result)
+
+            return result
         else:
             return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Unable to fetch stake box')
     except Exception as e:
@@ -349,8 +385,9 @@ async def compound(req: APIKeyRequest):
         txFee = max(CFG.txFee,(0.001+0.0005*len(stakeBoxesOutput))*nergsPerErg)
 
         inBoxesRaw = []
-        for box in [stakeStateBox["boxId"],emissionBox["boxId"]]+stakeBoxes+list(getBoxesWithUnspentTokens(nErgAmount=txFee).keys()):
+        for box in [stakeStateBox["boxId"],emissionBox["boxId"]]+stakeBoxes+list(getBoxesWithUnspentTokens(nErgAmount=txFee,emptyRegisters=True).keys()):
             res = requests.get(f'{CFG.ergopadNode}/utxo/withPool/byIdBinary/{box}', headers=dict(headers), timeout=2)
+            logging.info(box)
             if res.ok:
                 inBoxesRaw.append(res.json()['bytes'])
             else:
@@ -362,9 +399,11 @@ async def compound(req: APIKeyRequest):
                 'inputsRaw': inBoxesRaw
             }
 
+        logging.info(request)
+
         res = requests.post(f'{CFG.ergopadNode}/wallet/transaction/send', headers=dict(headers, **{'api_key': req.apiKey}), json=request)   
         
-        return {'remainingBoxes': emissionR4[2]-len(stakeBoxes), 'txId': res.json()["id"]}
+        return {'remainingBoxes': emissionR4[2]-len(stakeBoxes), 'compoundTx': res.json()}
     except Exception as e:
         logging.error(f'ERR:{myself()}: ({e})')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Undefined error during compounding')
@@ -380,6 +419,10 @@ async def emit(req: APIKeyRequest):
         stakeStateR4 = eval(stakeStateBox["additionalRegisters"]["R4"]["renderedValue"])
         stakePoolR4 = eval(stakePoolBox["additionalRegisters"]["R4"]["renderedValue"])
 
+        logging.info(stakeStateBox)
+        logging.info(stakePoolBox)
+        logging.info(emissionBox)
+
         currentTime = requests.get(f'{CFG.ergopadNode}/blocks/lastHeaders/1', headers=dict(headers),timeout=2).json()[0]['timestamp']
 
         if currentTime < stakeStateR4[3]+stakeStateR4[4]:
@@ -388,7 +431,16 @@ async def emit(req: APIKeyRequest):
         stakeStateOutput = {
             'value': stakeStateBox["value"],
             'address': stakeStateBox["address"],
-            'assets': stakeStateBox["assets"],
+            'assets': [
+                {
+                    'tokenId': stakeStateBox["assets"][0]["tokenId"],
+                    'amount': stakeStateBox["assets"][0]["amount"]
+                },
+                {
+                    'tokenId': stakeStateBox["assets"][1]["tokenId"],
+                    'amount': stakeStateBox["assets"][1]["amount"]
+                },
+                ],
             'registers': {
                 'R4': encodeLongArray([
                     stakeStateR4[0],
@@ -446,7 +498,7 @@ async def emit(req: APIKeyRequest):
         }
 
         inBoxesRaw = []
-        for box in [stakeStateBox["boxId"],stakePoolBox["boxId"],emissionBox["boxId"]]+list(getBoxesWithUnspentTokens(nErgAmount=CFG.txFee).keys()):
+        for box in [stakeStateBox["boxId"],stakePoolBox["boxId"],emissionBox["boxId"]]+list(getBoxesWithUnspentTokens(nErgAmount=int(0.001*nergsPerErg)).keys()):
             res = requests.get(f'{CFG.ergopadNode}/utxo/withPool/byIdBinary/{box}', headers=dict(headers), timeout=2)
             if res.ok:
                 inBoxesRaw.append(res.json()['bytes'])
@@ -459,14 +511,18 @@ async def emit(req: APIKeyRequest):
                 'inputsRaw': inBoxesRaw
             }
 
-        res = requests.post(f'{CFG.ergopadNode}/wallet/transaction/send', headers=dict(headers, **{'api_key': req.apiKey}), json=request)   
+        logging.info(request)
+
+        res = requests.post(f'{CFG.ergopadNode}/wallet/transaction/send', headers=dict(headers, **{'api_key': req.apiKey}), json=request)  
+
+        logging.info(res.content) 
 
         return {
             'stakers': stakeStateR4[2],
             'amountStaked': stakeStateR4[0],
             'nextEmissionTime': stakeStateR4[3]+stakeStateR4[4],
             'dustPreviousEmission': dust,
-            'emissionTx': res.json()["id"]
+            'emissionTx': res.json()
         }
     except Exception as e:
         logging.error(f'ERR:{myself()}: ({e})')
@@ -540,8 +596,12 @@ async def stake(req: StakeRequest):
             ]
         }
 
+        firstUserInput = getInputBoxes([req.utxos[0]],TXFormat.EIP_12)[0]
+        nodeRes = requests.get(f"{CFG.ergopadNode}/utils/ergoTreeToAddress/{firstUserInput['ergoTree']}").json()
+        address = nodeRes['address']
+
         userOutput = {
-            'address': req.wallet,
+            'address': address,
             'ergValue': int(0.001*nergsPerErg),
             'amount': 1,
             'name': f'{stakedTokenInfo["name"]} Stake Key {datetime.now()}',
@@ -549,12 +609,47 @@ async def stake(req: StakeRequest):
             'decimals': "0"
         }
 
-        inputs = getInputBoxes([stakeStateBox["boxId"]]+req.utxos,txFormat=req.txFormat)
-        outputs = getBoxCandidates([stakeStateOutput,stakeOutput,userOutput])
+        inputs = [stakeStateBox["boxId"]]+req.utxos
+        inputsRaw = getInputBoxes(inputs,txFormat=TXFormat.NODE)
+        outputs = [stakeStateOutput,stakeOutput,userOutput]
 
-        request =  getUnsignedTX(inputs,[],outputs,req.txFormat,int(0.001*nergsPerErg))
+        request =  {
+                "requests": outputs,
+                "fee": int(0.001*nergsPerErg),
+                "inputsRaw": inputsRaw
+            }
 
-        return request
+        if req.txFormat==TXFormat.NODE:
+            return request
+        
+        logging.info(request)
+        res = requests.post(f'{CFG.ergopadNode}/wallet/transaction/generateUnsigned', headers=dict(headers, **{'api_key': CFG.ergopadApiKey}), json=request)   
+        unsignedTX = res.json()
+        if req.txFormat==TXFormat.EIP_12:
+            logging.info(unsignedTX["inputs"])
+            nodeInputs = unsignedTX["inputs"]
+            eip12Inputs = []
+            for ni in nodeInputs:
+                eip12Input = getInputBoxes([ni["boxId"]],TXFormat.EIP_12)[0]
+                eip12Input["extension"] = ni["extension"]
+                eip12Inputs.append(eip12Input)
+            unsignedTX["inputs"] = eip12Inputs
+            for out in unsignedTX["outputs"]:
+                out["value"] = str(out["value"])
+                for token in out["assets"]:
+                    token["amount"] = str(token["amount"])
+            if len(unsignedTX["outputs"])==5:
+                unsignedTX["outputs"][4]["ergoTree"] = unsignedTX["outputs"][2]["ergoTree"]
+
+        result = {
+            'inputs': unsignedTX["inputs"],
+            'dataInputs': unsignedTX["dataInputs"],
+            'outputs': unsignedTX["outputs"]
+        }
+
+        logging.info(result)
+
+        return result
     except Exception as e:
         logging.error(f'ERR:{myself()}: ({e})')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'Undefined error during staking')
@@ -652,7 +747,7 @@ async def bootstrapStaking(req: BootstrapRequest):
         'address': stakeStateAddress,
         'value': int(0.001*nergsPerErg),
         'registers': {
-            'R4': encodeLongArray([0,0,0,0,req.cycleDuration_ms])
+            'R4': encodeLongArray([0,0,0,int(time()*1000),req.cycleDuration_ms])
         },
         'assets': [
             {
@@ -682,16 +777,16 @@ async def bootstrapStaking(req: BootstrapRequest):
 
     inputs = set()
 
-    for boxId in getBoxesWithUnspentTokens(tokenId=req.emissionNFT,tokenAmount=1).keys():
-        inputs.add(boxId)
-    for boxId in getBoxesWithUnspentTokens(tokenId=req.stakeStateNFT,tokenAmount=1).keys():
-        inputs.add(boxId)
-    for boxId in getBoxesWithUnspentTokens(tokenId=req.stakePoolNFT,tokenAmount=1).keys():
-        inputs.add(boxId)
-    for boxId in getBoxesWithUnspentTokens(tokenId=req.stakedTokenID,tokenAmount=req.stakeAmount*stakedTokenDecimalMultiplier).keys():
-        inputs.add(boxId)
-    for boxId in getBoxesWithUnspentTokens(tokenId=req.stakeTokenID,tokenAmount=1000000000).keys():
-        inputs.add(boxId)
+    # for boxId in getBoxesWithUnspentTokens(tokenId=req.emissionNFT,tokenAmount=1).keys():
+    #     inputs.add(boxId)
+    # for boxId in getBoxesWithUnspentTokens(tokenId=req.stakeStateNFT,tokenAmount=1).keys():
+    #     inputs.add(boxId)
+    # for boxId in getBoxesWithUnspentTokens(tokenId=req.stakePoolNFT,tokenAmount=1).keys():
+    #     inputs.add(boxId)
+    # for boxId in getBoxesWithUnspentTokens(nErgAmount=0.002*nergsPerErg,tokenId=req.stakedTokenID,tokenAmount=req.stakeAmount*stakedTokenDecimalMultiplier).keys():
+    #     inputs.add(boxId)
+    # for boxId in getBoxesWithUnspentTokens(nErgAmount=0.002*nergsPerErg,tokenId=req.stakeTokenID,tokenAmount=1000000000).keys():
+    #     inputs.add(boxId)
 
     inBoxesRaw = []
     for box in list(inputs):
@@ -702,9 +797,9 @@ async def bootstrapStaking(req: BootstrapRequest):
             return res
 
     request = {
-                'requests': [stakePoolBox,stakeStateBox,emissionBox],
+                'requests': [stakeStateBox,emissionBox],
                 'fee': int(0.001*nergsPerErg),          
-                'inputsRaw': list(inputs)
+                'inputsRaw': inBoxesRaw
             }
     
 

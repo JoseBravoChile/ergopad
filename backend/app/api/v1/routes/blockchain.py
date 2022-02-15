@@ -173,16 +173,23 @@ def followInfo(followId):
         logging.error(f'ERR:{myself()}: invalid assembly follow ({e})')
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=f'invalid assembly follow')
 
-def getBoxCandidates(boxes):
+async def getBoxCandidates(boxes):
     outputs = []
     for box in boxes:
-        outputs.append({
-            'value': box["value"],
-            'ergoTree': Wallet(box["address"]).ergoTree(),
-            'assets': box["assets"],
-            'additionalRegisters': box["registers"],
-            'creationHeight': getInfo()["currentHeight"]
-        })
+        if "value" in box.keys():
+            currentInfo = await getInfo()
+            nodeRes = requests.get(f"{CFG.ergopadNode}/script/addressToTree/{box['address']}").json()
+            ergoTree = nodeRes['tree']
+            outputs.append({
+                'value': box["value"],
+                'ergoTree': ergoTree,
+                'address': box["address"],
+                'assets': box["assets"],
+                'additionalRegisters': box["registers"],
+                'creationHeight': currentInfo["currentHeight"]
+            })
+        else:
+            outputs.append(box)
     return outputs
 
 def getUnsignedTX(inputs, dataInputs, outputs, txFormat: TXFormat, txFee = 0):
@@ -220,9 +227,9 @@ def getInputBoxes(boxes, txFormat: TXFormat):
                 unsignedInputs.append({
                     'extension': {},
                     'boxId': box["boxId"],
-                    'value': box["value"],
+                    'value': str(box["value"]),
                     'ergoTree': box["ergoTree"],
-                    'assets': box["assets"],
+                    'assets': json.loads(json.dumps(box["assets"]), parse_int=str),
                     'additionalRegisters': box["additionalRegisters"],
                     'creationHeight': box["creationHeight"],
                     'transactionId': box["transactionId"],
@@ -276,7 +283,7 @@ def getTokenBoxes(tokenId: str, offset: int = 0, limit: int = 100):
 
 # find unspent boxes with tokens
 @r.get("/unspentTokens", name="blockchain:unspentTokens")
-def getBoxesWithUnspentTokens(nErgAmount=-1, tokenId=CFG.ergopadTokenId, tokenAmount=-1, allowMempool=True):
+def getBoxesWithUnspentTokens(nErgAmount=-1, tokenId=CFG.ergopadTokenId, tokenAmount=-1, allowMempool=True, emptyRegisters=False):
     try:
         foundTokenAmount = 0
         foundNErgAmount = 0
@@ -287,25 +294,25 @@ def getBoxesWithUnspentTokens(nErgAmount=-1, tokenId=CFG.ergopadTokenId, tokenAm
             assets = res.json()
             for ast in assets:
                 if 'box' in ast:
+                    if not emptyRegisters or len(ast['box']['additionalRegisters']) == 0:
+                        # find enough boxes to handle nergs requested
+                        if foundNErgAmount < nErgAmount:
+                            foundNErgAmount += ast['box']['value']
+                            ergopadTokenBoxes[ast['box']['boxId']] = []
 
-                    # find enough boxes to handle nergs requested
-                    if foundNErgAmount < nErgAmount:
-                        foundNErgAmount += ast['box']['value']
-                        ergopadTokenBoxes[ast['box']['boxId']] = []
-
-                    # find enough boxes with tokens to handle request
-                    if ast['box']['assets'] != [] and (foundTokenAmount < tokenAmount or tokenAmount == -1):
-                        for tkn in ast['box']['assets']:
-                            if 'tokenId' in tkn and 'amount' in tkn:
-                                 #logging.info(tokenId)
-                                if tkn['tokenId'] == tokenId:
-                                    foundTokenAmount += tkn['amount']
-                                    if ast['box']['boxId'] in ergopadTokenBoxes:
-                                        ergopadTokenBoxes[ast['box']['boxId']].append(tkn)
-                                    else:
-                                        ergopadTokenBoxes[ast['box']['boxId']] = [tkn]
-                                        foundNErgAmount += ast['box']['value']
-                                    # logging.debug(tkn)
+                        # find enough boxes with tokens to handle request
+                        if ast['box']['assets'] != [] and (foundTokenAmount < tokenAmount or tokenAmount == -1):
+                            for tkn in ast['box']['assets']:
+                                if 'tokenId' in tkn and 'amount' in tkn:
+                                    #logging.info(tokenId)
+                                    if tkn['tokenId'] == tokenId:
+                                        foundTokenAmount += tkn['amount']
+                                        if ast['box']['boxId'] in ergopadTokenBoxes:
+                                            ergopadTokenBoxes[ast['box']['boxId']].append(tkn)
+                                        else:
+                                            ergopadTokenBoxes[ast['box']['boxId']] = [tkn]
+                                            foundNErgAmount += ast['box']['value']
+                                        # logging.debug(tkn)
 
             logging.info(f'found {foundTokenAmount} ergopad tokens and {foundNErgAmount} nErg in wallet')
 
@@ -358,11 +365,11 @@ def getErgoscript(name, params={}):
             with open(f'contracts/{name}.es') as f:
                 unformattedScript = f.read()
             script = unformattedScript.format(**params)
-
+        request = {'source': script}
 
         logging.debug(f'Script: {script}')
         # get the P2S address (basically a hash of the script??)
-        p2s = requests.post(f'{CFG.assembler}/compile', headers=headers, json=script)
+        p2s = requests.post(f'{CFG.node}/script/p2sAddress', headers=headers, json=request)
         logging.debug(f'p2s: {p2s.content}')
         smartContract = p2s.json()['address']
         # logging.debug(f'smart contract: {smartContract}')

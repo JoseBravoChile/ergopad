@@ -89,7 +89,7 @@
        if (SELF.R4[Coll[Long]].get(0) > OUTPUTS(0).R4[Coll[Long]].get(0) && INPUTS.size >= 3) {{ // Unstake
            // Stake State (SELF), Stake, Stake Key Box => Stake State, User Wallet, Stake (optional for partial unstake)
            val unstaked = SELF.R4[Coll[Long]].get(0) - OUTPUTS(0).R4[Coll[Long]].get(0)
-           val stakeKey = INPUTS(2).tokens.exists({(token: (Coll[Byte],Long)) => token._1 == INPUTS(1).R5[Coll[Byte]].get})
+           val stakeKey = INPUTS(2).tokens.exists({{(token: (Coll[Byte],Long)) => token._1 == INPUTS(1).R5[Coll[Byte]].get}})
            val remaining = INPUTS(1).tokens(1)._2 - unstaked
            val timeInWeeks = (blockTime - INPUTS(1).R4[Coll[Long]].get(1))/(1000*3600*24*7)
            val penalty =  if (timeInWeeks >= 8) 0L else
