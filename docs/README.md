@@ -83,6 +83,7 @@ Staking will go live very shortly after IDO on January 26th.
 
 Tier | Amount | Allocation Weight
 --- | --- | ---
+(M) Mini | 12500	| 4
 (A) Alpha | 25000	| 10
 (Β) Beta | 50000	| 24
 (Γ) Gamma | 100000 | 58
